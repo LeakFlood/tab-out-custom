@@ -97,8 +97,7 @@ Because the extension uses Chromium extension APIs, it should also work on Chrom
 
 ```text
 brave://extensions
-
-
+```
 
 ## Privacy-oriented setup
 
@@ -111,6 +110,8 @@ Optional private configuration can be placed in:
 ```text
 extension/config.local.js
 ```
+
+This file should not be committed or shared.
 
 This file should not be committed or shared.
 
