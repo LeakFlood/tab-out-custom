@@ -48,6 +48,10 @@ const I18N = {
     inboxZeroTitle: "Zéro onglet.",
     inboxZeroSubtitle: "Tu es libre.",
     noResults: "Aucun résultat",
+    filterTabs: "Filtrer les onglets…",
+    searchTabs: "Rechercher dans les onglets",
+    closeTabSearch: "Fermer la recherche",
+    noMatchingTabs: "Aucun onglet ne correspond à cette recherche.",
 
     justNow: "à l’instant",
     minAgo: "il y a {count} min",
@@ -207,6 +211,10 @@ const I18N = {
     inboxZeroTitle: "Inbox zero, but for tabs.",
     inboxZeroSubtitle: "You're free.",
     noResults: "No results",
+    filterTabs: "Filter tabs…",
+    searchTabs: "Search open tabs",
+    closeTabSearch: "Close search",
+    noMatchingTabs: "No tabs match this search.",
 
     justNow: "just now",
     minAgo: "{count} min ago",
@@ -1073,6 +1081,8 @@ const ICONS = {
    IN-MEMORY STORE FOR OPEN-TAB GROUPS
    ---------------------------------------------------------------- */
 let domainGroups = [];
+let openTabsFilterQuery = "";
+let openTabsSearchVisible = false;
 
 
 /* ----------------------------------------------------------------
@@ -1153,6 +1163,119 @@ function buildOverflowChips(hiddenTabs, urlCounts = {}) {
     <div class="page-chip page-chip-overflow clickable" data-action="expand-chips">
       <span class="chip-text">+${hiddenTabs.length} more</span>
     </div>`;
+}
+
+
+/* ----------------------------------------------------------------
+   OPEN TABS FILTER
+   ---------------------------------------------------------------- */
+
+function escapeAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function normalizeFilterText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function getDomainGroupSearchText(group) {
+  const parts = [
+    group.domain,
+    group.label,
+    friendlyDomain(group.domain)
+  ];
+
+  for (const tab of group.tabs || []) {
+    parts.push(tab.title, tab.url);
+    try {
+      const parsed = new URL(tab.url);
+      parts.push(parsed.hostname, parsed.pathname, friendlyDomain(parsed.hostname));
+    } catch {}
+  }
+
+  return normalizeFilterText(parts.filter(Boolean).join(" "));
+}
+
+function getFilteredDomainGroups(groups = domainGroups) {
+  const query = normalizeFilterText(openTabsFilterQuery);
+  if (!query) return groups;
+
+  const terms = query.split(/\s+/).filter(Boolean);
+  return groups.filter((group) => {
+    const haystack = getDomainGroupSearchText(group);
+    return terms.every((term) => haystack.includes(term));
+  });
+}
+
+function getOpenTabsCountLabel(filteredGroups, allGroups) {
+  const filteredCount = filteredGroups.length;
+  const totalCount = allGroups.length;
+  const domainLabel = filteredCount === 1 ? t("domain") : t("domains");
+
+  if (normalizeFilterText(openTabsFilterQuery)) {
+    return `${filteredCount}/${totalCount} ${domainLabel}`;
+  }
+
+  return `${totalCount} ${totalCount === 1 ? t("domain") : t("domains")}`;
+}
+
+function renderOpenTabsSearchControls(realTabCount) {
+  const searchValue = escapeAttr(openTabsFilterQuery);
+  const activeClass = openTabsSearchVisible ? " is-visible" : "";
+
+  return `
+    <span id="openTabsFilteredCount" class="open-tabs-count-label"></span>
+    <button class="open-tabs-search-btn" data-action="toggle-open-tabs-search" title="${escapeAttr(t("searchTabs"))}" aria-label="${escapeAttr(t("searchTabs"))}" aria-expanded="${openTabsSearchVisible ? "true" : "false"}">
+      <svg class="open-tabs-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
+      </svg>
+    </button>
+    <span class="open-tabs-search-wrap${activeClass}" id="openTabsSearchWrap">
+      <input type="text" id="openTabsFilterInput" class="open-tabs-search-input" value="${searchValue}" placeholder="${escapeAttr(t("filterTabs"))}" autocomplete="off" spellcheck="false">
+      <button type="button" class="open-tabs-search-clear" data-action="clear-open-tabs-search" title="${escapeAttr(t("closeTabSearch"))}" aria-label="${escapeAttr(t("closeTabSearch"))}">×</button>
+    </span>
+    <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} ${t("closeAllTabs", { count: realTabCount })}</button>
+  `;
+}
+
+function updateOpenTabsFilterUI(filteredGroups = getFilteredDomainGroups(), allGroups = domainGroups) {
+  const countLabel = document.getElementById("openTabsFilteredCount");
+  if (countLabel) {
+    countLabel.textContent = getOpenTabsCountLabel(filteredGroups, allGroups);
+  }
+
+  const clearButton = document.querySelector(".open-tabs-search-clear");
+  if (clearButton) {
+    clearButton.hidden = !openTabsSearchVisible;
+  }
+}
+
+function renderFilteredOpenTabs() {
+  const openTabsMissionsEl = document.getElementById("openTabsMissions");
+  if (!openTabsMissionsEl) return;
+
+  const filteredGroups = getFilteredDomainGroups(domainGroups);
+
+  if (filteredGroups.length > 0) {
+    openTabsMissionsEl.innerHTML = filteredGroups.map(g => renderDomainCard(g)).join("");
+  } else {
+    openTabsMissionsEl.innerHTML = `
+      <div class="missions-empty-state open-tabs-filter-empty">
+        <div class="empty-title">${t("noResults")}</div>
+        <div class="empty-subtitle">${t("noMatchingTabs")}</div>
+      </div>
+    `;
+  }
+
+  updateOpenTabsFilterUI(filteredGroups, domainGroups);
 }
 
 
@@ -1567,8 +1690,8 @@ async function renderStaticDashboard() {
 
   if (domainGroups.length > 0 && openTabsSection) {
     if (openTabsSectionTitle) openTabsSectionTitle.textContent = t("openTabs");
-    openTabsSectionCount.innerHTML = `${domainGroups.length} ${domainGroups.length === 1 ? t("domain") : t("domains")} &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} ${t("closeAllTabs", { count: realTabs.length })}</button>`;
-    openTabsMissionsEl.innerHTML = domainGroups.map(g => renderDomainCard(g)).join('');
+    openTabsSectionCount.innerHTML = renderOpenTabsSearchControls(realTabs.length);
+    renderFilteredOpenTabs();
     openTabsSection.style.display = 'block';
   } else if (openTabsSection) {
     openTabsSection.style.display = 'none';
@@ -2330,6 +2453,55 @@ document.addEventListener("pointercancel", async (e) => {
   await finishSavedSessionPointerDrag(e);
 });
 
+document.addEventListener("input", (event) => {
+  if (event.target?.id !== "openTabsFilterInput") {
+    return;
+  }
+
+  openTabsFilterQuery = event.target.value || "";
+  renderFilteredOpenTabs();
+});
+
+document.addEventListener("keydown", (event) => {
+  const target = event.target;
+  const isTyping = target && (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.isContentEditable
+  );
+
+  if (event.key === "/" && !isTyping) {
+    const openTabsSection = document.getElementById("openTabsSection");
+    if (!openTabsSection || openTabsSection.style.display === "none") return;
+
+    event.preventDefault();
+    openTabsSearchVisible = true;
+    const searchWrap = document.getElementById("openTabsSearchWrap");
+    const toggle = document.querySelector('[data-action="toggle-open-tabs-search"]');
+    const input = document.getElementById("openTabsFilterInput");
+
+    if (searchWrap) searchWrap.classList.add("is-visible");
+    if (toggle) toggle.setAttribute("aria-expanded", "true");
+    if (input) input.focus();
+    return;
+  }
+
+  if (event.key === "Escape" && target?.id === "openTabsFilterInput") {
+    event.preventDefault();
+    openTabsFilterQuery = "";
+    target.value = "";
+    openTabsSearchVisible = false;
+
+    const searchWrap = document.getElementById("openTabsSearchWrap");
+    const toggle = document.querySelector('[data-action="toggle-open-tabs-search"]');
+    if (searchWrap) searchWrap.classList.remove("is-visible");
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+
+    target.blur();
+    renderFilteredOpenTabs();
+  }
+});
+
 document.addEventListener('click', async (e) => {
   // Walk up the DOM to find the nearest element with data-action
   const actionEl = e.target.closest('[data-action]');
@@ -2337,6 +2509,58 @@ document.addEventListener('click', async (e) => {
   if (!actionEl) return;
 
   const action = actionEl.dataset.action;
+
+  // ---- Open tabs search ----
+  if (action === "toggle-open-tabs-search") {
+    e.preventDefault();
+    e.stopPropagation();
+
+    openTabsSearchVisible = !openTabsSearchVisible;
+    const searchWrap = document.getElementById("openTabsSearchWrap");
+    const input = document.getElementById("openTabsFilterInput");
+
+    if (searchWrap) searchWrap.classList.toggle("is-visible", openTabsSearchVisible);
+    actionEl.setAttribute("aria-expanded", openTabsSearchVisible ? "true" : "false");
+
+    if (openTabsSearchVisible && input) {
+      requestAnimationFrame(() => input.focus());
+    }
+
+    if (!openTabsSearchVisible && !normalizeFilterText(openTabsFilterQuery)) {
+      return;
+    }
+
+    return;
+  }
+
+  if (action === "clear-open-tabs-search") {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const hadQuery = Boolean(normalizeFilterText(openTabsFilterQuery));
+    openTabsFilterQuery = "";
+
+    const input = document.getElementById("openTabsFilterInput");
+    const searchWrap = document.getElementById("openTabsSearchWrap");
+    const toggle = document.querySelector('[data-action="toggle-open-tabs-search"]');
+
+    if (input) {
+      input.value = "";
+    }
+
+    if (hadQuery) {
+      if (input) input.focus();
+      renderFilteredOpenTabs();
+      return;
+    }
+
+    openTabsSearchVisible = false;
+    if (searchWrap) searchWrap.classList.remove("is-visible");
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+    if (input) input.blur();
+    renderFilteredOpenTabs();
+    return;
+  }
 
     // ---- Backup / import ----
     if (action === "toggle-backup-menu") {
