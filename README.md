@@ -189,4 +189,4 @@ MIT
 
 ---
 
-Built by [Zara](https://x.com/zarazhangrui)
+Original project by [Zara](https://x.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
