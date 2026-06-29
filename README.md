@@ -1,46 +1,72 @@
 # Tab Out Custom
 
+A customized Chrome new tab workflow dashboard based on [Tab Out](https://github.com/zarazhangrui/tab-out).
+
 Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
-A customized Chrome new tab dashboard based on **Tab Out**.
-
-This version turns the new tab page into a clean productivity dashboard with shortcut management, saved tab sessions, live open-tab cleanup, local weather, and French/English interface support.
+Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, saved sessions, open-tab cleanup, local weather, French/English support, and saved Chrome tab groups with local snapshots.
 
 ## Features
 
-### Custom new tab dashboard
+### Workflow dashboard
 
-Replaces Chrome’s default new tab page with a minimalist dashboard showing:
+Tab Out Custom replaces the default Chrome new tab page with a clean dashboard showing:
 
-* current greeting;
+* greeting;
 * live time;
 * current date;
-* weather widget;
+* local weather;
 * quick shortcuts;
 * saved sessions;
+* saved Chrome groups;
 * open tab overview.
 
 ### Quick shortcuts
 
 Add, edit, and delete custom shortcuts directly from the dashboard.
 
-Shortcuts are stored locally in Chrome using `chrome.storage.local`, so they are private to each user and are not included when sharing the project files.
+Shortcuts are stored locally with `chrome.storage.local`, so they stay private to each browser profile and are not included in the repository.
 
 ### Saved sessions
 
-Create reusable tab sessions from currently open tabs.
+Create reusable sessions from currently open tabs.
 
-A saved session can be reopened later with one click. Each session includes:
+Each saved session includes:
 
-* custom name;
+* a custom name;
 * selected tabs;
 * favicon preview;
-* edit mode;
-* delete option.
+* one-click reopening;
+* edit and delete actions.
+
+Sessions are useful for recurring workflows such as development, research, media, admin tools, or personal dashboards.
+
+### Saved Chrome groups
+
+Tab Out Custom can save Chrome tab groups as local snapshots.
+
+This adds a protection layer on top of Chrome’s native tab groups:
+
+* save a Chrome group;
+* keep its name, color, and tabs;
+* detect when the live Chrome group changes;
+* restore a closed group from the saved snapshot;
+* update the saved snapshot manually;
+* open a saved group as a new Chrome group;
+* ignore a detected change when needed.
+
+Saved groups are never modified automatically. When Chrome changes a group, Tab Out Custom shows the difference and lets the user decide what to do.
+
+Group states include:
+
+* **Saved / synced** — the Chrome group matches the saved snapshot;
+* **Changed** — tabs were added or removed since the last save;
+* **Closed** — the group is not currently open, but can be restored;
+* **Unsaved** — the group exists in Chrome but has not been saved yet.
 
 ### Open tabs overview
 
-Tab Out groups currently open tabs by domain and displays them as clean cards.
+Open tabs are grouped by domain and shown as compact cards.
 
 You can:
 
@@ -53,65 +79,44 @@ You can:
 
 ### Live refresh
 
-The dashboard updates when Chrome tabs change.
+The dashboard updates when browser tabs or saved groups change.
 
-It reacts to:
-
-* new tabs;
-* closed tabs;
-* updated tabs;
-* active tab changes;
-* window focus changes.
+Refresh behavior is debounced to avoid unnecessary layout jumps during Chrome tab group updates.
 
 ### Weather widget
 
-Includes a local weather card with:
+The dashboard includes a local weather widget with:
 
 * current temperature in °C;
 * feels-like temperature;
-* condition label;
-* animated weather visual;
-* hidden city by default for privacy.
+* weather condition label;
+* animated visual state;
+* privacy-friendly city masking.
 
-The city is masked by default and only appears when clicked. It is automatically hidden again after reload or browser restart.
+The city is hidden by default and only appears when clicked. It is automatically hidden again after reload or browser restart.
 
-Weather data is fetched through Open-Meteo and reverse geocoding through Nominatim.
+Weather data is fetched through Open-Meteo. Reverse geocoding is handled through Nominatim.
 
 ### French / English interface
 
-The dashboard includes a language switcher.
-
-Supported languages:
+The interface supports:
 
 * French;
 * English.
 
 The selected language is saved locally in Chrome.
 
-
 ## Browser compatibility
 
-Tested primarily on Chrome.
+Tested primarily on Google Chrome.
 
-Because the extension uses Chromium extension APIs, it should also work on Chromium-based browsers such as Brave. To install it in Brave, open:
+Because the extension uses Chromium extension APIs, it should also work on Chromium-based browsers such as Brave.
+
+For Brave, open:
 
 ```text
 brave://extensions
 ```
-
-## Privacy-oriented setup
-
-Personal data is not hardcoded into the shared files.
-
-User-created shortcuts and sessions are stored locally in Chrome, not in the repository.
-
-Optional private configuration can be placed in:
-
-```text
-extension/config.local.js
-```
-
-This file should not be committed or shared.
 
 ## Installation
 
@@ -133,15 +138,35 @@ extension
 
 7. Open a new tab.
 
-## Private configuration
+## Privacy
 
-You can create a local private configuration file:
+Tab Out Custom is designed to keep personal workflow data local.
+
+Stored locally in Chrome:
+
+* custom shortcuts;
+* saved sessions;
+* saved Chrome group snapshots;
+* language preference;
+* weather cache.
+
+This data is stored with `chrome.storage.local` and is not included when sharing or pushing the project files.
+
+The project supports an optional private configuration file:
 
 ```text
 extension/config.local.js
 ```
 
-This file is ignored by Git and should be kept private.
+This file should not be committed or shared.
+
+## Private configuration
+
+You can create:
+
+```text
+extension/config.local.js
+```
 
 Example:
 
@@ -154,7 +179,7 @@ window.TAB_OUT_DEFAULT_SHORTCUTS = [
 ];
 ```
 
-Do not commit this file if it contains personal links.
+Do not commit this file if it contains personal links or private workflow data.
 
 ## Git ignore
 
@@ -164,15 +189,14 @@ The repository should ignore:
 extension/config.local.js
 ```
 
-This prevents personal shortcuts or private configuration from being pushed to GitHub.
-
 ## Permissions
 
 This extension may use the following Chrome permissions:
 
-* `tabs` — read and manage open tabs;
-* `activeTab` — interact with the active tab;
-* `storage` — save shortcuts, sessions, preferences, and weather cache;
+* `tabs` — read and manage open browser tabs;
+* `tabGroups` — read, save, restore, and update Chrome tab groups;
+* `activeTab` — interact with the active tab when needed;
+* `storage` — save shortcuts, sessions, preferences, weather cache, and group snapshots;
 * `geolocation` — retrieve local weather if the user allows it.
 
 External requests are used for:
@@ -181,26 +205,38 @@ External requests are used for:
 * reverse geocoding;
 * favicons.
 
-## Notes
-
-This is a personal customization of Tab Out, designed for a cleaner and more functional new tab workflow.
-
-Original project:
+## Project structure
 
 ```text
-https://github.com/zarazhangrui/tab-out
+extension/
+├── app.js
+├── background.js
+├── index.html
+├── manifest.json
+├── style.css
+└── icons/
 ```
 
-## License
+## Notes
 
-If this project is based on the original Tab Out repository, keep the original license and attribution.
+This is a personal customization of Tab Out, extended into a workflow-focused new tab dashboard.
 
+The project is still evolving and currently prioritizes:
+
+* compact interface;
+* local-first storage;
+* browser workflow control;
+* privacy-conscious behavior;
+* manual confirmation before changing saved Chrome group snapshots.
+
+## Credits
+
+Original project by [Zara](https://github.com/zarazhangrui).
+
+Customized by [LK.](https://github.com/LeakFlood).
+
+This project is based on Tab Out and keeps the original attribution.
 
 ## License
 
 MIT
-
----
-
-Original project by [Zara](https://x.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
-This project is based on Tab Out and keeps the original MIT License.
