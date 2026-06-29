@@ -192,3 +192,4 @@ MIT
 ---
 
 Original project by [Zara](https://x.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
+This project is based on Tab Out and keeps the original MIT License.
