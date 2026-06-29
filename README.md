@@ -1,6 +1,6 @@
 # Tab Out Custom
 
-Original project by [Zara](https://x.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
+Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
 A customized Chrome new tab dashboard based on **Tab Out**.
 
