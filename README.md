@@ -88,6 +88,17 @@ Supported languages:
 
 The selected language is saved locally in Chrome.
 
+
+## Browser compatibility
+
+Tested primarily on Chrome.
+
+Because the extension uses Chromium extension APIs, it should also work on Chromium-based browsers such as Brave. To install it in Brave, open:
+
+```text
+brave://extensions
+
+
 ### Privacy-oriented setup
 
 Personal data is not hardcoded into the shared files.
