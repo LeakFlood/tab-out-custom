@@ -127,6 +127,16 @@ const I18N = {
     showCity: "Afficher la ville",
     hideCity: "Masquer la ville",
 
+    backupMenuTitle: "Sauvegarde des données",
+    exportData: "Exporter les données",
+    importData: "Importer les données",
+    exportSuccess: "Données exportées",
+    exportFailed: "Export impossible",
+    importConfirm: "Importer ces données va remplacer tes raccourcis, sessions, groupes sauvegardés, onglets archivés et préférences locales. Continuer ?",
+    importSuccess: "Données importées",
+    importFailed: "Import impossible",
+    invalidBackupFile: "Fichier de sauvegarde invalide",
+
     protectedGroupsTab: "Groupes sauvegardés",
     syncChromeGroups: "Synchroniser",
     protectActiveGroup: "+ Protéger le groupe actif",
@@ -274,6 +284,16 @@ const I18N = {
     weatherLoading: "Loading...",
     showCity: "Show city",
     hideCity: "Hide city",
+
+    backupMenuTitle: "Data backup",
+    exportData: "Export data",
+    importData: "Import data",
+    exportSuccess: "Data exported",
+    exportFailed: "Export failed",
+    importConfirm: "Importing this backup will replace your shortcuts, sessions, saved groups, archived tabs, and local preferences. Continue?",
+    importSuccess: "Data imported",
+    importFailed: "Import failed",
+    invalidBackupFile: "Invalid backup file",
 
     protectedGroupsTab: "Saved groups",
     syncChromeGroups: "Sync",
@@ -2061,6 +2081,31 @@ document.addEventListener('click', async (e) => {
 
   const action = actionEl.dataset.action;
 
+    // ---- Backup / import ----
+    if (action === "toggle-backup-menu") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      toggleBackupMenu();
+      return;
+    }
+
+    if (action === "export-tab-out-data") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      await exportTabOutData();
+      return;
+    }
+
+    if (action === "import-tab-out-data") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      openBackupImportPicker();
+      return;
+    }
+
     // ---- Saved sessions ----
     if (action === "create-saved-session") {
       e.preventDefault();
@@ -2882,6 +2927,203 @@ async function setupLanguageSwitcher() {
 }
 
 document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
+
+/* ----------------------------------------------------------------
+   BACKUP / IMPORT — discreet local data safety net
+   ---------------------------------------------------------------- */
+
+const TAB_OUT_BACKUP_VERSION = 1;
+const TAB_OUT_CHROME_STORAGE_BACKUP_KEYS = [
+  "savedSessions",
+  "tabOutProtectedGroups",
+  "tabOutLanguage",
+  "deferred"
+];
+const TAB_OUT_LOCAL_STORAGE_BACKUP_KEYS = [
+  "tabOutShortcuts"
+];
+
+function toggleBackupMenu(forceOpen = null) {
+  const menu = document.getElementById("backupMenu");
+  const button = document.getElementById("backupMenuBtn");
+
+  if (!menu || !button) {
+    return;
+  }
+
+  const shouldOpen = forceOpen === null ? menu.hidden : Boolean(forceOpen);
+
+  menu.hidden = !shouldOpen;
+  button.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeBackupMenu() {
+  toggleBackupMenu(false);
+}
+
+async function collectTabOutBackupData() {
+  const chromeData = await chrome.storage.local.get(TAB_OUT_CHROME_STORAGE_BACKUP_KEYS);
+  const localData = {};
+
+  TAB_OUT_LOCAL_STORAGE_BACKUP_KEYS.forEach((key) => {
+    const rawValue = localStorage.getItem(key);
+
+    if (rawValue === null) {
+      return;
+    }
+
+    try {
+      localData[key] = JSON.parse(rawValue);
+    } catch {
+      localData[key] = rawValue;
+    }
+  });
+
+  return {
+    app: "Tab Out Custom",
+    type: "tab-out-backup",
+    version: TAB_OUT_BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    data: {
+      chromeStorage: chromeData,
+      localStorage: localData
+    }
+  };
+}
+
+function downloadJsonBackup(payload) {
+  const date = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `tab-out-backup-${date}.json`;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function exportTabOutData() {
+  try {
+    const backup = await collectTabOutBackupData();
+
+    downloadJsonBackup(backup);
+    closeBackupMenu();
+    showToast(t("exportSuccess"));
+  } catch (error) {
+    console.warn("[tab-out] backup export failed:", error);
+    showToast(t("exportFailed"));
+  }
+}
+
+function openBackupImportPicker() {
+  const input = document.getElementById("backupImportInput");
+
+  closeBackupMenu();
+
+  if (!input) {
+    return;
+  }
+
+  input.value = "";
+  input.click();
+}
+
+function validateBackupPayload(payload) {
+  return Boolean(
+    payload &&
+    payload.type === "tab-out-backup" &&
+    payload.data &&
+    typeof payload.data === "object" &&
+    payload.data.chromeStorage &&
+    typeof payload.data.chromeStorage === "object" &&
+    payload.data.localStorage &&
+    typeof payload.data.localStorage === "object"
+  );
+}
+
+async function importTabOutDataFromFile(file) {
+  if (!file) {
+    return;
+  }
+
+  try {
+    const rawText = await file.text();
+    const payload = JSON.parse(rawText);
+
+    if (!validateBackupPayload(payload)) {
+      showToast(t("invalidBackupFile"));
+      return;
+    }
+
+    const confirmed = confirm(t("importConfirm"));
+
+    if (!confirmed) {
+      return;
+    }
+
+    const chromeStorageData = {};
+
+    TAB_OUT_CHROME_STORAGE_BACKUP_KEYS.forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(payload.data.chromeStorage, key)) {
+        chromeStorageData[key] = payload.data.chromeStorage[key];
+      }
+    });
+
+    if (Object.keys(chromeStorageData).length) {
+      await chrome.storage.local.set(chromeStorageData);
+    }
+
+    TAB_OUT_LOCAL_STORAGE_BACKUP_KEYS.forEach((key) => {
+      if (!Object.prototype.hasOwnProperty.call(payload.data.localStorage, key)) {
+        return;
+      }
+
+      localStorage.setItem(key, JSON.stringify(payload.data.localStorage[key]));
+    });
+
+    await getLanguage();
+    applyStaticTranslations();
+
+    if (typeof renderShortcuts === "function") {
+      renderShortcuts();
+    }
+
+    await renderDashboard();
+    await renderSavedSessions();
+
+    showToast(t("importSuccess"));
+  } catch (error) {
+    console.warn("[tab-out] backup import failed:", error);
+    showToast(t("importFailed"));
+  }
+}
+
+function setupBackupMenu() {
+  const input = document.getElementById("backupImportInput");
+
+  if (input) {
+    input.addEventListener("change", async () => {
+      await importTabOutDataFromFile(input.files?.[0]);
+      input.value = "";
+    });
+  }
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#backupMenuWrap")) {
+    closeBackupMenu();
+  }
+});
+
+document.addEventListener("DOMContentLoaded", setupBackupMenu);
 
 /* ----------------------------------------------------------------
    WEATHER WIDGET — local weather, city hidden by default

@@ -18,6 +18,19 @@
     FR
   </button>
 
+  <div class="backup-menu-wrap" id="backupMenuWrap">
+    <button type="button" id="backupMenuBtn" class="backup-menu-btn" data-action="toggle-backup-menu" data-i18n-title="backupMenuTitle" aria-haspopup="true" aria-expanded="false">
+      ⋯
+    </button>
+
+    <div class="backup-menu" id="backupMenu" hidden>
+      <button type="button" data-action="export-tab-out-data" data-i18n="exportData">Exporter les données</button>
+      <button type="button" data-action="import-tab-out-data" data-i18n="importData">Importer les données</button>
+    </div>
+
+    <input type="file" id="backupImportInput" accept="application/json,.json" hidden>
+  </div>
+
 <div id="sessionModal" class="session-modal" hidden>
   <div class="session-modal-card">
     <div class="session-modal-header">
