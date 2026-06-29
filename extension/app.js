@@ -2694,6 +2694,8 @@ document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
 
    const WEATHER_CACHE_KEY = "tabOutWeatherCache";
    const WEATHER_CACHE_MAX_AGE = 45 * 60 * 1000; // 45 min
+   const WEATHER_AUTO_REFRESH_INTERVAL = 5 * 60 * 1000; // vérifie toutes les 5 min
+   let weatherAutoRefreshTimer = null;
    let weatherCityVisible = false;
    
    function mapWeatherCode(code) {
@@ -2735,6 +2737,17 @@ document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
    
      return Math.round(value);
    }
+
+
+   function startWeatherAutoRefresh() {
+    if (weatherAutoRefreshTimer) {
+      clearInterval(weatherAutoRefreshTimer);
+    }
+  
+    weatherAutoRefreshTimer = setInterval(() => {
+      loadWeather({ force: false });
+    }, WEATHER_AUTO_REFRESH_INTERVAL);
+  }
    
    async function getStoredWeatherCache() {
      const { [WEATHER_CACHE_KEY]: cache } = await chrome.storage.local.get(WEATHER_CACHE_KEY);
@@ -2958,6 +2971,9 @@ function renderWeatherWidget(weather, cityVisible = false) {
         }
       });
     }
+
+
+    startWeatherAutoRefresh();
   }
   
   document.addEventListener("DOMContentLoaded", setupWeatherWidget);
