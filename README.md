@@ -118,6 +118,35 @@ For Brave, open:
 brave://extensions
 ```
 
+## Backup and restore
+
+Tab Out Custom includes a discreet backup menu for manual installs and updates.
+
+The backup menu is available from the small `⋯` button in the bottom-right corner of the dashboard.
+
+It can export and import local user data, including:
+
+* custom shortcuts;
+* saved sessions;
+* saved Chrome group snapshots;
+* saved-for-later tabs;
+* language preference.
+
+The export creates a local JSON backup file.
+
+This is useful before reinstalling the extension, moving it to another folder, or switching to a new manual version.
+
+When importing a backup, existing local data is replaced after confirmation.
+
+For normal manual updates, the recommended method is still:
+
+1. keep the same local extension folder;
+2. replace the extension files inside that folder;
+3. reload the extension from `chrome://extensions`.
+
+Removing the extension or loading it from a different folder may create a different local extension storage, which can make previous shortcuts, sessions, and saved groups unavailable.
+
+
 ## Installation
 
 1. Download or clone this repository.
