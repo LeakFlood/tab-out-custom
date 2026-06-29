@@ -99,7 +99,8 @@ Because the extension uses Chromium extension APIs, it should also work on Chrom
 brave://extensions
 
 
-### Privacy-oriented setup
+
+## Privacy-oriented setup
 
 Personal data is not hardcoded into the shared files.
 
