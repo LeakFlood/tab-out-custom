@@ -2001,3 +2001,232 @@ div[aria-label*="Personnaliser"] {
     border-color: rgba(255, 255, 255, 0.22) !important;
     transform: translateY(-1px) !important;
   }
+
+/* ----------------------------------------------------------------
+   3b. Saved sessions view switch + protected group cards
+   ---------------------------------------------------------------- */
+
+.saved-sessions-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.saved-sessions-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.saved-sessions-tab {
+  height: 27px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.saved-sessions-tab:hover {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.saved-sessions-tab.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.115);
+}
+
+.saved-session-card.is-protected-group.is-unprotected .saved-session-open {
+  border-color: rgba(242, 139, 130, 0.34);
+  box-shadow: inset 3px 0 0 rgba(242, 139, 130, 0.92), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.saved-session-card.is-protected-group.is-synced .saved-session-open {
+  box-shadow: inset 3px 0 0 rgba(129, 201, 149, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.saved-session-card.is-protected-group.is-changed .saved-session-open {
+  box-shadow: inset 3px 0 0 rgba(253, 214, 99, 0.82), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.saved-session-card.is-protected-group.is-missing .saved-session-open {
+  box-shadow: inset 3px 0 0 rgba(154, 160, 166, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.saved-session-status {
+  max-width: 124px;
+  color: #d0d0d0;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-session-card.is-changed .saved-session-status {
+  color: #ffd27a;
+}
+
+.saved-session-card.is-missing .saved-session-status {
+  color: #ffaaa2;
+}
+
+.protected-group-menu {
+  position: absolute;
+  right: 2px;
+  top: calc(100% + 6px);
+  z-index: 180;
+  min-width: 196px;
+  padding: 6px;
+  display: grid;
+  gap: 3px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(18, 18, 18, 0.96);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(16px);
+}
+
+.protected-group-menu[hidden] {
+  display: none !important;
+}
+
+.protected-group-menu button {
+  width: 100%;
+  min-height: 30px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.86);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.protected-group-menu button:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+}
+
+.protected-group-menu button.danger {
+  color: #ffaaa2;
+}
+
+.protected-group-menu button.danger:hover {
+  background: rgba(255, 95, 95, 0.17);
+}
+
+@media (max-width: 720px) {
+  .saved-sessions-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .saved-sessions-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Protected groups compact card readability fix */
+.saved-session-card.is-protected-group .saved-session-open {
+  height: 82px;
+  min-height: 82px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  justify-content: center;
+  position: relative;
+}
+
+.chrome-group-color-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--chrome-group-color, rgba(255, 255, 255, 0.45));
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.22), 0 0 12px var(--chrome-group-color, rgba(255, 255, 255, 0.25));
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.saved-session-card.is-protected-group .saved-session-title {
+  display: block;
+  max-width: 122px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.saved-session-card.is-protected-group .saved-session-meta {
+  display: block;
+  max-width: 128px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #d8d8d8;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.saved-session-card.is-protected-group.is-changed .saved-session-meta {
+  color: #ffd27a;
+}
+
+.saved-session-card.is-protected-group.is-missing .saved-session-meta {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.saved-session-card.is-protected-group.is-unprotected .saved-session-meta {
+  color: #ffaaa2;
+}
+
+/* Protected groups UX polish */
+.protected-group-menu-note {
+  padding: 7px 9px 6px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 3px;
+}
+
+.protected-groups-empty {
+  min-height: 72px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.protected-groups-empty strong {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.protected-groups-empty span {
+  max-width: 420px;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.saved-session-card.is-protected-group .saved-session-meta {
+  max-width: 130px;
+}

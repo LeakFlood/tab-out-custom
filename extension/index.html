@@ -105,16 +105,32 @@
             <h2 data-i18n="sessions">Sessions</h2>
             <p data-i18n="sessionsSubtitle">Rouvre rapidement un groupe d’onglets.</p>
           </div>
-      
-          <button type="button" class="saved-session-add-btn" data-action="create-saved-session" data-i18n="createSessionButton">
-            + Session
+
+          <div class="saved-sessions-actions">
+            <button type="button" id="createSessionActionBtn" class="saved-session-add-btn" data-action="create-saved-session" data-i18n="createSessionButton">
+              + Session
+            </button>
+
+            <button type="button" id="syncChromeGroupsBtn" class="saved-session-add-btn" data-action="sync-protected-groups" data-i18n="syncChromeGroups" hidden>
+              Synchroniser
+            </button>
+          </div>
+        </div>
+
+        <div class="saved-sessions-tabs" role="tablist" aria-label="Sessions">
+          <button type="button" id="sessionsViewBtn" class="saved-sessions-tab is-active" data-action="set-sessions-view" data-session-view="sessions" data-i18n="sessions">
+            Sessions
+          </button>
+
+          <button type="button" id="groupsViewBtn" class="saved-sessions-tab" data-action="set-sessions-view" data-session-view="groups" data-i18n="protectedGroupsTab">
+            Groupes protégés
           </button>
         </div>
-      
+
         <div class="saved-sessions-list" id="savedSessionsList"></div>
       </section>
 
-  <div class="tab-cleanup-banner" id="tabOutDupeBanner" style="display:none">
+      <div class="tab-cleanup-banner" id="tabOutDupeBanner" style="display:none">
     <div class="tab-cleanup-left">
       <div class="tab-cleanup-icon">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
