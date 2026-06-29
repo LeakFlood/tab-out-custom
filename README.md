@@ -113,8 +113,6 @@ extension/config.local.js
 
 This file should not be committed or shared.
 
-This file should not be committed or shared.
-
 ## Installation
 
 1. Download or clone this repository.
