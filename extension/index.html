@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,27 +11,109 @@
 
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<div class="container">
 
+  <button type="button" id="languageToggleBtn" class="language-toggle-btn">
+    FR
+  </button>
 
-
-  <!-- ================================================================
-       HEADER — greeting on the left
-       ================================================================ -->
-  <header>
-    <div class="header-left">
-      <!-- "Good afternoon" — written by getGreeting() in app.js -->
-      <h1 id="greeting"></h1>
-      <!-- "Friday, April 4, 2026" — written by getDateDisplay() in app.js -->
-      <div class="date" id="dateDisplay"></div>
+<div id="sessionModal" class="session-modal" hidden>
+  <div class="session-modal-card">
+    <div class="session-modal-header">
+      <div>
+        <h2 id="sessionModalTitle" data-i18n="createSessionTitle">Créer une session</h2>
+        <p data-i18n="sessionTabsRequired">Sélectionne les onglets à inclure.</p>
+      </div>
     </div>
-  </header>
+
+    <label class="session-name-label">
+      <span data-i18n="sessionNameLabel">Nom de la session</span>
+      <input type="text" id="sessionNameInput" placeholder="Ex : Dev Ultra" data-i18n-placeholder="sessionNamePlaceholder">
+    </label>
+
+    <div class="session-tabs-toolbar">
+      <button type="button" id="selectAllSessionTabsBtn" data-i18n="selectAll">Tout sélectionner</button>
+      <button type="button" id="clearSessionTabsBtn" data-i18n="clearAll">Tout décocher</button>
+    </div>
+
+    <div class="session-tabs-list" id="sessionTabsList"></div>
+
+    <div class="session-modal-actions">
+      <button type="button" id="deleteSessionBtn" data-i18n="delete" hidden>Supprimer</button>
+      <button type="button" id="cancelSessionBtn" data-i18n="cancel">Annuler</button>
+      <button type="button" id="saveSessionBtn" data-i18n="save">Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+
+  <div class="container">
 
   <!-- ================================================================
-       TAB OUT DUPES BANNER — appears when you have extra Tab Out tabs open
-       Hidden by default; app.js shows it when dupeTabOutCount > 1
+       HEADER — greeting on the left, shortcuts on the right
        ================================================================ -->
+       <header>
+        <div class="header-left">
+          <div class="hero-text">
+            <h1 id="greeting"></h1>
+            <div id="timeDisplay"></div>
+            <div id="dateDisplay"></div>
+            <div class="weather-widget" id="weatherWidget" hidden>
+              <button type="button" class="weather-enable-btn" id="weatherEnableBtn" data-i18n="weatherEnable">
+                Activer la météo
+              </button>
+            
+              <div class="weather-content" id="weatherContent" hidden>
+                <div class="weather-visual" id="weatherVisual" data-weather="cloud">
+                  <span class="weather-sun"></span>
+                  <span class="weather-cloud weather-cloud-main"></span>
+                  <span class="weather-cloud weather-cloud-small"></span>
+                  <span class="weather-rain"></span>
+                  <span class="weather-snow"></span>
+                  <span class="weather-fog"></span>
+                  <span class="weather-lightning"></span>
+                </div>
+            
+                <div class="weather-info">
+                  <div class="weather-temp" id="weatherTemp">--°C</div>
+                  <div class="weather-condition" id="weatherCondition" data-i18n="weatherGeneric">Météo</div>
+            
+                  <div class="weather-meta">
+                    <span id="weatherFeelsLike">Ressenti --°C</span>
+                    <button type="button" class="weather-city-mask" id="weatherCityToggle" title="Afficher / masquer la ville" data-i18n-title="showCity">
+                      <span id="weatherCityText"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="quick-links">
+          <button type="button" id="addShortcutBtn" class="quick-link add-shortcut-btn">
+            <span class="quick-plus">+</span>
+            <span data-i18n="shortcutAddButton">Raccourci</span>
+          </button>
+        </div>
+      </header>
+      
+      <section class="saved-sessions-section" id="savedSessionsSection" hidden>
+        <div class="saved-sessions-header">
+          <div>
+            <h2 data-i18n="sessions">Sessions</h2>
+            <p data-i18n="sessionsSubtitle">Rouvre rapidement un groupe d’onglets.</p>
+          </div>
+      
+          <button type="button" class="saved-session-add-btn" data-action="create-saved-session" data-i18n="createSessionButton">
+            + Session
+          </button>
+        </div>
+      
+        <div class="saved-sessions-list" id="savedSessionsList"></div>
+      </section>
+
   <div class="tab-cleanup-banner" id="tabOutDupeBanner" style="display:none">
     <div class="tab-cleanup-left">
       <div class="tab-cleanup-icon">
@@ -40,10 +122,10 @@
         </svg>
       </div>
       <div class="tab-cleanup-text">
-        You have <strong id="tabOutDupeCount"></strong> Tab Out tabs open. Keep just this one?
+        <span data-i18n="tabOutDupePrefix">You have</span> <strong id="tabOutDupeCount"></strong> <span data-i18n="tabOutDupeSuffix">Tab Out tabs open. Keep just this one?</span>
       </div>
     </div>
-    <button class="tab-cleanup-btn" data-action="close-tabout-dupes">Close extras</button>
+    <button class="tab-cleanup-btn" data-action="close-tabout-dupes" data-i18n="closeExtras">Close extras</button>
   </div>
 
   <!-- ================================================================
@@ -57,7 +139,7 @@
     <!-- LEFT COLUMN: Open tabs -->
     <div class="active-section" id="openTabsSection" style="display:none">
       <div class="section-header">
-        <h2 id="openTabsSectionTitle">Right now</h2>
+        <h2 id="openTabsSectionTitle" data-i18n="openTabs">Onglets ouverts</h2>
         <div class="section-line"></div>
         <div class="section-count" id="openTabsSectionCount"></div>
       </div>
@@ -67,28 +149,25 @@
     <!-- RIGHT COLUMN: Saved for Later checklist -->
     <div class="deferred-column" id="deferredColumn" style="display:none">
       <div class="section-header">
-        <h2>Saved for later</h2>
+        <h2 id="deferredTitle" data-i18n="saveForLater">Saved for later</h2>
         <div class="section-line"></div>
         <div class="section-count" id="deferredCount"></div>
       </div>
 
-      <!-- Active checklist items — injected by renderDeferredList() in app.js -->
       <div class="deferred-list" id="deferredList"></div>
 
-      <!-- Empty state — shown when no active deferred tabs -->
       <div class="deferred-empty" id="deferredEmpty" style="display:none">
-        Nothing saved. Living in the moment.
+        <span data-i18n="nothingSaved">Nothing saved. Living in the moment.</span>
       </div>
 
-      <!-- Archive section — collapsed by default -->
       <div class="deferred-archive" id="deferredArchive" style="display:none">
         <button class="archive-toggle" id="archiveToggle">
           <svg class="archive-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-          Archive
+          <span data-i18n="archive">Archive</span>
           <span class="archive-count" id="archiveCount"></span>
         </button>
         <div class="archive-body" id="archiveBody" style="display:none">
-          <input type="text" class="archive-search" id="archiveSearch" placeholder="Search archived tabs...">
+          <input type="text" class="archive-search" id="archiveSearch" placeholder="Search archived tabs..." data-i18n-placeholder="archiveSearchPlaceholder">
           <div class="archive-list" id="archiveList"></div>
         </div>
       </div>
@@ -96,22 +175,41 @@
 
   </div><!-- end .dashboard-columns -->
 
-  <!-- ================================================================
-       FOOTER — global stats + refresh control
-       ================================================================ -->
   <footer>
     <div class="footer-stats">
       <div class="stat">
         <div class="stat-num" id="statTabs">—</div>
-        <div class="stat-label">Open tabs</div>
+        <div class="stat-label" data-i18n="openTabs">Onglets ouverts</div>
       </div>
     </div>
     <div class="last-refresh">
-      <span style="color: var(--muted); font-size: 11px;"><a href="https://github.com/zarazhangrui/tab-out" target="_top" style="color: var(--muted); text-decoration: underline; text-underline-offset: 2px;">Tab Out</a> by <a href="https://x.com/zarazhangrui" target="_top" style="color: var(--muted); text-decoration: underline; text-underline-offset: 2px;">Zara</a></span>
+      <!-- Footer credit removed -->
     </div>
   </footer>
 
 </div><!-- end .container -->
+
+<div id="shortcutModal" class="shortcut-modal" hidden>
+  <div class="shortcut-modal-card">
+    <h2 data-i18n="addShortcutTitle">Ajouter un raccourci</h2>
+
+    <label>
+      <span data-i18n="nameLabel">Nom</span>
+      <input type="text" id="shortcutNameInput" placeholder="Ex : Netflix" data-i18n-placeholder="shortcutNamePlaceholder">
+    </label>
+
+    <label>
+      <span data-i18n="urlLabel">URL</span>
+      <input type="url" id="shortcutUrlInput" placeholder="https://example.com" data-i18n-placeholder="shortcutUrlPlaceholder">
+    </label>
+
+    <div class="shortcut-modal-actions">
+      <button type="button" id="deleteShortcutBtn" data-i18n="delete" hidden>Supprimer</button>
+      <button type="button" id="cancelShortcutBtn" data-i18n="cancel">Annuler</button>
+      <button type="button" id="saveShortcutBtn" data-i18n="addShortcut">Ajouter</button>
+    </div>
+  </div>
+</div>
 
 <!-- ================================================================
      TOAST — floats above everything, used for action confirmations

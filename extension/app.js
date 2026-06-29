@@ -17,6 +17,285 @@
 
 
 /* ----------------------------------------------------------------
+   I18N — FR / EN language packs
+   ---------------------------------------------------------------- */
+
+const I18N = {
+  fr: {
+    greetingMorning: "Bonjour",
+    greetingAfternoon: "Bon après-midi",
+    greetingEvening: "Bonsoir",
+    timePrefix: "Il est",
+    datePrefix: "Nous sommes le",
+    locale: "fr-FR",
+
+    openTabs: "Onglets ouverts",
+    homepages: "Pages d’accueil",
+    domains: "domaines",
+    domain: "domaine",
+    tabs: "onglets",
+    tab: "onglet",
+    open: "ouverts",
+    closeAllTabs: "Fermer les {count} onglets",
+    closeAllDomainTabs: "Fermer les {count} onglets",
+    closeDuplicate: "Fermer {count} doublon",
+    closeDuplicates: "Fermer {count} doublons",
+    duplicate: "doublon",
+    duplicates: "doublons",
+    showTabs: "Afficher les {count} onglets",
+    hideTabs: "Masquer les {count} onglets",
+
+    inboxZeroTitle: "Zéro onglet.",
+    inboxZeroSubtitle: "Tu es libre.",
+    noResults: "Aucun résultat",
+
+    justNow: "à l’instant",
+    minAgo: "il y a {count} min",
+    hourAgo: "il y a {count} h",
+    yesterday: "hier",
+    daysAgo: "il y a {count} jours",
+
+    itemCount: "{count} élément",
+    itemsCount: "{count} éléments",
+
+    sessions: "Sessions",
+    sessionsSubtitle: "Rouvre rapidement un groupe d’onglets.",
+    createSessionButton: "+ Session",
+    noSavedSession: "Aucune session sauvegardée pour le moment.",
+    editSession: "Modifier cette session",
+    createSessionTitle: "Créer une session",
+    editSessionTitle: "Modifier la session",
+    sessionNameRequired: "Donne un nom à ta session.",
+    sessionTabsRequired: "Sélectionne au moins un onglet.",
+    sessionSaved: "Session sauvegardée",
+    sessionDeleted: "Session supprimée",
+    sessionOpened: "Session ouverte : {name}",
+    deleteSessionConfirm: "Supprimer cette session ?",
+    sessionTabCount: "{count} onglet",
+    sessionTabsCount: "{count} onglets",
+    selectAll: "Tout sélectionner",
+    clearAll: "Tout décocher",
+    save: "Sauvegarder",
+    cancel: "Annuler",
+    delete: "Supprimer",
+
+    shortcuts: "Raccourcis",
+    shortcutAddButton: "Raccourci",
+    addShortcutTitle: "Ajouter un raccourci",
+    editShortcutTitle: "Modifier le raccourci",
+    editShortcut: "Modifier ce raccourci",
+    deleteShortcut: "Supprimer ce raccourci",
+    saveShortcut: "Enregistrer",
+    addShortcut: "Ajouter",
+    deleteShortcutConfirm: "Supprimer le raccourci \"{name}\" ?",
+    resetShortcutsConfirm: "Réinitialiser tous les raccourcis par défaut ?",
+
+    saveForLater: "Sauvegarder pour plus tard",
+    nothingSaved: "Rien de sauvegardé. Tu vis dans le présent.",
+    archive: "Archive",
+    archiveSearchPlaceholder: "Rechercher dans les onglets archivés...",
+    tabOutDupePrefix: "Tu as",
+    tabOutDupeSuffix: "onglets Tab Out ouverts. Garder uniquement celui-ci ?",
+    closeExtras: "Fermer les autres",
+    sessionNameLabel: "Nom de la session",
+    sessionNamePlaceholder: "Ex : Dev Ultra",
+    nameLabel: "Nom",
+    urlLabel: "URL",
+    shortcutNamePlaceholder: "Ex : Netflix",
+    shortcutUrlPlaceholder: "https://example.com",
+    savedForLater: "Sauvegardé pour plus tard",
+    failedToSaveTab: "Impossible de sauvegarder l’onglet",
+    tabClosed: "Onglet fermé",
+    closeThisTab: "Fermer cet onglet",
+    dismiss: "Retirer",
+    archiveSearchFailed: "Recherche archive échouée",
+    closedExtraTabOutTabs: "Onglets Tab Out en trop fermés",
+    closedTabsFrom: "{count} onglet fermé depuis {name}",
+    closedTabsFromPlural: "{count} onglets fermés depuis {name}",
+
+    weatherSun: "Ensoleillé",
+    weatherPartly: "Partiellement nuageux",
+    weatherCloud: "Couvert",
+    weatherFog: "Brume",
+    weatherRain: "Pluie",
+    weatherSnow: "Neige",
+    weatherStorm: "Orage",
+    weatherGeneric: "Météo",
+    weatherFeelsLike: "Ressenti {temp}°C",
+    weatherEnable: "Activer la météo",
+    weatherLoading: "Chargement...",
+    showCity: "Afficher la ville",
+    hideCity: "Masquer la ville",
+
+    languageSwitchToEnglish: "Passer en anglais",
+    languageSwitchToFrench: "Passer en français"
+  },
+
+  en: {
+    greetingMorning: "Good morning",
+    greetingAfternoon: "Good afternoon",
+    greetingEvening: "Good evening",
+    timePrefix: "It is",
+    datePrefix: "Today is",
+    locale: "en-US",
+
+    openTabs: "Open tabs",
+    homepages: "Homepages",
+    domains: "domains",
+    domain: "domain",
+    tabs: "tabs",
+    tab: "tab",
+    open: "open",
+    closeAllTabs: "Close {count} tabs",
+    closeAllDomainTabs: "Close all {count} tabs",
+    closeDuplicate: "Close {count} duplicate",
+    closeDuplicates: "Close {count} duplicates",
+    duplicate: "duplicate",
+    duplicates: "duplicates",
+    showTabs: "Show {count} tabs",
+    hideTabs: "Hide {count} tabs",
+
+    inboxZeroTitle: "Inbox zero, but for tabs.",
+    inboxZeroSubtitle: "You're free.",
+    noResults: "No results",
+
+    justNow: "just now",
+    minAgo: "{count} min ago",
+    hourAgo: "{count} hr ago",
+    yesterday: "yesterday",
+    daysAgo: "{count} days ago",
+
+    itemCount: "{count} item",
+    itemsCount: "{count} items",
+
+    sessions: "Sessions",
+    sessionsSubtitle: "Quickly reopen a group of tabs.",
+    createSessionButton: "+ Session",
+    noSavedSession: "No saved session yet.",
+    editSession: "Edit this session",
+    createSessionTitle: "Create a session",
+    editSessionTitle: "Edit session",
+    sessionNameRequired: "Name your session.",
+    sessionTabsRequired: "Select at least one tab.",
+    sessionSaved: "Session saved",
+    sessionDeleted: "Session deleted",
+    sessionOpened: "Session opened: {name}",
+    deleteSessionConfirm: "Delete this session?",
+    sessionTabCount: "{count} tab",
+    sessionTabsCount: "{count} tabs",
+    selectAll: "Select all",
+    clearAll: "Clear all",
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+
+    shortcuts: "Shortcuts",
+    shortcutAddButton: "Shortcut",
+    addShortcutTitle: "Add shortcut",
+    editShortcutTitle: "Edit shortcut",
+    editShortcut: "Edit this shortcut",
+    deleteShortcut: "Delete this shortcut",
+    saveShortcut: "Save",
+    addShortcut: "Add",
+    deleteShortcutConfirm: "Delete shortcut \"{name}\"?",
+    resetShortcutsConfirm: "Reset all shortcuts to default?",
+
+    saveForLater: "Save for later",
+    nothingSaved: "Nothing saved. Living in the moment.",
+    archive: "Archive",
+    archiveSearchPlaceholder: "Search archived tabs...",
+    tabOutDupePrefix: "You have",
+    tabOutDupeSuffix: "Tab Out tabs open. Keep just this one?",
+    closeExtras: "Close extras",
+    sessionNameLabel: "Session name",
+    sessionNamePlaceholder: "E.g. Dev Ultra",
+    nameLabel: "Name",
+    urlLabel: "URL",
+    shortcutNamePlaceholder: "E.g. Netflix",
+    shortcutUrlPlaceholder: "https://example.com",
+    savedForLater: "Saved for later",
+    failedToSaveTab: "Failed to save tab",
+    tabClosed: "Tab closed",
+    closeThisTab: "Close this tab",
+    dismiss: "Dismiss",
+    archiveSearchFailed: "Archive search failed",
+    closedExtraTabOutTabs: "Closed extra Tab Out tabs",
+    closedTabsFrom: "Closed {count} tab from {name}",
+    closedTabsFromPlural: "Closed {count} tabs from {name}",
+
+    weatherSun: "Sunny",
+    weatherPartly: "Partly cloudy",
+    weatherCloud: "Cloudy",
+    weatherFog: "Fog",
+    weatherRain: "Rain",
+    weatherSnow: "Snow",
+    weatherStorm: "Storm",
+    weatherGeneric: "Weather",
+    weatherFeelsLike: "Feels like {temp}°C",
+    weatherEnable: "Enable weather",
+    weatherLoading: "Loading...",
+    showCity: "Show city",
+    hideCity: "Hide city",
+
+    languageSwitchToEnglish: "Switch to English",
+    languageSwitchToFrench: "Switch to French"
+  }
+};
+
+let currentLanguage = "fr";
+
+async function getLanguage() {
+  const { tabOutLanguage = "fr" } = await chrome.storage.local.get("tabOutLanguage");
+  currentLanguage = I18N[tabOutLanguage] ? tabOutLanguage : "fr";
+  return currentLanguage;
+}
+
+async function setLanguage(language) {
+  currentLanguage = I18N[language] ? language : "fr";
+  await chrome.storage.local.set({ tabOutLanguage: currentLanguage });
+}
+
+function t(key, vars = {}) {
+  const pack = I18N[currentLanguage] || I18N.fr;
+  let value = pack[key] || I18N.fr[key] || key;
+
+  Object.entries(vars).forEach(([name, replacement]) => {
+    value = value.replaceAll(`{${name}}`, String(replacement));
+  });
+
+  return value;
+}
+
+function applyStaticTranslations() {
+  document.documentElement.lang = currentLanguage;
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.dataset.i18n;
+    element.textContent = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.dataset.i18nPlaceholder;
+    element.placeholder = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+    const key = element.dataset.i18nTitle;
+    element.title = t(key);
+  });
+}
+
+
+function activeLocale() {
+  return t("locale");
+}
+
+function plural(count, singularKey, pluralKey) {
+  return t(count === 1 ? singularKey : pluralKey, { count });
+}
+
+
+/* ----------------------------------------------------------------
    CHROME TABS — Direct API Access
 
    Since this page IS the extension's new tab page, it has full
@@ -296,47 +575,8 @@ async function dismissSavedTab(id) {
  * A filtered noise sweep that descends in pitch, like air moving.
  */
 function playCloseSound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const t = ctx.currentTime;
-
-    // Swoosh: shaped white noise through a sweeping bandpass filter
-    const duration = 0.25;
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-
-    // Generate noise with a natural envelope (quick attack, smooth decay)
-    for (let i = 0; i < data.length; i++) {
-      const pos = i / data.length;
-      // Envelope: ramps up fast in first 10%, then fades out smoothly
-      const env = pos < 0.1 ? pos / 0.1 : Math.pow(1 - (pos - 0.1) / 0.9, 1.5);
-      data[i] = (Math.random() * 2 - 1) * env;
-    }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-
-    // Bandpass filter sweeps from high to low — creates the "swoosh" character
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.Q.value = 2.0;
-    filter.frequency.setValueAtTime(4000, t);
-    filter.frequency.exponentialRampToValueAtTime(400, t + duration);
-
-    // Volume
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.15, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-
-    source.connect(filter).connect(gain).connect(ctx.destination);
-    source.start(t);
-
-    setTimeout(() => ctx.close(), 500);
-  } catch {
-    // Audio not supported — fail silently
+    return;
   }
-}
-
 /**
  * shootConfetti(x, y)
  *
@@ -461,13 +701,13 @@ function checkAndShowEmptyState() {
           <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
         </svg>
       </div>
-      <div class="empty-title">Inbox zero, but for tabs.</div>
-      <div class="empty-subtitle">You're free.</div>
+      <div class="empty-title">${t("inboxZeroTitle")}</div>
+      <div class="empty-subtitle">${t("inboxZeroSubtitle")}</div>
     </div>
   `;
 
   const countEl = document.getElementById('openTabsSectionCount');
-  if (countEl) countEl.textContent = '0 domains';
+  if (countEl) countEl.textContent = `0 ${t("domains")}`;
 }
 
 /**
@@ -477,18 +717,20 @@ function checkAndShowEmptyState() {
  * "2026-04-04T10:00:00Z" → "2 hrs ago" or "yesterday"
  */
 function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const then = new Date(dateStr);
-  const now  = new Date();
-  const diffMins  = Math.floor((now - then) / 60000);
-  const diffHours = Math.floor((now - then) / 3600000);
-  const diffDays  = Math.floor((now - then) / 86400000);
+  if (!dateStr) return "";
 
-  if (diffMins < 1)   return 'just now';
-  if (diffMins < 60)  return diffMins + ' min ago';
-  if (diffHours < 24) return diffHours + ' hr' + (diffHours !== 1 ? 's' : '') + ' ago';
-  if (diffDays === 1) return 'yesterday';
-  return diffDays + ' days ago';
+  const then = new Date(dateStr);
+  const now = new Date();
+  const diffMins = Math.floor((now - then) / 60000);
+  const diffHours = Math.floor((now - then) / 3600000);
+  const diffDays = Math.floor((now - then) / 86400000);
+
+  if (diffMins < 1) return t("justNow");
+  if (diffMins < 60) return t("minAgo", { count: diffMins });
+  if (diffHours < 24) return t("hourAgo", { count: diffHours });
+  if (diffDays === 1) return t("yesterday");
+
+  return t("daysAgo", { count: diffDays });
 }
 
 /**
@@ -496,23 +738,49 @@ function timeAgo(dateStr) {
  */
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+
+  if (hour < 12) {
+    return t("greetingMorning");
+  }
+
+  if (hour < 18) {
+    return t("greetingAfternoon");
+  }
+
+  return t("greetingEvening");
 }
 
 /**
  * getDateDisplay() — "Friday, April 4, 2026"
  */
 function getDateDisplay() {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year:    'numeric',
-    month:   'long',
-    day:     'numeric',
+  const date = new Date().toLocaleDateString(activeLocale(), {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
   });
+
+  const formattedDate = date.charAt(0).toUpperCase() + date.slice(1);
+
+  return `${t("datePrefix")} ${formattedDate}`;
 }
 
+
+function updateTimeDisplay() {
+  const timeEl = document.getElementById("timeDisplay");
+
+  if (!timeEl) {
+    return;
+  }
+
+  const time = new Date().toLocaleTimeString(activeLocale(), {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  timeEl.textContent = `${t("timePrefix")} ${time}`;
+}
 
 /* ----------------------------------------------------------------
    DOMAIN & TITLE CLEANUP HELPERS
@@ -772,10 +1040,10 @@ function buildOverflowChips(hiddenTabs, urlCounts = {}) {
       ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
-        <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
+        <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="${t("saveForLater")}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
         </button>
-        <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="Close this tab">
+        <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="${t("closeThisTab")}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
@@ -815,12 +1083,12 @@ function renderDomainCard(group) {
 
   const tabBadge = `<span class="open-tabs-badge">
     ${ICONS.tabs}
-    ${tabCount} tab${tabCount !== 1 ? 's' : ''} open
+    ${tabCount} ${tabCount === 1 ? t("tab") : t("tabs")} ${t("open")}
   </span>`;
 
   const dupeBadge = hasDupes
     ? `<span class="open-tabs-badge" style="color:var(--accent-amber);background:rgba(200,113,58,0.08);">
-        ${totalExtras} duplicate${totalExtras !== 1 ? 's' : ''}
+        ${totalExtras} ${totalExtras === 1 ? t("duplicate") : t("duplicates")}
       </span>`
     : '';
 
@@ -831,49 +1099,53 @@ function renderDomainCard(group) {
     if (!seen.has(tab.url)) { seen.add(tab.url); uniqueTabs.push(tab); }
   }
 
-  const visibleTabs = uniqueTabs.slice(0, 8);
+  const visibleTabs = uniqueTabs.slice(0, 2);
   const extraCount  = uniqueTabs.length - visibleTabs.length;
 
   const pageChips = visibleTabs.map(tab => {
     let label = cleanTitle(smartTitle(stripTitleNoise(tab.title || ''), tab.url), group.domain);
-    // For localhost tabs, prepend port number so you can tell projects apart
+  
     try {
       const parsed = new URL(tab.url);
       if (parsed.hostname === 'localhost' && parsed.port) label = `${parsed.port} ${label}`;
     } catch {}
+  
     const count    = urlCounts[tab.url];
     const dupeTag  = count > 1 ? ` <span class="chip-dupe-badge">(${count}x)</span>` : '';
     const chipClass = count > 1 ? ' chip-has-dupes' : '';
     const safeUrl   = (tab.url || '').replace(/"/g, '&quot;');
     const safeTitle = label.replace(/"/g, '&quot;');
+  
     let domain = '';
     try { domain = new URL(tab.url).hostname; } catch {}
+  
     const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
+  
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
       ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
-        <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
+        <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="${t("saveForLater")}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
         </button>
-        <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="Close this tab">
+        <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="${t("closeThisTab")}">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
       </div>
     </div>`;
-  }).join('') + (extraCount > 0 ? buildOverflowChips(uniqueTabs.slice(8), urlCounts) : '');
+  }).join('');
 
   let actionsHtml = `
     <button class="action-btn close-tabs" data-action="close-domain-tabs" data-domain-id="${stableId}">
       ${ICONS.close}
-      Close all ${tabCount} tab${tabCount !== 1 ? 's' : ''}
+      ${t("closeAllDomainTabs", { count: tabCount })}
     </button>`;
 
   if (hasDupes) {
     const dupeUrlsEncoded = dupeUrls.map(([url]) => encodeURIComponent(url)).join(',');
     actionsHtml += `
       <button class="action-btn" data-action="dedup-keep-one" data-dupe-urls="${dupeUrlsEncoded}">
-        Close ${totalExtras} duplicate${totalExtras !== 1 ? 's' : ''}
+        ${totalExtras === 1 ? t("closeDuplicate", { count: totalExtras }) : t("closeDuplicates", { count: totalExtras })}
       </button>`;
   }
 
@@ -882,18 +1154,63 @@ function renderDomainCard(group) {
       <div class="status-bar"></div>
       <div class="mission-content">
         <div class="mission-top">
-          <span class="mission-name">${isLanding ? 'Homepages' : (group.label || friendlyDomain(group.domain))}</span>
+          <span class="mission-name">${isLanding ? t("homepages") : (group.label || friendlyDomain(group.domain))}</span>
           ${tabBadge}
           ${dupeBadge}
         </div>
         <div class="mission-pages">${pageChips}</div>
+        ${uniqueTabs.length > 2 ? renderTabDropdown(uniqueTabs, `${stableId}-dropdown`) : ""}
         <div class="actions">${actionsHtml}</div>
       </div>
       <div class="mission-meta">
         <div class="mission-page-count">${tabCount}</div>
-        <div class="mission-page-label">tabs</div>
+        <div class="mission-page-label">${tabCount === 1 ? t("tab") : t("tabs")}</div>
       </div>
     </div>`;
+}
+
+function renderTabDropdown(tabs, groupId) {
+  if (!tabs || tabs.length <= 1) {
+    return "";
+  }
+
+  const items = tabs.map((tab) => {
+    const safeUrl = (tab.url || "").replace(/"/g, "&quot;");
+    const rawTitle = cleanTitle(
+      smartTitle(stripTitleNoise(tab.title || ""), tab.url),
+      ""
+    );
+
+    const safeTitle = rawTitle.replace(/"/g, "&quot;");
+
+    let domain = "";
+    try {
+      domain = new URL(tab.url).hostname;
+    } catch {}
+
+    const faviconUrl = domain
+      ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16`
+      : "";
+
+    return `
+      <button class="tab-dropdown-item" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
+        ${faviconUrl ? `<img src="${faviconUrl}" alt="">` : ""}
+        <span>${rawTitle}</span>
+      </button>
+    `;
+  }).join("");
+
+  return `
+    <div class="tab-dropdown">
+      <button class="tab-dropdown-toggle" data-action="toggle-tab-dropdown" data-dropdown-id="${groupId}">
+        ${t("showTabs", { count: tabs.length })}
+      </button>
+
+      <div class="tab-dropdown-list" id="${groupId}" hidden>
+        ${items}
+      </div>
+    </div>
+  `;
 }
 
 
@@ -932,7 +1249,7 @@ async function renderDeferredColumn() {
 
     // Render active checklist items
     if (active.length > 0) {
-      countEl.textContent = `${active.length} item${active.length !== 1 ? 's' : ''}`;
+      countEl.textContent = plural(active.length, "itemCount", "itemsCount");
       list.innerHTML = active.map(item => renderDeferredItem(item)).join('');
       list.style.display = 'block';
       empty.style.display = 'none';
@@ -981,7 +1298,7 @@ function renderDeferredItem(item) {
           <span>${ago}</span>
         </div>
       </div>
-      <button class="deferred-dismiss" data-action="dismiss-deferred" data-deferred-id="${item.id}" title="Dismiss">
+      <button class="deferred-dismiss" data-action="dismiss-deferred" data-deferred-id="${item.id}" title="${t("dismiss")}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
       </button>
     </div>`;
@@ -1025,6 +1342,8 @@ async function renderStaticDashboard() {
   const dateEl     = document.getElementById('dateDisplay');
   if (greetingEl) greetingEl.textContent = getGreeting();
   if (dateEl)     dateEl.textContent     = getDateDisplay();
+  updateTimeDisplay();
+  setInterval(updateTimeDisplay, 1000);
 
   // --- Fetch tabs ---
   await fetchOpenTabs();
@@ -1149,8 +1468,8 @@ async function renderStaticDashboard() {
   const openTabsSectionTitle = document.getElementById('openTabsSectionTitle');
 
   if (domainGroups.length > 0 && openTabsSection) {
-    if (openTabsSectionTitle) openTabsSectionTitle.textContent = 'Open tabs';
-    openTabsSectionCount.innerHTML = `${domainGroups.length} domain${domainGroups.length !== 1 ? 's' : ''} &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} Close all ${realTabs.length} tabs</button>`;
+    if (openTabsSectionTitle) openTabsSectionTitle.textContent = t("openTabs");
+    openTabsSectionCount.innerHTML = `${domainGroups.length} ${domainGroups.length === 1 ? t("domain") : t("domains")} &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} ${t("closeAllTabs", { count: realTabs.length })}</button>`;
     openTabsMissionsEl.innerHTML = domainGroups.map(g => renderDomainCard(g)).join('');
     openTabsSection.style.display = 'block';
   } else if (openTabsSection) {
@@ -1174,6 +1493,463 @@ async function renderDashboard() {
 
 
 /* ----------------------------------------------------------------
+   SAVED SESSIONS
+   ---------------------------------------------------------------- */
+
+   let editingSessionId = null;
+
+   async function getSavedSessions() {
+     const { savedSessions = [] } = await chrome.storage.local.get("savedSessions");
+     return savedSessions;
+   }
+   
+   async function saveSavedSessions(sessions) {
+     await chrome.storage.local.set({ savedSessions: sessions });
+   }
+   
+   function getTabDisplayTitle(tab) {
+     return cleanTitle(
+       smartTitle(stripTitleNoise(tab.title || ""), tab.url),
+       getTabDomain(tab.url)
+     );
+   }
+   
+   function getTabDomain(url) {
+     try {
+       return new URL(url).hostname;
+     } catch {
+       return "";
+     }
+   }
+   
+   function getTabFavicon(url, size = 16) {
+     const domain = getTabDomain(url);
+   
+     if (!domain) {
+       return "";
+     }
+   
+     return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
+   }
+   
+   function createSessionId() {
+     return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+   }
+   
+   async function renderSavedSessions() {
+    const section = document.getElementById("savedSessionsSection");
+    const list = document.getElementById("savedSessionsList");
+  
+    if (!section || !list) {
+      return;
+    }
+  
+    const sessions = await getSavedSessions();
+  
+    section.hidden = false;
+    list.innerHTML = "";
+  
+    if (sessions.length === 0) {
+      list.innerHTML = `
+        <div class="saved-sessions-empty">
+          ${t("noSavedSession")}
+        </div>
+      `;
+      return;
+    }
+  
+    sessions.forEach((session) => {
+      const card = document.createElement("div");
+      card.className = "saved-session-card";
+  
+      const openButton = document.createElement("button");
+      openButton.type = "button";
+      openButton.className = "saved-session-open";
+      openButton.dataset.action = "open-saved-session";
+      openButton.dataset.sessionId = session.id;
+  
+      const title = document.createElement("span");
+      title.className = "saved-session-title";
+      title.textContent = session.name;
+  
+      const meta = document.createElement("span");
+      meta.className = "saved-session-meta";
+      meta.textContent = plural(session.tabs.length, "sessionTabCount", "sessionTabsCount");
+  
+      const favicons = document.createElement("span");
+      favicons.className = "saved-session-favicons";
+  
+      session.tabs.slice(0, 4).forEach((tab) => {
+        const favicon = getTabFavicon(tab.url, 16);
+  
+        if (!favicon) {
+          return;
+        }
+  
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = favicon;
+        favicons.appendChild(img);
+      });
+  
+      if (session.tabs.length > 4) {
+        const more = document.createElement("span");
+        more.className = "saved-session-more";
+        more.textContent = `+${session.tabs.length - 4}`;
+        favicons.appendChild(more);
+      }
+  
+      openButton.appendChild(title);
+      openButton.appendChild(meta);
+      openButton.appendChild(favicons);
+  
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "saved-session-edit";
+      editButton.textContent = "✎";
+      editButton.title = t("editSession");
+      editButton.dataset.action = "edit-saved-session";
+      editButton.dataset.sessionId = session.id;
+  
+      card.appendChild(openButton);
+      card.appendChild(editButton);
+  
+      list.appendChild(card);
+    });
+  }
+   async function openSavedSession(sessionId) {
+     const sessions = await getSavedSessions();
+     const session = sessions.find((item) => item.id === sessionId);
+   
+     if (!session) {
+       return;
+     }
+   
+     for (const tab of session.tabs) {
+       if (tab.url) {
+         await chrome.tabs.create({ url: tab.url, active: false });
+       }
+     }
+   
+     await (async () => {
+  await getLanguage();
+  applyStaticTranslations();
+  await renderDashboard();
+})();
+     await renderSavedSessions();
+     showToast(t("sessionOpened", { name: session.name }));
+   }
+   
+   async function getCurrentSessionCandidateTabs(existingSession = null) {
+     await fetchOpenTabs();
+   
+     const realTabs = getRealTabs();
+     const byUrl = new Map();
+   
+     if (existingSession && Array.isArray(existingSession.tabs)) {
+       existingSession.tabs.forEach((tab) => {
+         if (tab.url) {
+           byUrl.set(tab.url, {
+             title: tab.title || tab.url,
+             url: tab.url,
+             source: "saved"
+           });
+         }
+       });
+     }
+   
+     realTabs.forEach((tab) => {
+       if (!tab.url) {
+         return;
+       }
+   
+       byUrl.set(tab.url, {
+         title: getTabDisplayTitle(tab),
+         url: tab.url,
+         source: "open"
+       });
+     });
+   
+     return Array.from(byUrl.values());
+   }
+   
+   async function openSessionModal(sessionId = null) {
+     editingSessionId = sessionId;
+   
+     const modal = document.getElementById("sessionModal");
+     const title = document.getElementById("sessionModalTitle");
+     const nameInput = document.getElementById("sessionNameInput");
+     const deleteButton = document.getElementById("deleteSessionBtn");
+     const tabsList = document.getElementById("sessionTabsList");
+   
+     if (!modal || !title || !nameInput || !deleteButton || !tabsList) {
+       return;
+     }
+   
+     const sessions = await getSavedSessions();
+     const existingSession = sessionId
+       ? sessions.find((session) => session.id === sessionId)
+       : null;
+   
+     title.textContent = existingSession ? t("editSessionTitle") : t("createSessionTitle");
+     nameInput.value = existingSession ? existingSession.name : "";
+     deleteButton.hidden = !existingSession;
+   
+     const selectedUrls = new Set(
+       existingSession
+         ? existingSession.tabs.map((tab) => tab.url)
+         : []
+     );
+   
+     const candidateTabs = await getCurrentSessionCandidateTabs(existingSession);
+   
+     tabsList.innerHTML = "";
+   
+     candidateTabs.forEach((tab) => {
+       const row = document.createElement("label");
+       row.className = "session-tab-row";
+   
+       const checkbox = document.createElement("input");
+       checkbox.type = "checkbox";
+       checkbox.value = tab.url;
+       checkbox.checked = existingSession ? selectedUrls.has(tab.url) : true;
+   
+       const favicon = document.createElement("img");
+       favicon.alt = "";
+       favicon.src = getTabFavicon(tab.url, 16);
+   
+       const info = document.createElement("span");
+       info.className = "session-tab-info";
+   
+       const tabTitle = document.createElement("span");
+       tabTitle.className = "session-tab-title";
+       tabTitle.textContent = tab.title || tab.url;
+   
+       const tabUrl = document.createElement("span");
+       tabUrl.className = "session-tab-url";
+       tabUrl.textContent = getTabDomain(tab.url) || tab.url;
+   
+       info.appendChild(tabTitle);
+       info.appendChild(tabUrl);
+   
+       row.appendChild(checkbox);
+       row.appendChild(favicon);
+       row.appendChild(info);
+   
+       tabsList.appendChild(row);
+     });
+   
+     modal.hidden = false;
+     nameInput.focus();
+   }
+   
+   function closeSessionModal() {
+     const modal = document.getElementById("sessionModal");
+   
+     if (!modal) {
+       return;
+     }
+   
+     editingSessionId = null;
+     modal.hidden = true;
+   }
+   
+   async function saveSessionFromModal() {
+     const nameInput = document.getElementById("sessionNameInput");
+     const tabsList = document.getElementById("sessionTabsList");
+   
+     if (!nameInput || !tabsList) {
+       return;
+     }
+   
+     const name = nameInput.value.trim();
+   
+     if (!name) {
+       alert(t("sessionNameRequired"));
+       return;
+     }
+   
+     const checkedInputs = Array.from(
+       tabsList.querySelectorAll("input[type='checkbox']:checked")
+     );
+   
+     if (checkedInputs.length === 0) {
+       alert(t("sessionTabsRequired"));
+       return;
+     }
+   
+     const allRows = Array.from(tabsList.querySelectorAll(".session-tab-row"));
+   
+     const selectedTabs = checkedInputs.map((input) => {
+       const row = allRows.find((item) => item.querySelector("input") === input);
+       const title = row?.querySelector(".session-tab-title")?.textContent || input.value;
+   
+       return {
+         title,
+         url: input.value
+       };
+     });
+   
+     const sessions = await getSavedSessions();
+   
+     if (editingSessionId) {
+       const index = sessions.findIndex((session) => session.id === editingSessionId);
+   
+       if (index !== -1) {
+        sessions[index] = {
+          ...sessions[index],
+          name,
+          tabs: selectedTabs,
+          updatedAt: new Date().toISOString()
+        };
+       }
+     } else {
+       sessions.push({
+         id: createSessionId(),
+         name,
+         tabs: selectedTabs,
+         createdAt: new Date().toISOString(),
+         updatedAt: new Date().toISOString()
+       });
+     }
+   
+     await saveSavedSessions(sessions);
+     await renderSavedSessions();
+     closeSessionModal();
+   
+     showToast(t("sessionSaved"));
+   }
+   
+   async function deleteCurrentSession() {
+     if (!editingSessionId) {
+       return;
+     }
+   
+     const confirmed = confirm(t("deleteSessionConfirm"));
+   
+     if (!confirmed) {
+       return;
+     }
+   
+     const sessions = await getSavedSessions();
+     const updatedSessions = sessions.filter((session) => session.id !== editingSessionId);
+   
+     await saveSavedSessions(updatedSessions);
+     await renderSavedSessions();
+     closeSessionModal();
+   
+     showToast(t("sessionDeleted"));
+   }
+   
+   function setupSessionManager() {
+     const cancelButton = document.getElementById("cancelSessionBtn");
+     const saveButton = document.getElementById("saveSessionBtn");
+     const deleteButton = document.getElementById("deleteSessionBtn");
+     const selectAllButton = document.getElementById("selectAllSessionTabsBtn");
+     const clearButton = document.getElementById("clearSessionTabsBtn");
+     const modal = document.getElementById("sessionModal");
+   
+     if (cancelButton) {
+       cancelButton.addEventListener("click", closeSessionModal);
+     }
+   
+     if (saveButton) {
+       saveButton.addEventListener("click", saveSessionFromModal);
+     }
+   
+     if (deleteButton) {
+       deleteButton.addEventListener("click", deleteCurrentSession);
+     }
+   
+     if (selectAllButton) {
+       selectAllButton.addEventListener("click", () => {
+         document
+           .querySelectorAll("#sessionTabsList input[type='checkbox']")
+           .forEach((checkbox) => {
+             checkbox.checked = true;
+           });
+       });
+     }
+   
+     if (clearButton) {
+       clearButton.addEventListener("click", () => {
+         document
+           .querySelectorAll("#sessionTabsList input[type='checkbox']")
+           .forEach((checkbox) => {
+             checkbox.checked = false;
+           });
+       });
+     }
+   
+     if (modal) {
+       modal.addEventListener("click", (event) => {
+         if (event.target === modal) {
+           closeSessionModal();
+         }
+       });
+     }
+   
+     renderSavedSessions();
+     applyStaticTranslations();
+   }
+   
+   document.addEventListener("DOMContentLoaded", setupSessionManager);
+
+
+
+   /* ----------------------------------------------------------------
+   LIVE TAB REFRESH
+   Refresh Tab Out when Chrome tabs change.
+   ---------------------------------------------------------------- */
+
+let tabRefreshTimer = null;
+
+function scheduleDashboardRefresh() {
+  clearTimeout(tabRefreshTimer);
+
+  tabRefreshTimer = setTimeout(async () => {
+    await renderDashboard();
+    await renderSavedSessions();
+  }, 250);
+}
+
+if (chrome?.tabs?.onCreated) {
+  chrome.tabs.onCreated.addListener(() => {
+    scheduleDashboardRefresh();
+  });
+}
+
+if (chrome?.tabs?.onRemoved) {
+  chrome.tabs.onRemoved.addListener(() => {
+    scheduleDashboardRefresh();
+  });
+}
+
+if (chrome?.tabs?.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (
+      changeInfo.status === "complete" ||
+      changeInfo.url ||
+      changeInfo.title
+    ) {
+      scheduleDashboardRefresh();
+    }
+  });
+}
+
+if (chrome?.tabs?.onActivated) {
+  chrome.tabs.onActivated.addListener(() => {
+    scheduleDashboardRefresh();
+  });
+}
+
+if (chrome?.windows?.onFocusChanged) {
+  chrome.windows.onFocusChanged.addListener(() => {
+    scheduleDashboardRefresh();
+  });
+}
+
+/* ----------------------------------------------------------------
    EVENT HANDLERS — using event delegation
 
    One listener on document handles ALL button clicks.
@@ -1184,9 +1960,58 @@ async function renderDashboard() {
 document.addEventListener('click', async (e) => {
   // Walk up the DOM to find the nearest element with data-action
   const actionEl = e.target.closest('[data-action]');
+  
   if (!actionEl) return;
 
   const action = actionEl.dataset.action;
+
+    // ---- Saved sessions ----
+    if (action === "create-saved-session") {
+      e.preventDefault();
+      e.stopPropagation();
+  
+      await openSessionModal(null);
+      return;
+    }
+  
+    if (action === "edit-saved-session") {
+      e.preventDefault();
+      e.stopPropagation();
+  
+      await openSessionModal(actionEl.dataset.sessionId);
+      return;
+    }
+  
+    if (action === "open-saved-session") {
+      e.preventDefault();
+      e.stopPropagation();
+  
+      await openSavedSession(actionEl.dataset.sessionId);
+      return;
+    }
+
+    // ---- Toggle tab dropdown ----
+    if (action === "toggle-tab-dropdown") {
+      e.preventDefault();
+      e.stopPropagation();
+  
+      const dropdownId = actionEl.dataset.dropdownId;
+      const dropdown = document.getElementById(dropdownId);
+  
+      if (!dropdown) {
+        return;
+      }
+  
+      dropdown.hidden = !dropdown.hidden;
+  
+      const tabCount = dropdown.querySelectorAll(".tab-dropdown-item").length;
+
+      actionEl.textContent = dropdown.hidden
+        ? t("showTabs", { count: tabCount })
+        : t("hideTabs", { count: tabCount });
+  
+      return;
+    }
 
   // ---- Close duplicate Tab Out tabs ----
   if (action === 'close-tabout-dupes') {
@@ -1198,7 +2023,11 @@ document.addEventListener('click', async (e) => {
       banner.style.opacity = '0';
       setTimeout(() => { banner.style.display = 'none'; banner.style.opacity = '1'; }, 400);
     }
-    showToast('Closed extra Tab Out tabs');
+    showToast(t("closedExtraTabOutTabs"));
+
+    await renderDashboard();
+    await renderSavedSessions();
+
     return;
   }
 
@@ -1260,7 +2089,7 @@ document.addEventListener('click', async (e) => {
     const statTabs = document.getElementById('statTabs');
     if (statTabs) statTabs.textContent = openTabs.length;
 
-    showToast('Tab closed');
+    showToast(t("tabClosed"));
     return;
   }
 
@@ -1276,7 +2105,7 @@ document.addEventListener('click', async (e) => {
       await saveTabForLater({ url: tabUrl, title: tabTitle });
     } catch (err) {
       console.error('[tab-out] Failed to save tab:', err);
-      showToast('Failed to save tab');
+      showToast(t("failedToSaveTab"));
       return;
     }
 
@@ -1295,7 +2124,7 @@ document.addEventListener('click', async (e) => {
       setTimeout(() => chip.remove(), 200);
     }
 
-    showToast('Saved for later');
+    showToast(t("savedForLater"));
     await renderDeferredColumn();
     return;
   }
@@ -1368,8 +2197,8 @@ document.addEventListener('click', async (e) => {
     const idx = domainGroups.indexOf(group);
     if (idx !== -1) domainGroups.splice(idx, 1);
 
-    const groupLabel = group.domain === '__landing-pages__' ? 'Homepages' : (group.label || friendlyDomain(group.domain));
-    showToast(`Closed ${urls.length} tab${urls.length !== 1 ? 's' : ''} from ${groupLabel}`);
+    const groupLabel = group.domain === '__landing-pages__' ? t('homepages') : (group.label || friendlyDomain(group.domain));
+    showToast(t(urls.length === 1 ? "closedTabsFrom" : "closedTabsFromPlural", { count: urls.length, name: groupLabel }));
 
     const statTabs = document.getElementById('statTabs');
     if (statTabs) statTabs.textContent = openTabs.length;
@@ -1469,14 +2298,666 @@ document.addEventListener('input', async (e) => {
     );
 
     archiveList.innerHTML = results.map(item => renderArchiveItem(item)).join('')
-      || '<div style="font-size:12px;color:var(--muted);padding:8px 0">No results</div>';
+      || `<div style="font-size:12px;color:var(--muted);padding:8px 0">${t("noResults")}</div>`;
   } catch (err) {
-    console.warn('[tab-out] Archive search failed:', err);
+    console.warn(`[tab-out] ${t("archiveSearchFailed")}:`, err);
   }
 });
 
+
+function updateClock() {
+  const clock = document.getElementById("clockDisplay");
+  if (!clock) return;
+
+  clock.textContent = new Date().toLocaleTimeString(activeLocale(), {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
 
 /* ----------------------------------------------------------------
    INITIALIZE
    ---------------------------------------------------------------- */
 renderDashboard();
+
+
+const DEFAULT_SHORTCUTS = window.TAB_OUT_DEFAULT_SHORTCUTS || [];
+
+let editingShortcutIndex = null;
+
+function normalizeUrl(url) {
+  const trimmedUrl = url.trim();
+
+  if (!trimmedUrl) {
+    return "";
+  }
+
+  if (trimmedUrl.startsWith("http://") || trimmedUrl.startsWith("https://")) {
+    return trimmedUrl;
+  }
+
+  return `https://${trimmedUrl}`;
+}
+
+function getShortcutDomain(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
+function getShortcutFavicon(domain) {
+  if (!domain) {
+    return "";
+  }
+
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
+}
+
+function getStoredShortcuts() {
+  const stored = localStorage.getItem("tabOutShortcuts");
+
+  if (!stored) {
+    return [...DEFAULT_SHORTCUTS];
+  }
+
+  try {
+    const shortcuts = JSON.parse(stored);
+    return Array.isArray(shortcuts) ? shortcuts : [...DEFAULT_SHORTCUTS];
+  } catch {
+    return [...DEFAULT_SHORTCUTS];
+  }
+}
+
+function saveStoredShortcuts(shortcuts) {
+  localStorage.setItem("tabOutShortcuts", JSON.stringify(shortcuts));
+}
+
+function renderShortcuts() {
+  const container = document.querySelector(".quick-links");
+
+  if (!container) {
+    return;
+  }
+
+  const addButton = document.getElementById("addShortcutBtn");
+  const shortcuts = getStoredShortcuts();
+
+  container.querySelectorAll(".shortcut-item").forEach((item) => {
+    item.remove();
+  });
+
+  shortcuts.forEach((shortcut, index) => {
+    const item = document.createElement("div");
+    item.className = "shortcut-item";
+
+    const link = document.createElement("a");
+    link.className = "quick-link";
+    link.href = shortcut.url;
+
+    const img = document.createElement("img");
+    img.alt = "";
+    img.src = getShortcutFavicon(shortcut.domain || getShortcutDomain(shortcut.url));
+
+    const label = document.createElement("span");
+    label.textContent = shortcut.name;
+
+    const actions = document.createElement("div");
+    actions.className = "shortcut-actions";
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "shortcut-action-btn shortcut-edit-btn";
+    editButton.textContent = "✎";
+    editButton.title = t("editShortcut");
+
+    editButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openShortcutModal(index);
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "shortcut-action-btn shortcut-delete-btn";
+    deleteButton.textContent = "×";
+    deleteButton.title = t("deleteShortcut");
+
+    deleteButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const currentShortcuts = getStoredShortcuts();
+      currentShortcuts.splice(index, 1);
+      saveStoredShortcuts(currentShortcuts);
+      renderShortcuts();
+    });
+
+    actions.appendChild(editButton);
+    actions.appendChild(deleteButton);
+
+    link.appendChild(img);
+    link.appendChild(label);
+    link.appendChild(actions);
+
+    item.appendChild(link);
+    container.insertBefore(item, addButton);
+  });
+}
+
+function openShortcutModal(index = null) {
+  const modal = document.getElementById("shortcutModal");
+  const title = modal ? modal.querySelector("h2") : null;
+  const nameInput = document.getElementById("shortcutNameInput");
+  const urlInput = document.getElementById("shortcutUrlInput");
+  const saveButton = document.getElementById("saveShortcutBtn");
+  const deleteButton = document.getElementById("deleteShortcutBtn");
+
+  if (!modal || !nameInput || !urlInput || !saveButton) {
+    return;
+  }
+
+  editingShortcutIndex = Number.isInteger(index) ? index : null;
+
+  if (editingShortcutIndex !== null) {
+    const shortcut = getStoredShortcuts()[editingShortcutIndex];
+
+    if (!shortcut) {
+      editingShortcutIndex = null;
+      return;
+    }
+
+    if (title) title.textContent = t("editShortcutTitle");
+    nameInput.value = shortcut.name || "";
+    urlInput.value = shortcut.url || "";
+    saveButton.textContent = t("saveShortcut");
+    if (deleteButton) deleteButton.hidden = false;
+  } else {
+    if (title) title.textContent = t("addShortcutTitle");
+    nameInput.value = "";
+    urlInput.value = "";
+    saveButton.textContent = t("addShortcut");
+    if (deleteButton) deleteButton.hidden = true;
+  }
+
+  modal.hidden = false;
+  nameInput.focus();
+}
+
+function closeShortcutModal() {
+  const modal = document.getElementById("shortcutModal");
+
+  if (!modal) {
+    return;
+  }
+
+  editingShortcutIndex = null;
+  modal.hidden = true;
+}
+
+function saveShortcutFromModal() {
+  const nameInput = document.getElementById("shortcutNameInput");
+  const urlInput = document.getElementById("shortcutUrlInput");
+
+  if (!nameInput || !urlInput) {
+    return;
+  }
+
+  const name = nameInput.value.trim();
+  const url = normalizeUrl(urlInput.value);
+
+  if (!name || !url) {
+    return;
+  }
+
+  const shortcuts = getStoredShortcuts();
+  const domain = getShortcutDomain(url);
+  const nextShortcut = {
+    name,
+    url,
+    domain
+  };
+
+  if (editingShortcutIndex !== null && shortcuts[editingShortcutIndex]) {
+    shortcuts[editingShortcutIndex] = nextShortcut;
+  } else {
+    shortcuts.push(nextShortcut);
+  }
+
+  saveStoredShortcuts(shortcuts);
+  renderShortcuts();
+  closeShortcutModal();
+}
+
+function deleteShortcut(index = editingShortcutIndex) {
+  if (index === null || index === undefined) {
+    return;
+  }
+
+  const shortcuts = getStoredShortcuts();
+  const shortcut = shortcuts[index];
+
+  if (!shortcut) {
+    return;
+  }
+
+  const confirmed = confirm(t("deleteShortcutConfirm", { name: shortcut.name }));
+
+  if (!confirmed) {
+    return;
+  }
+
+  shortcuts.splice(index, 1);
+  saveStoredShortcuts(shortcuts);
+  renderShortcuts();
+  closeShortcutModal();
+}
+
+function resetShortcutsToDefault() {
+  const confirmed = confirm(t("resetShortcutsConfirm"));
+
+  if (!confirmed) {
+    return;
+  }
+
+  saveStoredShortcuts([...DEFAULT_SHORTCUTS]);
+  renderShortcuts();
+  closeShortcutModal();
+}
+
+function setupShortcutManager() {
+  const addButton = document.getElementById("addShortcutBtn");
+  const cancelButton = document.getElementById("cancelShortcutBtn");
+  const saveButton = document.getElementById("saveShortcutBtn");
+  const deleteButton = document.getElementById("deleteShortcutBtn");
+  const modal = document.getElementById("shortcutModal");
+  const nameInput = document.getElementById("shortcutNameInput");
+  const urlInput = document.getElementById("shortcutUrlInput");
+
+  if (addButton) {
+    addButton.addEventListener("click", () => openShortcutModal());
+  }
+
+  if (cancelButton) {
+    cancelButton.addEventListener("click", closeShortcutModal);
+  }
+
+  if (saveButton) {
+    saveButton.addEventListener("click", saveShortcutFromModal);
+  }
+
+  if (deleteButton) {
+    deleteButton.addEventListener("click", () => deleteShortcut());
+  }
+
+  [nameInput, urlInput].forEach((input) => {
+    if (!input) return;
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        saveShortcutFromModal();
+      }
+
+      if (event.key === "Escape") {
+        closeShortcutModal();
+      }
+    });
+  });
+
+  if (modal) {
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeShortcutModal();
+      }
+    });
+  }
+
+  renderShortcuts();
+  applyStaticTranslations();
+}
+
+document.addEventListener("DOMContentLoaded", setupShortcutManager);
+
+
+/* ----------------------------------------------------------------
+   LANGUAGE SWITCHER
+   ---------------------------------------------------------------- */
+
+function applyStaticTranslations() {
+  document.documentElement.lang = currentLanguage;
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.dataset.i18n;
+    element.textContent = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.dataset.i18nPlaceholder;
+    element.placeholder = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((element) => {
+    const key = element.dataset.i18nTitle;
+    element.title = t(key);
+  });
+
+  updateLanguageButton();
+}
+
+function updateLanguageButton() {
+  const button = document.getElementById("languageToggleBtn");
+
+  if (!button) {
+    return;
+  }
+
+  button.textContent = currentLanguage.toUpperCase();
+  button.title = currentLanguage === "fr" ? t("languageSwitchToEnglish") : t("languageSwitchToFrench");
+}
+
+async function setupLanguageSwitcher() {
+  await getLanguage();
+
+  applyStaticTranslations();
+
+  const button = document.getElementById("languageToggleBtn");
+
+  if (!button) {
+    return;
+  }
+
+  updateLanguageButton();
+
+  button.addEventListener("click", async () => {
+    const nextLanguage = currentLanguage === "fr" ? "en" : "fr";
+
+    await setLanguage(nextLanguage);
+
+    applyStaticTranslations();
+    updateLanguageButton();
+
+    await renderDashboard();
+    await renderSavedSessions();
+    await loadWeather({ force: false });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
+
+/* ----------------------------------------------------------------
+   WEATHER WIDGET — local weather, city hidden by default
+   ---------------------------------------------------------------- */
+
+   const WEATHER_CACHE_KEY = "tabOutWeatherCache";
+   const WEATHER_CACHE_MAX_AGE = 45 * 60 * 1000; // 45 min
+   let weatherCityVisible = false;
+   
+   function mapWeatherCode(code) {
+     if ([0].includes(code)) {
+       return { kind: "sun", label: t("weatherSun") };
+     }
+   
+     if ([1, 2].includes(code)) {
+       return { kind: "partly", label: t("weatherPartly") };
+     }
+   
+     if ([3].includes(code)) {
+       return { kind: "cloud", label: t("weatherCloud") };
+     }
+   
+     if ([45, 48].includes(code)) {
+       return { kind: "fog", label: t("weatherFog") };
+     }
+   
+     if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
+       return { kind: "rain", label: t("weatherRain") };
+     }
+   
+     if ([71, 73, 75, 77, 85, 86].includes(code)) {
+       return { kind: "snow", label: t("weatherSnow") };
+     }
+   
+     if ([95, 96, 99].includes(code)) {
+       return { kind: "storm", label: t("weatherStorm") };
+     }
+   
+     return { kind: "cloud", label: t("weatherGeneric") };
+   }
+   
+   function roundTemp(value) {
+     if (typeof value !== "number") {
+       return "--";
+     }
+   
+     return Math.round(value);
+   }
+   
+   async function getStoredWeatherCache() {
+     const { [WEATHER_CACHE_KEY]: cache } = await chrome.storage.local.get(WEATHER_CACHE_KEY);
+   
+     if (!cache || !cache.timestamp) {
+       return null;
+     }
+   
+     const isFresh = Date.now() - cache.timestamp < WEATHER_CACHE_MAX_AGE;
+   
+     return isFresh ? cache : null;
+   }
+   
+   async function saveWeatherCache(data) {
+     await chrome.storage.local.set({
+       [WEATHER_CACHE_KEY]: {
+         ...data,
+         timestamp: Date.now()
+       }
+     });
+   }
+   
+   function getCurrentPositionPromise() {
+     return new Promise((resolve, reject) => {
+       if (!navigator.geolocation) {
+         reject(new Error("Geolocation unavailable"));
+         return;
+       }
+   
+       navigator.geolocation.getCurrentPosition(resolve, reject, {
+         enableHighAccuracy: false,
+         timeout: 8000,
+         maximumAge: 60 * 60 * 1000
+       });
+     });
+   }
+   
+   async function reverseGeocodeCity(latitude, longitude) {
+    try {
+      const url =
+        `https://nominatim.openstreetmap.org/reverse` +
+        `?format=jsonv2` +
+        `&lat=${latitude}` +
+        `&lon=${longitude}` +
+        `&zoom=10` +
+        `&addressdetails=1`;
+  
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
+  
+      if (!response.ok) {
+        return "";
+      }
+  
+      const data = await response.json();
+      const address = data.address || {};
+  
+      return (
+        address.city ||
+        address.town ||
+        address.village ||
+        address.municipality ||
+        address.county ||
+        address.state ||
+        ""
+      );
+    } catch {
+      return "";
+    }
+  }
+   
+   async function fetchWeatherForPosition(latitude, longitude) {
+     const url =
+       `https://api.open-meteo.com/v1/forecast` +
+       `?latitude=${latitude}` +
+       `&longitude=${longitude}` +
+       `&current=temperature_2m,apparent_temperature,weather_code` +
+       `&timezone=auto`;
+   
+     const response = await fetch(url);
+   
+     if (!response.ok) {
+       throw new Error("Weather request failed");
+     }
+   
+     const data = await response.json();
+     const current = data.current || {};
+     const mapped = mapWeatherCode(current.weather_code);
+   
+     const city = await reverseGeocodeCity(latitude, longitude);
+   
+     return {
+       temperature: roundTemp(current.temperature_2m),
+       feelsLike: roundTemp(current.apparent_temperature),
+       condition: mapped.label,
+       kind: mapped.kind,
+       city,
+       latitude,
+       longitude
+     };
+   }
+   
+   
+function translateWeatherKind(kind, fallback = "") {
+  const keyMap = {
+    sun: "weatherSun",
+    partly: "weatherPartly",
+    cloud: "weatherCloud",
+    fog: "weatherFog",
+    rain: "weatherRain",
+    snow: "weatherSnow",
+    storm: "weatherStorm"
+  };
+
+  return t(keyMap[kind] || "weatherGeneric") || fallback;
+}
+
+function renderWeatherWidget(weather, cityVisible = false) {
+     const widget = document.getElementById("weatherWidget");
+     const enableBtn = document.getElementById("weatherEnableBtn");
+     const content = document.getElementById("weatherContent");
+     const visual = document.getElementById("weatherVisual");
+     const temp = document.getElementById("weatherTemp");
+     const condition = document.getElementById("weatherCondition");
+     const feelsLike = document.getElementById("weatherFeelsLike");
+     const cityText = document.getElementById("weatherCityText");
+     const cityToggle = document.getElementById("weatherCityToggle");
+   
+     if (!widget || !enableBtn || !content || !visual || !temp || !condition || !feelsLike || !cityText || !cityToggle) {
+       return;
+     }
+   
+     widget.hidden = false;
+     enableBtn.hidden = true;
+     content.hidden = false;
+   
+     visual.dataset.weather = weather.kind || "cloud";
+     temp.textContent = `${weather.temperature}°C`;
+     condition.textContent = translateWeatherKind(weather.kind, weather.condition);
+     feelsLike.textContent = t("weatherFeelsLike", { temp: weather.feelsLike });
+   
+     cityText.textContent = cityVisible && weather.city ? weather.city : "";
+     cityToggle.classList.toggle("is-visible", cityVisible && Boolean(weather.city));
+     cityToggle.setAttribute("aria-label", cityVisible ? t("hideCity") : t("showCity"));
+   }
+   
+   function renderWeatherEnableState() {
+     const widget = document.getElementById("weatherWidget");
+     const enableBtn = document.getElementById("weatherEnableBtn");
+     const content = document.getElementById("weatherContent");
+   
+     if (!widget || !enableBtn || !content) {
+       return;
+     }
+   
+     widget.hidden = false;
+     enableBtn.hidden = false;
+     content.hidden = true;
+   }
+   
+   async function loadWeather({ force = false } = {}) {
+     try {
+       const cached = !force ? await getStoredWeatherCache() : null;
+       const cityVisible = false;
+       weatherCityVisible = false;
+   
+       if (cached) {
+         renderWeatherWidget(cached, cityVisible);
+         return;
+       }
+   
+       const position = await getCurrentPositionPromise();
+       const { latitude, longitude } = position.coords;
+   
+       const weather = await fetchWeatherForPosition(latitude, longitude);
+   
+       await saveWeatherCache(weather);
+       renderWeatherWidget(weather, cityVisible);
+     } catch {
+       renderWeatherEnableState();
+     }
+   }
+   
+   async function setupWeatherWidget() {
+     const enableBtn = document.getElementById("weatherEnableBtn");
+     const cityToggle = document.getElementById("weatherCityToggle");
+     const widget = document.getElementById("weatherWidget");
+   
+     if (!widget) {
+       return;
+     }
+   
+     renderWeatherEnableState();
+   
+     const cached = await getStoredWeatherCache();
+   
+     if (cached) {
+      weatherCityVisible = false;
+      renderWeatherWidget(cached, false);
+    }
+   
+     if (enableBtn) {
+       enableBtn.addEventListener("click", async () => {
+         enableBtn.textContent = t("weatherLoading");
+         await loadWeather({ force: true });
+         enableBtn.textContent = t("weatherEnable");
+       });
+     }
+   
+     if (cityToggle) {
+      cityToggle.addEventListener("click", async () => {
+        weatherCityVisible = !weatherCityVisible;
+  
+        const cache = await getStoredWeatherCache();
+  
+        if (cache) {
+          renderWeatherWidget(cache, weatherCityVisible);
+        }
+      });
+    }
+  }
+  
+  document.addEventListener("DOMContentLoaded", setupWeatherWidget);
