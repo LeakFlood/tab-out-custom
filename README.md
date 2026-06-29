@@ -1,86 +1,187 @@
-# Tab Out
+# Tab Out Custom
 
-**Keep tabs on your tabs.**
+A customized Chrome new tab dashboard based on **Tab Out**.
 
-Tab Out is a Chrome extension that replaces your new tab page with a dashboard of everything you have open. Tabs are grouped by domain, with homepages (Gmail, X, LinkedIn, etc.) pulled into their own group. Close tabs with a satisfying swoosh + confetti.
-
-No server. No account. No external API calls. Just a Chrome extension.
-
----
-
-## Install with a coding agent
-
-Send your coding agent (Claude Code, Codex, etc.) this repo and say **"install this"**:
-
-```
-https://github.com/zarazhangrui/tab-out
-```
-
-The agent will walk you through it. Takes about 1 minute.
-
----
+This version turns the new tab page into a clean productivity dashboard with shortcut management, saved tab sessions, live open-tab cleanup, local weather, and French/English interface support.
 
 ## Features
 
-- **See all your tabs at a glance** on a clean grid, grouped by domain
-- **Homepages group** pulls Gmail inbox, X home, YouTube, LinkedIn, GitHub homepages into one card
-- **Close tabs with style** with swoosh sound + confetti burst
-- **Duplicate detection** flags when you have the same page open twice, with one-click cleanup
-- **Click any tab to jump to it** across windows, no new tab opened
-- **Save for later** bookmark tabs to a checklist before closing them
-- **Localhost grouping** shows port numbers next to each tab so you can tell your vibe coding projects apart
-- **Expandable groups** show the first 8 tabs with a clickable "+N more"
-- **100% local** your data never leaves your machine
-- **Pure Chrome extension** no server, no Node.js, no npm, no setup beyond loading the extension
+### Custom new tab dashboard
 
----
+Replaces Chrome’s default new tab page with a minimalist dashboard showing:
 
-## Manual Setup
+* current greeting;
+* live time;
+* current date;
+* weather widget;
+* quick shortcuts;
+* saved sessions;
+* open tab overview.
 
-**1. Clone the repo**
+### Quick shortcuts
 
-```bash
-git clone https://github.com/zarazhangrui/tab-out.git
+Add, edit, and delete custom shortcuts directly from the dashboard.
+
+Shortcuts are stored locally in Chrome using `chrome.storage.local`, so they are private to each user and are not included when sharing the project files.
+
+### Saved sessions
+
+Create reusable tab sessions from currently open tabs.
+
+A saved session can be reopened later with one click. Each session includes:
+
+* custom name;
+* selected tabs;
+* favicon preview;
+* edit mode;
+* delete option.
+
+### Open tabs overview
+
+Tab Out groups currently open tabs by domain and displays them as clean cards.
+
+You can:
+
+* view grouped tabs;
+* focus an existing tab;
+* close a single tab;
+* close all tabs from a domain;
+* close duplicate tabs;
+* expand grouped tabs through a dropdown.
+
+### Live refresh
+
+The dashboard updates when Chrome tabs change.
+
+It reacts to:
+
+* new tabs;
+* closed tabs;
+* updated tabs;
+* active tab changes;
+* window focus changes.
+
+### Weather widget
+
+Includes a local weather card with:
+
+* current temperature in °C;
+* feels-like temperature;
+* condition label;
+* animated weather visual;
+* hidden city by default for privacy.
+
+The city is masked by default and only appears when clicked. It is automatically hidden again after reload or browser restart.
+
+Weather data is fetched through Open-Meteo and reverse geocoding through Nominatim.
+
+### French / English interface
+
+The dashboard includes a language switcher.
+
+Supported languages:
+
+* French;
+* English.
+
+The selected language is saved locally in Chrome.
+
+### Privacy-oriented setup
+
+Personal data is not hardcoded into the shared files.
+
+User-created shortcuts and sessions are stored locally in Chrome, not in the repository.
+
+Optional private configuration can be placed in:
+
+```text
+extension/config.local.js
 ```
 
-**2. Load the Chrome extension**
+This file should not be committed or shared.
 
-1. Open Chrome and go to `chrome://extensions`
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Navigate to the `extension/` folder inside the cloned repo and select it
+## Installation
 
-**3. Open a new tab**
+1. Download or clone this repository.
+2. Open Chrome.
+3. Go to:
 
-You'll see Tab Out.
-
----
-
-## How it works
-
-```
-You open a new tab
-  -> Tab Out shows your open tabs grouped by domain
-  -> Homepages (Gmail, X, etc.) get their own group at the top
-  -> Click any tab title to jump to it
-  -> Close groups you're done with (swoosh + confetti)
-  -> Save tabs for later before closing them
+```text
+chrome://extensions
 ```
 
-Everything runs inside the Chrome extension. No external server, no API calls, no data sent anywhere. Saved tabs are stored in `chrome.storage.local`.
+4. Enable **Developer mode**.
+5. Click **Load unpacked**.
+6. Select the folder:
 
----
+```text
+extension
+```
 
-## Tech stack
+7. Open a new tab.
 
-| What | How |
-|------|-----|
-| Extension | Chrome Manifest V3 |
-| Storage | chrome.storage.local |
-| Sound | Web Audio API (synthesized, no files) |
-| Animations | CSS transitions + JS confetti particles |
+## Private configuration
 
----
+You can create a local private configuration file:
+
+```text
+extension/config.local.js
+```
+
+This file is ignored by Git and should be kept private.
+
+Example:
+
+```js
+window.TAB_OUT_DEFAULT_SHORTCUTS = [
+  {
+    name: "Example",
+    url: "https://example.com"
+  }
+];
+```
+
+Do not commit this file if it contains personal links.
+
+## Git ignore
+
+The repository should ignore:
+
+```text
+extension/config.local.js
+```
+
+This prevents personal shortcuts or private configuration from being pushed to GitHub.
+
+## Permissions
+
+This extension may use the following Chrome permissions:
+
+* `tabs` — read and manage open tabs;
+* `activeTab` — interact with the active tab;
+* `storage` — save shortcuts, sessions, preferences, and weather cache;
+* `geolocation` — retrieve local weather if the user allows it.
+
+External requests are used for:
+
+* weather data;
+* reverse geocoding;
+* favicons.
+
+## Notes
+
+This is a personal customization of Tab Out, designed for a cleaner and more functional new tab workflow.
+
+Original project:
+
+```text
+https://github.com/zarazhangrui/tab-out
+```
+
+## License
+
+If this project is based on the original Tab Out repository, keep the original license and attribution.
+
 
 ## License
 
