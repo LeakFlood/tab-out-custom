@@ -1,5 +1,7 @@
 # Tab Out Custom
 
+Original project by [Zara](https://x.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
+
 A customized Chrome new tab dashboard based on **Tab Out**.
 
 This version turns the new tab page into a clean productivity dashboard with shortcut management, saved tab sessions, live open-tab cleanup, local weather, and French/English interface support.
