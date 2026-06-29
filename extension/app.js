@@ -62,6 +62,7 @@ const I18N = {
     sessionsSubtitle: "Rouvre rapidement un groupe d’onglets.",
     createSessionButton: "+ Session",
     noSavedSession: "Aucune session sauvegardée pour le moment.",
+    sessionsReordered: "Ordre des sessions sauvegardé",
     editSession: "Modifier cette session",
     createSessionTitle: "Créer une session",
     editSessionTitle: "Modifier la session",
@@ -220,6 +221,7 @@ const I18N = {
     sessionsSubtitle: "Quickly reopen a group of tabs.",
     createSessionButton: "+ Session",
     noSavedSession: "No saved session yet.",
+    sessionsReordered: "Session order saved",
     editSession: "Edit this session",
     createSessionTitle: "Create a session",
     editSessionTitle: "Edit session",
@@ -1631,7 +1633,183 @@ async function renderDashboard() {
    function createSessionId() {
      return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
    }
-   
+
+   let draggedSavedSessionId = null;
+   let suppressSavedSessionOpenUntil = 0;
+   let savedSessionDragState = null;
+
+   const SAVED_SESSION_DRAG_THRESHOLD = 7;
+
+   function getSavedSessionCards(container) {
+     return Array.from(
+       container.querySelectorAll('.saved-session-card[data-session-draggable="true"]')
+     ).filter((card) => !card.classList.contains('is-drag-source'));
+   }
+
+   function getSavedSessionInsertBefore(container, x, y) {
+     const cards = getSavedSessionCards(container);
+
+     return cards.find((card) => {
+       const rect = card.getBoundingClientRect();
+       const isSameRow = y >= rect.top && y <= rect.bottom;
+
+       if (isSameRow) {
+         return x < rect.left + rect.width / 2;
+       }
+
+       return y < rect.top + rect.height / 2;
+     }) || null;
+   }
+
+   function getSavedSessionDomOrder(list) {
+     if (!list) return [];
+
+     return Array.from(
+       list.querySelectorAll('.saved-session-card[data-session-draggable="true"]')
+     ).map((card) => card.dataset.sessionId).filter(Boolean);
+   }
+
+   function hasSavedSessionOrderChanged(before, after) {
+     if (before.length !== after.length) return true;
+     return before.some((id, index) => id !== after[index]);
+   }
+
+   function startSavedSessionPointerDrag(event, state) {
+     const { card, list } = state;
+     const rect = card.getBoundingClientRect();
+
+     state.dragging = true;
+     draggedSavedSessionId = card.dataset.sessionId;
+     suppressSavedSessionOpenUntil = Date.now() + 500;
+
+     const placeholder = document.createElement('div');
+     placeholder.className = 'saved-session-card saved-session-placeholder';
+     placeholder.style.width = `${rect.width}px`;
+     placeholder.style.height = `${rect.height}px`;
+
+     const ghost = card.cloneNode(true);
+     ghost.classList.add('saved-session-drag-ghost');
+     ghost.style.width = `${rect.width}px`;
+     ghost.style.height = `${rect.height}px`;
+     ghost.style.left = `${rect.left}px`;
+     ghost.style.top = `${rect.top}px`;
+
+     state.offsetX = event.clientX - rect.left;
+     state.offsetY = event.clientY - rect.top;
+     state.placeholder = placeholder;
+     state.ghost = ghost;
+
+     list.classList.add('is-reordering');
+     card.classList.add('is-drag-source');
+     list.insertBefore(placeholder, card);
+     card.remove();
+     document.body.appendChild(ghost);
+
+     updateSavedSessionPointerDrag(event);
+   }
+
+   function updateSavedSessionPointerDrag(event) {
+     const state = savedSessionDragState;
+
+     if (!state || !state.dragging) {
+       return;
+     }
+
+     const { list, placeholder, ghost, offsetX, offsetY } = state;
+
+     if (ghost) {
+       ghost.style.transform = `translate3d(${event.clientX - offsetX}px, ${event.clientY - offsetY}px, 0)`;
+     }
+
+     if (!list || !placeholder) {
+       return;
+     }
+
+     const insertBefore = getSavedSessionInsertBefore(list, event.clientX, event.clientY);
+
+     if (insertBefore && insertBefore !== placeholder) {
+       list.insertBefore(placeholder, insertBefore);
+     } else if (!insertBefore) {
+       list.appendChild(placeholder);
+     }
+   }
+
+   async function finishSavedSessionPointerDrag(event) {
+     const state = savedSessionDragState;
+
+     if (!state) {
+       return;
+     }
+
+     const { card, list, placeholder, ghost, initialOrder, dragging } = state;
+
+     savedSessionDragState = null;
+
+     if (card?.releasePointerCapture) {
+       try { card.releasePointerCapture(event.pointerId); } catch {}
+     }
+
+     if (!dragging) {
+       return;
+     }
+
+     suppressSavedSessionOpenUntil = Date.now() + 600;
+
+     if (placeholder && list) {
+       list.insertBefore(card, placeholder);
+       placeholder.remove();
+     }
+
+     if (ghost) {
+       ghost.remove();
+     }
+
+     if (card) {
+       card.classList.remove('is-drag-source');
+     }
+
+     if (list) {
+       list.classList.remove('is-reordering');
+     }
+
+     draggedSavedSessionId = null;
+
+     const finalOrder = getSavedSessionDomOrder(list);
+
+     if (hasSavedSessionOrderChanged(initialOrder, finalOrder)) {
+       await saveCurrentSavedSessionOrder();
+       showToast(t('sessionsReordered'));
+     }
+   }
+
+   async function saveCurrentSavedSessionOrder() {
+     const list = document.getElementById("savedSessionsList");
+
+     if (!list || savedSessionsViewMode !== "sessions") {
+       return;
+     }
+
+     const orderedIds = getSavedSessionDomOrder(list);
+
+     if (orderedIds.length === 0) {
+       return;
+     }
+
+     const sessions = await getSavedSessions();
+     const byId = new Map(sessions.map((session) => [session.id, session]));
+     const reorderedSessions = orderedIds
+       .map((id) => byId.get(id))
+       .filter(Boolean);
+
+     sessions.forEach((session) => {
+       if (!orderedIds.includes(session.id)) {
+         reorderedSessions.push(session);
+       }
+     });
+
+     await saveSavedSessions(reorderedSessions);
+   }
+
    let savedSessionsViewMode = "sessions";
 
 async function renderSavedSessions() {
@@ -1685,6 +1863,9 @@ async function renderSavedSessions() {
     sessions.forEach((session) => {
       const card = document.createElement("div");
       card.className = "saved-session-card";
+      card.dataset.sessionId = session.id;
+      card.dataset.sessionDraggable = "true";
+      card.draggable = false;
 
       const openButton = document.createElement("button");
       openButton.type = "button";
@@ -2073,6 +2254,82 @@ if (chrome?.tabs?.onUpdated) {
    instead of one per door.
    ---------------------------------------------------------------- */
 
+document.addEventListener("pointerdown", (e) => {
+  const card = e.target.closest('.saved-session-card[data-session-draggable="true"]');
+
+  if (!card || savedSessionsViewMode !== "sessions") {
+    return;
+  }
+
+  if (e.button !== 0 || e.target.closest('.saved-session-edit')) {
+    return;
+  }
+
+  const list = card.closest("#savedSessionsList");
+
+  if (!list) {
+    return;
+  }
+
+  savedSessionDragState = {
+    card,
+    list,
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    offsetX: 0,
+    offsetY: 0,
+    dragging: false,
+    initialOrder: getSavedSessionDomOrder(list),
+    placeholder: null,
+    ghost: null
+  };
+
+  if (card.setPointerCapture) {
+    try { card.setPointerCapture(e.pointerId); } catch {}
+  }
+});
+
+document.addEventListener("pointermove", (e) => {
+  const state = savedSessionDragState;
+
+  if (!state || state.pointerId !== e.pointerId) {
+    return;
+  }
+
+  const distanceX = Math.abs(e.clientX - state.startX);
+  const distanceY = Math.abs(e.clientY - state.startY);
+
+  if (!state.dragging) {
+    if (Math.max(distanceX, distanceY) < SAVED_SESSION_DRAG_THRESHOLD) {
+      return;
+    }
+
+    e.preventDefault();
+    startSavedSessionPointerDrag(e, state);
+    return;
+  }
+
+  e.preventDefault();
+  updateSavedSessionPointerDrag(e);
+});
+
+document.addEventListener("pointerup", async (e) => {
+  if (!savedSessionDragState || savedSessionDragState.pointerId !== e.pointerId) {
+    return;
+  }
+
+  await finishSavedSessionPointerDrag(e);
+});
+
+document.addEventListener("pointercancel", async (e) => {
+  if (!savedSessionDragState || savedSessionDragState.pointerId !== e.pointerId) {
+    return;
+  }
+
+  await finishSavedSessionPointerDrag(e);
+});
+
 document.addEventListener('click', async (e) => {
   // Walk up the DOM to find the nearest element with data-action
   const actionEl = e.target.closest('[data-action]');
@@ -2126,6 +2383,10 @@ document.addEventListener('click', async (e) => {
     if (action === "open-saved-session") {
       e.preventDefault();
       e.stopPropagation();
+
+      if (Date.now() < suppressSavedSessionOpenUntil) {
+        return;
+      }
   
       await openSavedSession(actionEl.dataset.sessionId);
       return;
