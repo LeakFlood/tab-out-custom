@@ -1805,6 +1805,10 @@ async function renderDashboard() {
      draggedSavedSessionId = card.dataset.sessionId;
      suppressSavedSessionOpenUntil = Date.now() + 500;
 
+     if (card.setPointerCapture) {
+       try { card.setPointerCapture(event.pointerId); } catch {}
+     }
+
      const placeholder = document.createElement('div');
      placeholder.className = 'saved-session-card saved-session-placeholder';
      placeholder.style.width = `${rect.width}px`;
@@ -1814,8 +1818,8 @@ async function renderDashboard() {
      ghost.classList.add('saved-session-drag-ghost');
      ghost.style.width = `${rect.width}px`;
      ghost.style.height = `${rect.height}px`;
-     ghost.style.left = `${rect.left}px`;
-     ghost.style.top = `${rect.top}px`;
+     ghost.style.left = "0px";
+     ghost.style.top = "0px";
 
      state.offsetX = event.clientX - rect.left;
      state.offsetY = event.clientY - rect.top;
@@ -2408,9 +2412,10 @@ document.addEventListener("pointerdown", (e) => {
     ghost: null
   };
 
-  if (card.setPointerCapture) {
-    try { card.setPointerCapture(e.pointerId); } catch {}
-  }
+  // Do not capture the pointer on simple click.
+  // Capturing here makes Chrome retarget the following click to the card,
+  // so the inner open button no longer receives the click action.
+  // Pointer capture is applied only after the drag threshold is crossed.
 });
 
 document.addEventListener("pointermove", (e) => {

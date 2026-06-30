@@ -348,22 +348,22 @@ header .saved-sessions-section {
 }
 
 .saved-session-card[data-session-draggable="true"] {
-  cursor: grab;
+  cursor: default;
   touch-action: none;
   user-select: none;
 }
 
 .saved-session-card[data-session-draggable="true"] .saved-session-open {
-  cursor: grab;
-}
-
-.saved-session-card[data-session-draggable="true"]:active,
-.saved-session-card[data-session-draggable="true"]:active .saved-session-open {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .saved-sessions-list.is-reordering {
   user-select: none;
+}
+
+.saved-sessions-list.is-reordering,
+.saved-sessions-list.is-reordering * {
+  cursor: grabbing !important;
 }
 
 .saved-sessions-list.is-reordering .saved-session-card {
