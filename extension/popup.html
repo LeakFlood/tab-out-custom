@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Out</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup-shell">
+    <header class="popup-header">
+      <span class="popup-kicker">Tab Out</span>
+      <h1 id="popupTitle">Gérer l’onglet actuel</h1>
+    </header>
+
+    <section id="activeTabCard" class="active-tab-card" aria-live="polite">
+      <div id="activeTabFavicon" class="active-tab-favicon">◎</div>
+      <div class="active-tab-copy">
+        <strong id="activeTabTitle"></strong>
+        <span id="activeTabUrl"></span>
+      </div>
+    </section>
+
+    <p id="popupUnsupported" class="popup-message is-error" hidden></p>
+    <p id="popupFeedback" class="popup-message" role="status" hidden></p>
+
+    <label class="popup-search">
+      <span class="sr-only" id="popupSearchLabel">Rechercher</span>
+      <input id="popupSearchInput" type="search" autocomplete="off" placeholder="Rechercher une session…">
+    </label>
+
+    <div id="popupDestinations" class="popup-destinations">
+      <section class="destination-section">
+        <div class="destination-heading">
+          <h2 id="sessionsHeading">Sessions</h2>
+          <span id="sessionsCount"></span>
+        </div>
+        <div id="sessionDestinations" class="destination-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -31,13 +31,29 @@
     <input type="file" id="backupImportInput" accept="application/json,.json" hidden>
   </div>
 
-<div id="sessionModal" class="session-modal" hidden>
-  <div class="session-modal-card">
+<div
+  id="sessionModal"
+  class="session-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="sessionModalTitle"
+  hidden
+>
+  <div class="session-modal-card session-editor-card">
     <div class="session-modal-header">
       <div>
         <h2 id="sessionModalTitle" data-i18n="createSessionTitle">Créer une session</h2>
-        <p data-i18n="sessionTabsRequired">Sélectionne les onglets à inclure.</p>
+        <p data-i18n="sessionEditorSubtitle">Ajoute ou retire les onglets de cette session.</p>
       </div>
+      <button
+        type="button"
+        id="undoSessionEditBtn"
+        class="session-undo-btn"
+        data-i18n="undo"
+        disabled
+      >
+        Annuler la dernière action
+      </button>
     </div>
 
     <label class="session-name-label">
@@ -45,18 +61,197 @@
       <input type="text" id="sessionNameInput" placeholder="Ex : Dev Ultra" data-i18n-placeholder="sessionNamePlaceholder">
     </label>
 
-    <div class="session-tabs-toolbar">
-      <button type="button" id="selectAllSessionTabsBtn" data-i18n="selectAll">Tout sélectionner</button>
-      <button type="button" id="clearSessionTabsBtn" data-i18n="clearAll">Tout décocher</button>
+    <form id="sessionManualAddForm" class="session-manual-add-form" novalidate>
+      <label>
+        <span data-i18n="collectionManualUrlLabel">Lien</span>
+        <input
+          type="text"
+          id="sessionManualUrlInput"
+          autocomplete="url"
+          inputmode="url"
+          data-i18n-placeholder="collectionManualUrlPlaceholder"
+          placeholder="https://example.com"
+          required
+        >
+      </label>
+
+      <label>
+        <span data-i18n="collectionManualTitleLabel">Nom facultatif</span>
+        <input
+          type="text"
+          id="sessionManualTitleInput"
+          autocomplete="off"
+          data-i18n-placeholder="collectionManualTitlePlaceholder"
+          placeholder="Ex : Documentation"
+        >
+      </label>
+
+      <button type="submit" id="sessionManualAddSubmit" data-i18n="collectionManualAddSubmit">
+        Ajouter
+      </button>
+
+      <p id="sessionManualAddError" class="session-editor-error" role="alert" hidden></p>
+    </form>
+
+    <div class="session-editor-lists">
+      <section class="session-editor-section">
+        <div class="session-editor-section-header">
+          <div>
+            <strong data-i18n="includedTabs">Onglets inclus</strong>
+            <span id="sessionIncludedCount"></span>
+          </div>
+          <button type="button" id="removeAllSessionTabsBtn" data-i18n="removeAll">
+            Tout retirer
+          </button>
+        </div>
+        <div class="session-tabs-list" id="sessionTabsList"></div>
+      </section>
+
+      <section class="session-editor-section">
+        <div class="session-editor-section-header">
+          <div>
+            <strong data-i18n="availableTabs">Onglets ouverts disponibles</strong>
+            <span id="sessionAvailableCount"></span>
+          </div>
+          <button type="button" id="addAllSessionTabsBtn" data-i18n="addAll">
+            Tout ajouter
+          </button>
+        </div>
+        <div class="session-tabs-list" id="sessionAvailableTabsList"></div>
+      </section>
     </div>
 
-    <div class="session-tabs-list" id="sessionTabsList"></div>
+    <p id="sessionEditorConflict" class="session-editor-error session-editor-conflict" role="alert" hidden></p>
 
     <div class="session-modal-actions">
       <button type="button" id="deleteSessionBtn" data-i18n="delete" hidden>Supprimer</button>
       <button type="button" id="cancelSessionBtn" data-i18n="cancel">Annuler</button>
       <button type="button" id="saveSessionBtn" data-i18n="save">Sauvegarder</button>
     </div>
+  </div>
+</div>
+
+<div
+  id="groupImportModal"
+  class="session-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="groupImportTitle"
+  hidden
+>
+  <div class="session-modal-card group-import-modal-card">
+    <div class="session-modal-header group-import-header">
+      <button
+        type="button"
+        id="groupImportBackBtn"
+        class="group-import-back"
+        data-action="group-import-back"
+        data-i18n="back"
+        hidden
+      >
+        ← Retour
+      </button>
+      <div>
+        <h2 id="groupImportTitle" data-i18n="importGroupTitle">Importer un groupe d’onglets</h2>
+        <p id="groupImportSubtitle"></p>
+      </div>
+    </div>
+
+    <div id="groupImportBody" class="group-import-body"></div>
+
+    <div class="session-modal-actions">
+      <span id="groupImportSummary" class="group-import-summary"></span>
+      <button type="button" data-action="close-group-import" data-i18n="cancel">Annuler</button>
+      <button
+        type="button"
+        id="groupImportSaveBtn"
+        data-action="save-group-import"
+        data-i18n="applyGroupReview"
+        hidden
+      >
+        Appliquer
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  id="collectionDetailOverlay"
+  class="collection-detail-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="collectionDetailTitle"
+  hidden
+>
+  <div class="collection-detail-panel">
+    <header class="collection-detail-header">
+      <button
+        type="button"
+        class="collection-detail-back"
+        data-action="close-collection-detail"
+        data-i18n="collectionDetailBack"
+      >
+        ← Retour
+      </button>
+
+      <div class="collection-detail-heading">
+        <span id="collectionDetailSource" class="collection-detail-source"></span>
+        <h2 id="collectionDetailTitle"></h2>
+        <p id="collectionDetailMeta" class="collection-detail-meta"></p>
+      </div>
+    </header>
+
+    <div id="collectionDetailNotice" class="collection-detail-notice" hidden></div>
+
+    <p class="collection-detail-hint" data-i18n="collectionDetailHint">
+      Sélectionne des onglets pour les ouvrir en arrière-plan, ou ouvre un onglet et bascule directement dessus.
+    </p>
+
+    <p
+      id="collectionDetailGroupCopyHint"
+      class="collection-detail-group-copy-hint"
+      hidden
+    ></p>
+
+    <div class="collection-detail-toolbar">
+      <button type="button" data-action="select-all-collection-tabs" data-i18n="selectAll">
+        Tout sélectionner
+      </button>
+      <button type="button" data-action="clear-collection-tabs" data-i18n="clearAll">
+        Tout décocher
+      </button>
+    </div>
+
+    <div id="collectionDetailTabs" class="collection-detail-tabs" role="list"></div>
+
+    <footer class="collection-detail-actions">
+      <span id="collectionDetailSelection" class="collection-detail-selection"></span>
+
+      <div class="collection-detail-action-buttons">
+        <button
+          type="button"
+          id="collectionDetailOpenGroup"
+          class="collection-detail-open-group"
+          data-action="open-session-as-group"
+          data-i18n="openAsGroup"
+        >
+          Ouvrir comme groupe
+        </button>
+        <button
+          type="button"
+          id="collectionDetailOpenAll"
+          class="collection-detail-open-all"
+          data-action="open-all-collection-tabs"
+        ></button>
+        <button
+          type="button"
+          id="collectionDetailOpenSelected"
+          class="collection-detail-open-selected"
+          data-action="open-selected-collection-tabs"
+          disabled
+        ></button>
+      </div>
+    </footer>
   </div>
 </div>
 
@@ -124,20 +319,10 @@
               + Session
             </button>
 
-            <button type="button" id="syncChromeGroupsBtn" class="saved-session-add-btn" data-action="sync-protected-groups" data-i18n="syncChromeGroups" hidden>
-              Synchroniser
+            <button type="button" id="importChromeGroupBtn" class="saved-session-add-btn" data-action="open-group-import" data-i18n="importGroupButton">
+              Importer un groupe
             </button>
           </div>
-        </div>
-
-        <div class="saved-sessions-tabs" role="tablist" aria-label="Sessions">
-          <button type="button" id="sessionsViewBtn" class="saved-sessions-tab is-active" data-action="set-sessions-view" data-session-view="sessions" data-i18n="sessions">
-            Sessions
-          </button>
-
-          <button type="button" id="groupsViewBtn" class="saved-sessions-tab" data-action="set-sessions-view" data-session-view="groups" data-i18n="protectedGroupsTab">
-            Groupes protégés
-          </button>
         </div>
 
         <div class="saved-sessions-list" id="savedSessionsList"></div>
@@ -168,7 +353,7 @@
     <!-- LEFT COLUMN: Open tabs -->
     <div class="active-section" id="openTabsSection" style="display:none">
       <div class="section-header">
-        <h2 id="openTabsSectionTitle" data-i18n="openTabs">Onglets ouverts</h2>
+        <h2 id="openTabsSectionTitle" data-i18n="unassignedTabs">Onglets non assignés</h2>
         <div class="section-line"></div>
         <div class="section-count" id="openTabsSectionCount"></div>
       </div>

@@ -4,7 +4,7 @@ A customized Chrome new tab workflow dashboard based on [Tab Out](https://github
 
 Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
-Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, saved sessions, open-tab cleanup, local weather, French/English support, and saved Chrome tab groups with local snapshots.
+Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, and optional native tab-group connections.
 
 ## Features
 
@@ -18,8 +18,7 @@ Tab Out Custom replaces the default Chrome new tab page with a clean dashboard s
 * local weather;
 * quick shortcuts;
 * saved sessions;
-* saved Chrome groups;
-* open tab overview.
+* unassigned open-tab overview.
 
 ### Quick shortcuts
 
@@ -34,54 +33,52 @@ Create reusable sessions from currently open tabs.
 Each saved session includes:
 
 * a custom name;
-* selected tabs;
+* an editor split between included tabs and currently open tabs available to add;
 * favicon preview;
+* manual tab creation from a link, with an optional custom name, directly in the editor;
+* individual and bulk tab removal, with multi-level undo until the editor is saved or closed;
+* a detail view for opening selected tabs in the background without duplicating tabs already open in the current window;
+* one-click opening and switching to a specific tab;
 * one-click reopening;
+* importing a Chrome or Brave tab group through a tab-selection review;
+* detecting changes in an optionally connected browser group;
+* opening any session as a native tab group;
 * edit and delete actions.
+
+Session names can be edited directly from their card. Click the title or use the discreet pencil shown on hover, then press Enter or click away to save.
 
 Sessions are useful for recurring workflows such as development, research, media, admin tools, or personal dashboards.
 
-### Saved Chrome groups
+Native browser groups are not stored as a second type of collection. They can be imported into a new or existing session, and connected sessions show **Group open**, **Changes available**, or **Group closed**. Changes are never applied automatically: the review dialog lets the user keep or remove each tab explicitly.
 
-Tab Out Custom can save Chrome tab groups as local snapshots.
+### Unassigned tabs overview
 
-This adds a protection layer on top of Chrome’s native tab groups:
-
-* save a Chrome group;
-* keep its name, color, and tabs;
-* detect when the live Chrome group changes;
-* restore a closed group from the saved snapshot;
-* update the saved snapshot manually;
-* open a saved group as a new Chrome group;
-* ignore a detected change when needed.
-
-Saved groups are never modified automatically. When Chrome changes a group, Tab Out Custom shows the difference and lets the user decide what to do.
-
-Group states include:
-
-* **Saved / synced** — the Chrome group matches the saved snapshot;
-* **Changed** — tabs were added or removed since the last save;
-* **Closed** — the group is not currently open, but can be restored;
-* **Unsaved** — the group exists in Chrome but has not been saved yet.
-
-### Open tabs overview
-
-Open tabs are grouped by domain and shown as compact cards.
+Open tabs that do not already belong to a saved session are grouped by domain and shown as compact cards. Exact URLs are used for assignment, so query-string and hash variants remain independent.
 
 You can:
 
 * view grouped tabs;
 * focus an existing tab;
+* press and drag a tab onto a session to assign it without closing the live browser tab;
+* drag one unassigned tab onto another to create a two-tab session with inline naming;
 * close a single tab;
-* close all tabs from a domain;
+* close all unassigned tabs from a domain;
 * close duplicate tabs;
 * expand grouped tabs through a dropdown.
 
+Dragging uses a movement threshold, so a normal click still focuses the tab. While dragging, the source, floating tab preview, session targets, and two-tab creation target are visually distinct.
+
 ### Live refresh
 
-The dashboard updates when browser tabs or saved groups change.
+The dashboard updates when browser tabs or connected groups change.
 
 Refresh behavior is debounced to avoid unnecessary layout jumps during Chrome tab group updates.
+
+### Toolbar session management
+
+Click the extension icon from any supported browser tab to open a compact destination picker.
+
+From the picker, the current tab can be added to or removed from any existing saved session. Each row clearly shows the action that will be applied. This changes the saved session only and never modifies a connected live group.
 
 ### Weather widget
 
@@ -128,7 +125,7 @@ It can export and import local user data, including:
 
 * custom shortcuts;
 * saved sessions;
-* saved Chrome group snapshots;
+* session group connections and display preferences;
 * saved-for-later tabs;
 * language preference.
 
@@ -144,7 +141,7 @@ For normal manual updates, the recommended method is still:
 2. replace the extension files inside that folder;
 3. reload the extension from `chrome://extensions`.
 
-Removing the extension or loading it from a different folder may create a different local extension storage, which can make previous shortcuts, sessions, and saved groups unavailable.
+Removing the extension or loading it from a different folder may create a different local extension storage, which can make previous shortcuts and sessions unavailable.
 
 
 ## Installation
@@ -175,7 +172,7 @@ Stored locally in Chrome:
 
 * custom shortcuts;
 * saved sessions;
-* saved Chrome group snapshots;
+* session group connections and display preferences;
 * language preference;
 * weather cache.
 
@@ -223,9 +220,9 @@ extension/config.local.js
 This extension may use the following Chrome permissions:
 
 * `tabs` — read and manage open browser tabs;
-* `tabGroups` — read, save, restore, and update Chrome tab groups;
+* `tabGroups` — import, inspect, focus, and recreate native Chrome tab groups;
 * `activeTab` — interact with the active tab when needed;
-* `storage` — save shortcuts, sessions, preferences, weather cache, and group snapshots;
+* `storage` — save shortcuts, sessions, preferences, and weather cache;
 * `geolocation` — retrieve local weather if the user allows it.
 
 External requests are used for:
@@ -240,8 +237,12 @@ External requests are used for:
 extension/
 ├── app.js
 ├── background.js
+├── collection-service.js
 ├── index.html
 ├── manifest.json
+├── popup.css
+├── popup.html
+├── popup.js
 ├── style.css
 └── icons/
 ```
@@ -256,7 +257,7 @@ The project is still evolving and currently prioritizes:
 * local-first storage;
 * browser workflow control;
 * privacy-conscious behavior;
-* manual confirmation before changing saved Chrome group snapshots.
+* explicit review before applying connected-group changes to sessions.
 
 ## Credits
 

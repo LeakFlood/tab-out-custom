@@ -1,3 +1,5 @@
+importScripts("collection-service.js");
+
 /**
  * background.js — Service Worker for Badge Updates
  *
@@ -64,11 +66,17 @@ async function updateBadge() {
 
 // Update badge when the extension is first installed
 chrome.runtime.onInstalled.addListener(() => {
+  ensureUnifiedSessionsMigration().catch((error) => {
+    console.warn("[tab-out] session migration failed:", error);
+  });
   updateBadge();
 });
 
 // Update badge when Chrome starts up
 chrome.runtime.onStartup.addListener(() => {
+  ensureUnifiedSessionsMigration().catch((error) => {
+    console.warn("[tab-out] session migration failed:", error);
+  });
   updateBadge();
 });
 
@@ -90,4 +98,7 @@ chrome.tabs.onUpdated.addListener(() => {
 // ─── Initial run ─────────────────────────────────────────────────────────────
 
 // Run once immediately when the service worker first loads
+ensureUnifiedSessionsMigration().catch((error) => {
+  console.warn("[tab-out] session migration failed:", error);
+});
 updateBadge();
