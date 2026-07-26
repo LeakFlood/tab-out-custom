@@ -196,6 +196,13 @@ const I18N = {
     nothingSaved: "Rien de sauvegardé. Tu vis dans le présent.",
     archive: "Archive",
     archiveSearchPlaceholder: "Rechercher dans les onglets archivés...",
+    restoreArchivedTab: "Restaurer dans À consulter plus tard",
+    deleteArchivedTab: "Supprimer définitivement",
+    archivedTabRestored: "Onglet restauré dans À consulter plus tard",
+    archivedTabDeleted: "Onglet archivé supprimé",
+    archivedTabDeleteUndone: "Onglet restauré dans l’archive",
+    archivedTabActionFailed: "Impossible de modifier cet onglet archivé",
+    undoDelete: "Annuler",
     tabOutDupePrefix: "Tu as",
     tabOutDupeSuffix: "onglets Tab Out ouverts. Garder uniquement celui-ci ?",
     closeExtras: "Fermer les autres",
@@ -208,6 +215,8 @@ const I18N = {
     savedForLater: "Sauvegardé pour plus tard",
     failedToSaveTab: "Impossible de sauvegarder l’onglet",
     tabClosed: "Onglet fermé",
+    tabLinkCopied: "Lien de l’onglet copié",
+    tabLinkCopyFailed: "Impossible de copier le lien de l’onglet",
     closeThisTab: "Fermer cet onglet",
     dismiss: "Retirer",
     archiveSearchFailed: "Recherche archive échouée",
@@ -226,6 +235,11 @@ const I18N = {
     weatherFeelsLike: "Ressenti {temp}°C",
     weatherEnable: "Activer la météo",
     weatherLoading: "Chargement...",
+    weatherPermissionDenied: "Accès à la position refusé. Autorise la localisation pour Tab Out dans Brave, puis réessaie.",
+    weatherLocationUnavailable: "Position indisponible. Vérifie les réglages de localisation de Brave, puis réessaie.",
+    weatherLocationTimeout: "La localisation prend trop de temps. Réessaie dans un instant.",
+    weatherNetworkError: "Le service météo est indisponible. Vérifie ta connexion, puis réessaie.",
+    weatherLoadFailed: "Impossible de charger la météo. Réessaie dans un instant.",
     showCity: "Afficher la ville",
     hideCity: "Masquer la ville",
 
@@ -278,7 +292,115 @@ const I18N = {
     deleteProtectedGroupConfirm: "Supprimer cette protection ?",
 
     languageSwitchToEnglish: "Passer en anglais",
-    languageSwitchToFrench: "Passer en français"
+    languageSwitchToFrench: "Passer en français",
+    settingsOpen: "Ouvrir les réglages",
+    settingsEyebrow: "Personnalisation",
+    settingsTitle: "Réglages",
+    settingsLayout: "Disposition",
+    settingsKeyboard: "Clavier",
+    settingsGeneral: "Général",
+    settingsPresets: "Dispositions rapides",
+    settingsPresetsHint: "Commence par une base, puis personnalise-la.",
+    settingsHeaderModules: "En-tête",
+    settingsContentModules: "Contenu",
+    settingsModules: "Éléments",
+    settingsGridHint: "Fais glisser un élément sur une grille. Utilise son bord pour le redimensionner.",
+    settingsHiddenModules: "Éléments masqués",
+    settingsHiddenHint: "Les éléments masqués conservent leur position.",
+    settingsNothingHidden: "Aucun élément masqué",
+    settingsPreview: "Aperçu du tableau de bord",
+    settingsPreviewHint: "Les positions s’alignent sur une grille responsive de 12 colonnes.",
+    settingsDropHere: "Dépose les éléments ici",
+    settingsDragModule: "Déplacer",
+    settingsLanguagePosition: "Position de la langue",
+    settingsReorderHint: "Fais glisser les éléments ou utilise les flèches.",
+    settingsContentHint: "Les sections principales peuvent aussi être masquées.",
+    settingsKeyboardTitle: "Raccourcis clavier",
+    settingsKeyboardHint: "Sélectionne une commande, puis saisis une combinaison. Le raccourci du menu est géré par Brave.",
+    settingsLanguageTitle: "Langue",
+    settingsSuspendedTabsTitle: "Onglets suspendus",
+    settingsSuspendedTabsHint: "Utilise le titre et l’adresse d’origine des onglets suspendus par The Marvellous Suspender.",
+    settingsRightClickCopyTitle: "Copie des liens au clic droit",
+    settingsRightClickCopyHint: "Clique avec le bouton droit sur un onglet dans Tab Out pour copier son URL.",
+    settingsUnassignedTabDragTitle: "Déplacement des onglets non assignés",
+    settingsUnassignedTabDragHint: "Fais glisser un onglet non assigné vers une session ou un autre onglet.",
+    settingsSessionReorderTitle: "Réorganisation des sessions",
+    settingsSessionReorderHint: "Fais glisser les sessions sauvegardées pour modifier leur ordre.",
+    settingsLanguageHint: "La langue reste disponible ici lorsque son bouton est masqué.",
+    settingsResetTitle: "Réinitialiser l’affichage",
+    settingsResetHint: "Restaure la disposition Originale et les raccourcis par défaut.",
+    settingsReset: "Réinitialiser",
+    restoreDefaults: "Valeurs par défaut",
+    close: "Fermer",
+    language: "Langue",
+    moduleGreeting: "Message d’accueil",
+    moduleTime: "Heure",
+    moduleDate: "Date",
+    moduleWeather: "Météo",
+    moduleShortcuts: "Raccourcis web",
+    moduleLanguage: "Langue",
+    moduleSessions: "Sessions",
+    moduleUnassigned: "Onglets non assignés",
+    moduleSavedLater: "À consulter plus tard",
+    moduleStats: "Statistiques des onglets",
+    moduleVisible: "Afficher",
+    moduleView: "Affichage",
+    moveLeft: "Déplacer à gauche",
+    moveRight: "Déplacer à droite",
+    moveUp: "Monter",
+    moveDown: "Descendre",
+    makeNarrower: "Réduire la largeur",
+    makeWider: "Augmenter la largeur",
+    resizeModule: "Redimensionner",
+    moduleColumns: "{count} col.",
+    resizeStatus: "{module} : {count} colonnes",
+    placementFloating: "Flottant · {position}",
+    placementGrid: "{region} · colonne {column} · largeur {width}",
+    previewDesktop: "Ordinateur",
+    previewTablet: "Tablette",
+    previewMobile: "Mobile",
+    dockTopLeft: "En haut à gauche",
+    dockTopRight: "En haut à droite",
+    dockBottomLeft: "En bas à gauche",
+    dockBottomRight: "En bas à droite",
+    styleTiles: "Tuiles",
+    styleCompact: "Compact",
+    styleCards: "Cartes",
+    styleList: "Liste",
+    styleDomainGrid: "Grille par domaine",
+    styleCompactList: "Liste compacte",
+    stylePanel: "Panneau",
+    presetOriginal: "Original",
+    presetOriginalHint: "La disposition historique exacte de Tab Out.",
+    presetFocus: "Concentration",
+    presetFocusHint: "L’essentiel : heure, date, sessions et onglets.",
+    presetCompact: "Compact",
+    presetCompactHint: "Tous les éléments dans une présentation plus dense.",
+    presetCustom: "Personnalisé",
+    keyboardOpenSettings: "Ouvrir les réglages",
+    keyboardSearchUnassigned: "Rechercher les onglets non assignés",
+    keyboardFocusShortcuts: "Afficher les raccourcis web",
+    keyboardFocusSessions: "Afficher les sessions",
+    keyboardFocusUnassigned: "Afficher les onglets non assignés",
+    keyboardFocusSavedLater: "Afficher À consulter plus tard",
+    keyboardCreateSession: "Créer une session",
+    keyboardAddShortcut: "Ajouter un raccourci web",
+    keyboardOpenPopup: "Ouvrir le menu de l’extension",
+    keyboardRecord: "Définir",
+    keyboardPressKeys: "Appuie sur une combinaison…",
+    keyboardUnassigned: "Non attribué",
+    keyboardClear: "Effacer",
+    keyboardManage: "Gérer",
+    keyboardManagedByBrowser: "Ce raccourci est géré par Brave.",
+    keyboardManagerOpenFailed: "Impossible d’ouvrir les raccourcis de Brave.",
+    keyboardConflict: "Cette combinaison est déjà utilisée par « {action} ».",
+    keyboardReserved: "Cette combinaison est réservée par le navigateur.",
+    keyboardStructural: "Cette touche est réservée à la navigation.",
+    settingsSaved: "Réglages enregistrés.",
+    settingsSaveFailed: "Impossible d’enregistrer les réglages.",
+    settingsModuleHidden: "Active « {module} » dans les réglages pour utiliser cette commande.",
+    settingsExternalChange: "Les réglages ont changé dans un autre onglet.",
+    settingsUnsaved: "Modifications non enregistrées"
   },
 
   en: {
@@ -456,6 +578,13 @@ const I18N = {
     nothingSaved: "Nothing saved. Living in the moment.",
     archive: "Archive",
     archiveSearchPlaceholder: "Search archived tabs...",
+    restoreArchivedTab: "Restore to Saved for later",
+    deleteArchivedTab: "Delete permanently",
+    archivedTabRestored: "Tab restored to Saved for later",
+    archivedTabDeleted: "Archived tab deleted",
+    archivedTabDeleteUndone: "Tab restored to the archive",
+    archivedTabActionFailed: "Could not update this archived tab",
+    undoDelete: "Undo",
     tabOutDupePrefix: "You have",
     tabOutDupeSuffix: "Tab Out tabs open. Keep just this one?",
     closeExtras: "Close extras",
@@ -468,6 +597,8 @@ const I18N = {
     savedForLater: "Saved for later",
     failedToSaveTab: "Failed to save tab",
     tabClosed: "Tab closed",
+    tabLinkCopied: "Tab link copied",
+    tabLinkCopyFailed: "Could not copy the tab link",
     closeThisTab: "Close this tab",
     dismiss: "Dismiss",
     archiveSearchFailed: "Archive search failed",
@@ -486,6 +617,11 @@ const I18N = {
     weatherFeelsLike: "Feels like {temp}°C",
     weatherEnable: "Enable weather",
     weatherLoading: "Loading...",
+    weatherPermissionDenied: "Location access was denied. Allow location for Tab Out in Brave, then try again.",
+    weatherLocationUnavailable: "Your location is unavailable. Check Brave's location settings, then try again.",
+    weatherLocationTimeout: "Location is taking too long. Please try again in a moment.",
+    weatherNetworkError: "The weather service is unavailable. Check your connection, then try again.",
+    weatherLoadFailed: "Could not load the weather. Please try again in a moment.",
     showCity: "Show city",
     hideCity: "Hide city",
 
@@ -538,7 +674,115 @@ const I18N = {
     deleteProtectedGroupConfirm: "Remove this protection?",
 
     languageSwitchToEnglish: "Switch to English",
-    languageSwitchToFrench: "Switch to French"
+    languageSwitchToFrench: "Switch to French",
+    settingsOpen: "Open settings",
+    settingsEyebrow: "Customization",
+    settingsTitle: "Settings",
+    settingsLayout: "Layout",
+    settingsKeyboard: "Keyboard",
+    settingsGeneral: "General",
+    settingsPresets: "Quick layouts",
+    settingsPresetsHint: "Start with a layout, then make it yours.",
+    settingsHeaderModules: "Header",
+    settingsContentModules: "Content",
+    settingsModules: "Elements",
+    settingsGridHint: "Drag an element onto either grid. Use its edge to resize it.",
+    settingsHiddenModules: "Hidden elements",
+    settingsHiddenHint: "Hidden elements keep their saved position.",
+    settingsNothingHidden: "Nothing hidden",
+    settingsPreview: "Dashboard preview",
+    settingsPreviewHint: "Positions snap to a responsive 12-column grid.",
+    settingsDropHere: "Drop elements here",
+    settingsDragModule: "Move",
+    settingsLanguagePosition: "Language position",
+    settingsReorderHint: "Drag items or use the arrow buttons.",
+    settingsContentHint: "Main sections can also be hidden.",
+    settingsKeyboardTitle: "Keyboard shortcuts",
+    settingsKeyboardHint: "Select a command, then press a combination. The popup shortcut is managed by the browser.",
+    settingsLanguageTitle: "Language",
+    settingsSuspendedTabsTitle: "Suspended tabs",
+    settingsSuspendedTabsHint: "Use the original title and URL for tabs suspended by The Marvellous Suspender.",
+    settingsRightClickCopyTitle: "Right-click link copying",
+    settingsRightClickCopyHint: "Right-click a tab in Tab Out to copy its URL.",
+    settingsUnassignedTabDragTitle: "Drag unassigned tabs",
+    settingsUnassignedTabDragHint: "Drag an unassigned tab onto a session or another tab.",
+    settingsSessionReorderTitle: "Reorder sessions",
+    settingsSessionReorderHint: "Drag saved sessions to change their order.",
+    settingsLanguageHint: "Language remains available here when its dashboard button is hidden.",
+    settingsResetTitle: "Reset dashboard",
+    settingsResetHint: "Restore the Original layout and default keyboard shortcuts.",
+    settingsReset: "Reset",
+    restoreDefaults: "Restore defaults",
+    close: "Close",
+    language: "Language",
+    moduleGreeting: "Greeting",
+    moduleTime: "Time",
+    moduleDate: "Date",
+    moduleWeather: "Weather",
+    moduleShortcuts: "Website shortcuts",
+    moduleLanguage: "Language",
+    moduleSessions: "Sessions",
+    moduleUnassigned: "Unassigned tabs",
+    moduleSavedLater: "Saved for later",
+    moduleStats: "Tab statistics",
+    moduleVisible: "Show",
+    moduleView: "View",
+    moveLeft: "Move left",
+    moveRight: "Move right",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    makeNarrower: "Make narrower",
+    makeWider: "Make wider",
+    resizeModule: "Resize",
+    moduleColumns: "{count} col.",
+    resizeStatus: "{module}: {count} columns",
+    placementFloating: "Floating · {position}",
+    placementGrid: "{region} · column {column} · width {width}",
+    previewDesktop: "Desktop",
+    previewTablet: "Tablet",
+    previewMobile: "Mobile",
+    dockTopLeft: "Top left",
+    dockTopRight: "Top right",
+    dockBottomLeft: "Bottom left",
+    dockBottomRight: "Bottom right",
+    styleTiles: "Tiles",
+    styleCompact: "Compact",
+    styleCards: "Cards",
+    styleList: "List",
+    styleDomainGrid: "Domain grid",
+    styleCompactList: "Compact list",
+    stylePanel: "Panel",
+    presetOriginal: "Original",
+    presetOriginalHint: "The exact historical Tab Out layout.",
+    presetFocus: "Focus",
+    presetFocusHint: "Only time, date, sessions, and tabs.",
+    presetCompact: "Compact",
+    presetCompactHint: "Every module in a denser presentation.",
+    presetCustom: "Custom",
+    keyboardOpenSettings: "Open Settings",
+    keyboardSearchUnassigned: "Search unassigned tabs",
+    keyboardFocusShortcuts: "Focus website shortcuts",
+    keyboardFocusSessions: "Focus Sessions",
+    keyboardFocusUnassigned: "Focus unassigned tabs",
+    keyboardFocusSavedLater: "Focus Saved for later",
+    keyboardCreateSession: "Create a session",
+    keyboardAddShortcut: "Add a website shortcut",
+    keyboardOpenPopup: "Open the extension popup",
+    keyboardRecord: "Set",
+    keyboardPressKeys: "Press a combination…",
+    keyboardUnassigned: "Unassigned",
+    keyboardClear: "Clear",
+    keyboardManage: "Manage",
+    keyboardManagedByBrowser: "This shortcut is managed by the browser.",
+    keyboardManagerOpenFailed: "Could not open the browser shortcut settings.",
+    keyboardConflict: "This combination is already used by “{action}”.",
+    keyboardReserved: "This combination is reserved by the browser.",
+    keyboardStructural: "This key is reserved for navigation.",
+    settingsSaved: "Settings saved.",
+    settingsSaveFailed: "Could not save settings.",
+    settingsModuleHidden: "Enable “{module}” in Settings to use this command.",
+    settingsExternalChange: "Settings changed in another Tab Out page.",
+    settingsUnsaved: "Unsaved changes"
   }
 };
 
@@ -583,6 +827,11 @@ function applyStaticTranslations() {
     const key = element.dataset.i18nTitle;
     element.title = t(key);
   });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    const key = element.dataset.i18nAriaLabel;
+    element.setAttribute("aria-label", t(key));
+  });
 }
 
 
@@ -606,6 +855,47 @@ function plural(count, singularKey, pluralKey) {
 let openTabs = [];
 let unassignedOpenTabs = [];
 
+async function getIncludeSuspendedTabsPreference() {
+  try {
+    const runtime = globalThis.TabOutDashboardRuntime;
+
+    if (runtime?.ready) {
+      await runtime.ready;
+      return runtime.getEffectiveSettings()?.behavior?.includeSuspendedTabs !==
+        false;
+    }
+
+    const settingsApi = globalThis.TabOutDashboardSettings;
+
+    if (!settingsApi) {
+      return true;
+    }
+
+    const stored = await chrome.storage.local.get(settingsApi.STORAGE_KEY);
+    return settingsApi.normalizeSettings(
+      stored[settingsApi.STORAGE_KEY]
+    ).behavior.includeSuspendedTabs !== false;
+  } catch {
+    return true;
+  }
+}
+
+async function queryTabsWithMetadata(query = {}) {
+  const [tabs, includeSuspendedTabs] = await Promise.all([
+    chrome.tabs.query(query),
+    getIncludeSuspendedTabsPreference()
+  ]);
+  const metadataApi = globalThis.TabOutTabMetadata;
+
+  if (!metadataApi) {
+    return tabs;
+  }
+
+  return tabs.map((tab) =>
+    metadataApi.normalizeBrowserTab(tab, { includeSuspendedTabs })
+  );
+}
+
 /**
  * fetchOpenTabs()
  *
@@ -618,17 +908,22 @@ async function fetchOpenTabs() {
     // The new URL for this page is now index.html (not newtab.html)
     const newtabUrl = `chrome-extension://${extensionId}/index.html`;
 
-    const tabs = await chrome.tabs.query({});
-    openTabs = tabs.map(t => ({
-      id:       t.id,
-      url:      t.url,
-      title:    t.title,
-      windowId: t.windowId,
-      active:   t.active,
-      favIconUrl: t.favIconUrl || "",
-      // Flag Tab Out's own pages so we can detect duplicate new tabs
-      isTabOut: t.url === newtabUrl || t.url === 'chrome://newtab/',
-    }));
+    const tabs = await queryTabsWithMetadata({});
+    openTabs = tabs.map(t => {
+      const tabUrl = t.pendingUrl || t.url || "";
+
+      return {
+        id:       t.id,
+        url:      tabUrl,
+        title:    t.title,
+        windowId: t.windowId,
+        groupId:  t.groupId,
+        active:   t.active,
+        favIconUrl: t.favIconUrl || "",
+        // Flag Tab Out's own pages so we can detect duplicate new tabs
+        isTabOut: tabUrl === newtabUrl || tabUrl === 'chrome://newtab/',
+      };
+    });
   } catch {
     // chrome.tabs API unavailable (shouldn't happen in an extension page)
     openTabs = [];
@@ -659,7 +954,7 @@ async function closeTabsByUrls(urls) {
     }
   }
 
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
   const toClose = allTabs
     .filter(tab => {
       const tabUrl = tab.url || '';
@@ -684,7 +979,7 @@ async function closeTabsByUrls(urls) {
 async function closeTabsExact(urls) {
   if (!urls || urls.length === 0) return;
   const urlSet = new Set(urls);
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
   const toClose = allTabs.filter(t => urlSet.has(t.url)).map(t => t.id);
   if (toClose.length > 0) await chrome.tabs.remove(toClose);
   await fetchOpenTabs();
@@ -698,7 +993,7 @@ async function closeTabsExact(urls) {
  */
 async function focusTab(url) {
   if (!url) return;
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
   const currentWindow = await chrome.windows.getCurrent();
 
   // Try exact URL match first
@@ -731,7 +1026,7 @@ async function focusTab(url) {
  * keepOne=false → close all copies.
  */
 async function closeDuplicateTabs(urls, keepOne = true) {
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
   const toClose = [];
 
   for (const url of urls) {
@@ -759,7 +1054,7 @@ async function closeTabOutDupes() {
   const extensionId = chrome.runtime.id;
   const newtabUrl = `chrome-extension://${extensionId}/index.html`;
 
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
   const currentWindow = await chrome.windows.getCurrent();
   const tabOutTabs = allTabs.filter(t =>
     t.url === newtabUrl || t.url === 'chrome://newtab/'
@@ -862,6 +1157,48 @@ async function dismissSavedTab(id) {
     tab.dismissed = true;
     await chrome.storage.local.set({ deferred });
   }
+}
+
+async function restoreArchivedSavedTab(id) {
+  const { deferred = [] } = await chrome.storage.local.get('deferred');
+  const tab = deferred.find(item => item.id === id && item.completed && !item.dismissed);
+
+  if (!tab) {
+    return false;
+  }
+
+  tab.completed = false;
+  delete tab.completedAt;
+  await chrome.storage.local.set({ deferred });
+  return true;
+}
+
+async function deleteArchivedSavedTab(id) {
+  const { deferred = [] } = await chrome.storage.local.get('deferred');
+  const index = deferred.findIndex(
+    item => item.id === id && item.completed && !item.dismissed
+  );
+
+  if (index === -1) {
+    return null;
+  }
+
+  const [item] = deferred.splice(index, 1);
+  await chrome.storage.local.set({ deferred });
+  return { item, index };
+}
+
+async function reinsertArchivedSavedTab(item, index) {
+  const { deferred = [] } = await chrome.storage.local.get('deferred');
+
+  if (deferred.some(savedTab => savedTab.id === item.id)) {
+    return false;
+  }
+
+  const insertionIndex = Math.max(0, Math.min(index, deferred.length));
+  deferred.splice(insertionIndex, 0, item);
+  await chrome.storage.local.set({ deferred });
+  return true;
 }
 
 
@@ -972,17 +1309,163 @@ function animateCardOut(card) {
   }, 300);
 }
 
+let toastTimeoutId = null;
+let toastSequence = 0;
+
+function hideToast(sequence) {
+  if (sequence !== undefined && sequence !== toastSequence) {
+    return;
+  }
+
+  const toast = document.getElementById('toast');
+  const actionButton = document.getElementById('toastAction');
+
+  if (!toast) {
+    return;
+  }
+
+  toast.classList.remove('visible', 'has-action');
+
+  if (actionButton) {
+    actionButton.hidden = true;
+    actionButton.disabled = false;
+    actionButton.onclick = null;
+  }
+}
+
 /**
- * showToast(message)
+ * showToast(message, options)
  *
  * Brief pop-up notification at the bottom of the screen.
  */
-function showToast(message) {
+function showToast(message, options = {}) {
   const toast = document.getElementById('toast');
-  document.getElementById('toastText').textContent = message;
+  const text = document.getElementById('toastText');
+  const actionButton = document.getElementById('toastAction');
+
+  if (!toast || !text) {
+    return;
+  }
+
+  const {
+    actionLabel = "",
+    onAction = null,
+    duration = 2500
+  } = options;
+  const sequence = ++toastSequence;
+  const hasAction = Boolean(actionButton && actionLabel && typeof onAction === "function");
+
+  if (toastTimeoutId) {
+    clearTimeout(toastTimeoutId);
+  }
+
+  text.textContent = message;
+  toast.classList.toggle('has-action', hasAction);
+
+  if (actionButton) {
+    actionButton.hidden = !hasAction;
+    actionButton.disabled = false;
+    actionButton.onclick = null;
+
+    if (hasAction) {
+      actionButton.textContent = actionLabel;
+      actionButton.onclick = async () => {
+        if (sequence !== toastSequence) {
+          return;
+        }
+
+        actionButton.disabled = true;
+
+        try {
+          await onAction();
+        } catch (error) {
+          console.warn('[tab-out] Toast action failed:', error);
+        } finally {
+          if (sequence === toastSequence) {
+            hideToast(sequence);
+          }
+        }
+      };
+    }
+  }
+
   toast.classList.add('visible');
-  setTimeout(() => toast.classList.remove('visible'), 2500);
+  toastTimeoutId = setTimeout(() => hideToast(sequence), duration);
 }
+
+function copyTextWithExecCommand(text) {
+  const previousFocus = document.activeElement;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus({ preventScroll: true });
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+    previousFocus?.focus?.({ preventScroll: true });
+  }
+}
+
+async function copyTextToClipboard(value) {
+  const text = String(value || "");
+
+  if (!text) {
+    return false;
+  }
+
+  let clipboardRequest = null;
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      clipboardRequest = navigator.clipboard
+        .writeText(text)
+        .then(() => true)
+        .catch(() => false);
+    } catch {}
+  }
+
+  const fallbackCopied = copyTextWithExecCommand(text);
+  return clipboardRequest
+    ? (await clipboardRequest) || fallbackCopied
+    : fallbackCopied;
+}
+
+function isDashboardBehaviorEnabled(behaviorKey) {
+  return globalThis.TabOutDashboardRuntime
+    ?.getEffectiveSettings()
+    ?.behavior
+    ?.[behaviorKey] !== false;
+}
+
+function isTabLinkRightClickCopyEnabled() {
+  return isDashboardBehaviorEnabled("copyTabLinksOnRightClick");
+}
+
+document.addEventListener("contextmenu", async (event) => {
+  if (!isTabLinkRightClickCopyEnabled()) {
+    return;
+  }
+
+  const tabElement = event.target.closest?.("[data-tab-url]");
+  const tabUrl = tabElement?.dataset.tabUrl || "";
+
+  if (!tabUrl) {
+    return;
+  }
+
+  event.preventDefault();
+  const copied = await copyTextToClipboard(tabUrl);
+  showToast(t(copied ? "tabLinkCopied" : "tabLinkCopyFailed"));
+});
 
 /**
  * checkAndShowEmptyState()
@@ -1070,6 +1553,13 @@ function getDateDisplay() {
 
 
 function updateTimeDisplay() {
+  if (
+    globalThis.TabOutDashboardRuntime &&
+    !globalThis.TabOutDashboardRuntime.isModuleVisible("time")
+  ) {
+    return;
+  }
+
   const timeEl = document.getElementById("timeDisplay");
 
   if (!timeEl) {
@@ -1082,6 +1572,25 @@ function updateTimeDisplay() {
   });
 
   timeEl.textContent = `${t("timePrefix")} ${time}`;
+}
+
+let dashboardTimeInterval = null;
+
+function syncDashboardClockVisibility() {
+  const visible =
+    !globalThis.TabOutDashboardRuntime ||
+    globalThis.TabOutDashboardRuntime.isModuleVisible("time");
+
+  if (!visible && dashboardTimeInterval) {
+    clearInterval(dashboardTimeInterval);
+    dashboardTimeInterval = null;
+    return;
+  }
+
+  if (visible && !dashboardTimeInterval) {
+    updateTimeDisplay();
+    dashboardTimeInterval = setInterval(updateTimeDisplay, 1000);
+  }
 }
 
 /* ----------------------------------------------------------------
@@ -1651,6 +2160,7 @@ async function renderDeferredColumn() {
   const archiveEl      = document.getElementById('deferredArchive');
   const archiveCountEl = document.getElementById('archiveCount');
   const archiveList    = document.getElementById('archiveList');
+  const moduleWrapper  = column?.closest('[data-dashboard-module="savedLater"]');
 
   if (!column) return;
 
@@ -1660,16 +2170,18 @@ async function renderDeferredColumn() {
     // Hide the entire column if there's nothing to show
     if (active.length === 0 && archived.length === 0) {
       column.style.display = 'none';
+      moduleWrapper?.classList.add("is-data-empty");
       return;
     }
 
+    moduleWrapper?.classList.remove("is-data-empty");
     column.style.display = 'block';
 
     // Render active checklist items
     if (active.length > 0) {
       countEl.textContent = plural(active.length, "itemCount", "itemsCount");
       list.innerHTML = active.map(item => renderDeferredItem(item)).join('');
-      list.style.display = 'block';
+      list.style.display = '';
       empty.style.display = 'none';
     } else {
       list.style.display = 'none';
@@ -1680,15 +2192,18 @@ async function renderDeferredColumn() {
     // Render archive section
     if (archived.length > 0) {
       archiveCountEl.textContent = `(${archived.length})`;
-      archiveList.innerHTML = archived.map(item => renderArchiveItem(item)).join('');
+      renderArchiveItems(archived);
       archiveEl.style.display = 'block';
     } else {
+      archiveCountEl.textContent = '';
+      archiveList.innerHTML = '';
       archiveEl.style.display = 'none';
     }
 
   } catch (err) {
     console.warn('[tab-out] Could not load saved tabs:', err);
     column.style.display = 'none';
+    moduleWrapper?.classList.add("is-data-empty");
   }
 }
 
@@ -1729,13 +2244,54 @@ function renderDeferredItem(item) {
  */
 function renderArchiveItem(item) {
   const ago = item.completedAt ? timeAgo(item.completedAt) : timeAgo(item.savedAt);
+  const safeId = escapeAttr(item.id);
+  const safeUrl = escapeAttr(item.url);
+  const safeTitle = escapeAttr(item.title || item.url);
   return `
-    <div class="archive-item">
-      <a href="${item.url}" target="_blank" rel="noopener" class="archive-item-title" title="${(item.title || '').replace(/"/g, '&quot;')}">
-        ${item.title || item.url}
+    <div class="archive-item" data-deferred-id="${safeId}">
+      <a href="${safeUrl}" target="_blank" rel="noopener" class="archive-item-title" title="${safeTitle}">
+        ${safeTitle}
       </a>
       <span class="archive-item-date">${ago}</span>
+      <div class="archive-item-actions">
+        <button type="button" class="archive-item-action archive-item-restore" data-action="restore-archived-tab" data-deferred-id="${safeId}" title="${escapeAttr(t("restoreArchivedTab"))}" aria-label="${escapeAttr(t("restoreArchivedTab"))}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12a8.25 8.25 0 1 0 2.42-5.83L3.75 8.59m0-4.84v4.84h4.84" />
+          </svg>
+        </button>
+        <button type="button" class="archive-item-action archive-item-delete" data-action="delete-archived-tab" data-deferred-id="${safeId}" title="${escapeAttr(t("deleteArchivedTab"))}" aria-label="${escapeAttr(t("deleteArchivedTab"))}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15m-10.5 0V4.75h6V7.5m-8.25 0 .75 12h9l.75-12M10 11v5m4-5v5" />
+          </svg>
+        </button>
+      </div>
     </div>`;
+}
+
+function filterArchivedTabs(archived, query) {
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+
+  if (normalizedQuery.length < 2) {
+    return archived;
+  }
+
+  return archived.filter(item =>
+    (item.title || '').toLowerCase().includes(normalizedQuery) ||
+    (item.url || '').toLowerCase().includes(normalizedQuery)
+  );
+}
+
+function renderArchiveItems(archived) {
+  const archiveList = document.getElementById('archiveList');
+  const query = document.getElementById('archiveSearch')?.value || "";
+
+  if (!archiveList) {
+    return;
+  }
+
+  const visibleItems = filterArchivedTabs(archived, query);
+  archiveList.innerHTML = visibleItems.map(item => renderArchiveItem(item)).join('')
+    || `<div class="archive-search-empty">${escapeAttr(t("noResults"))}</div>`;
 }
 
 
@@ -1760,8 +2316,7 @@ async function renderStaticDashboard() {
   const dateEl     = document.getElementById('dateDisplay');
   if (greetingEl) greetingEl.textContent = getGreeting();
   if (dateEl)     dateEl.textContent     = getDateDisplay();
-  updateTimeDisplay();
-  setInterval(updateTimeDisplay, 1000);
+  syncDashboardClockVisibility();
 
   // --- Fetch tabs ---
   await fetchOpenTabs();
@@ -1775,6 +2330,7 @@ async function renderStaticDashboard() {
   }
 
   const assignedUrls = getAssignedSessionUrlSet(sessions);
+  const assignedGroupIds = getAssignedSessionGroupIdSet(sessions);
   (provisionalSessionState?.tabs || []).forEach((tab) => {
     const normalizedUrl = normalizeOpenTabUrl(tab.url);
 
@@ -1783,7 +2339,9 @@ async function renderStaticDashboard() {
     }
   });
   unassignedOpenTabs = realTabs.filter(
-    (tab) => !assignedUrls.has(normalizeOpenTabUrl(tab.url))
+    (tab) =>
+      !assignedUrls.has(normalizeOpenTabUrl(tab.url)) &&
+      !assignedGroupIds.has(tab.groupId)
   );
 
   // --- Group tabs by domain ---
@@ -1958,7 +2516,20 @@ async function renderDashboard() {
    async function getSavedSessions() {
      await ensureUnifiedSessionStorage();
      const { savedSessions = [] } = await chrome.storage.local.get("savedSessions");
-     return Array.isArray(savedSessions) ? savedSessions : [];
+     const sessions = Array.isArray(savedSessions) ? savedSessions : [];
+     const metadataApi = globalThis.TabOutTabMetadata;
+
+     if (!metadataApi) {
+       return sessions;
+     }
+
+     const includeSuspendedTabs =
+       await getIncludeSuspendedTabsPreference();
+     return sessions.map((session) =>
+       metadataApi.normalizeSavedSession(session, {
+         includeSuspendedTabs
+       })
+     );
    }
    
    async function saveSavedSessions(sessions) {
@@ -2023,11 +2594,19 @@ async function renderDashboard() {
      return assignedUrls;
    }
 
+   function getAssignedSessionGroupIdSet(sessions = []) {
+     return new Set(
+       sessions
+         .map((session) => session.groupLink?.chromeGroupId)
+         .filter(Number.isInteger)
+     );
+   }
+
    async function getCurrentWindowTabsByUrl(windowId = null) {
      const targetWindowId = Number.isInteger(windowId)
        ? windowId
        : await getCollectionTargetWindowId();
-     const tabs = await chrome.tabs.query(
+     const tabs = await queryTabsWithMetadata(
        Number.isInteger(targetWindowId)
          ? { windowId: targetWindowId }
          : { currentWindow: true }
@@ -2307,6 +2886,7 @@ async function renderDashboard() {
      detail.tabs.forEach((item) => {
        const row = document.createElement("div");
        row.className = "collection-detail-tab-row";
+       row.dataset.tabUrl = item.url;
        row.setAttribute("role", "listitem");
 
        if (item.existingTab) {
@@ -2623,7 +3203,7 @@ async function renderDashboard() {
        return currentTab.windowId;
      }
 
-     const [activeTab] = await chrome.tabs.query({
+     const [activeTab] = await queryTabsWithMetadata({
        active: true,
        currentWindow: true
      });
@@ -4368,6 +4948,7 @@ async function renderDashboard() {
      state.reviewTabs.forEach((tab) => {
        const row = document.createElement("label");
        row.className = "session-tab-row group-review-tab";
+       row.dataset.tabUrl = tab.url;
 
        const checkbox = document.createElement("input");
        checkbox.type = "checkbox";
@@ -4740,11 +5321,12 @@ async function renderDashboard() {
          await connectSessionToLiveGroup(session.id, createdGroup);
        }
 
-       await renderSavedSessions();
+       await refreshDashboardCollections();
        showToast(t("groupOpenedLinked", { name: session.name }));
        return;
      }
 
+     await renderDashboard();
      showCollectionOpenResult(result, { grouped: true });
    }
 
@@ -4821,6 +5403,7 @@ async function renderDashboard() {
    function createSessionEditorTabRow(tab, action) {
      const row = document.createElement("div");
      row.className = "session-tab-row session-editor-tab-row";
+     row.dataset.tabUrl = tab.url;
 
      const favicon = document.createElement("img");
      favicon.alt = "";
@@ -5435,6 +6018,7 @@ document.addEventListener("pointerdown", (e) => {
 
   if (
     openTabSource &&
+    isDashboardBehaviorEnabled("dragUnassignedTabs") &&
     e.button === 0 &&
     e.isPrimary !== false &&
     !provisionalSessionState &&
@@ -5464,6 +6048,7 @@ document.addEventListener("pointerdown", (e) => {
 
   if (
     !card ||
+    !isDashboardBehaviorEnabled("reorderSessions") ||
     openTabAssignmentDragState ||
     provisionalSessionState ||
     inlineSessionRenameState ||
@@ -5733,22 +6318,6 @@ document.addEventListener("keydown", (event) => {
       trapCollectionDetailFocus(event);
     }
 
-    return;
-  }
-
-  if (event.key === "/" && !isTyping) {
-    const openTabsSection = document.getElementById("openTabsSection");
-    if (!openTabsSection || openTabsSection.style.display === "none") return;
-
-    event.preventDefault();
-    openTabsSearchVisible = true;
-    const searchWrap = document.getElementById("openTabsSearchWrap");
-    const toggle = document.querySelector('[data-action="toggle-open-tabs-search"]');
-    const input = document.getElementById("openTabsFilterInput");
-
-    if (searchWrap) searchWrap.classList.add("is-visible");
-    if (toggle) toggle.setAttribute("aria-expanded", "true");
-    if (input) input.focus();
     return;
   }
 
@@ -6359,7 +6928,7 @@ document.addEventListener('click', async (e) => {
     if (!tabUrl) return;
 
     // Close the tab in Chrome directly
-    const allTabs = await chrome.tabs.query({});
+    const allTabs = await queryTabsWithMetadata({});
     const match   = allTabs.find(t => t.url === tabUrl);
     if (match) await chrome.tabs.remove(match.id);
     await fetchOpenTabs();
@@ -6412,7 +6981,7 @@ document.addEventListener('click', async (e) => {
     }
 
     // Close the tab in Chrome
-    const allTabs = await chrome.tabs.query({});
+    const allTabs = await queryTabsWithMetadata({});
     const match   = allTabs.find(t => t.url === tabUrl);
     if (match) await chrome.tabs.remove(match.id);
     await fetchOpenTabs();
@@ -6467,6 +7036,65 @@ document.addEventListener('click', async (e) => {
         item.remove();
         renderDeferredColumn();
       }, 300);
+    }
+    return;
+  }
+
+  if (action === 'restore-archived-tab') {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = actionEl.dataset.deferredId;
+    if (!id) return;
+
+    try {
+      const restored = await restoreArchivedSavedTab(id);
+      if (!restored) return;
+
+      await renderDeferredColumn();
+      showToast(t("archivedTabRestored"));
+    } catch (error) {
+      console.warn('[tab-out] Failed to restore archived tab:', error);
+      showToast(t("archivedTabActionFailed"));
+    }
+    return;
+  }
+
+  if (action === 'delete-archived-tab') {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = actionEl.dataset.deferredId;
+    if (!id) return;
+
+    try {
+      const deletion = await deleteArchivedSavedTab(id);
+      if (!deletion) return;
+
+      await renderDeferredColumn();
+      showToast(t("archivedTabDeleted"), {
+        actionLabel: t("undoDelete"),
+        duration: 5000,
+        onAction: async () => {
+          try {
+            const reinserted = await reinsertArchivedSavedTab(
+              deletion.item,
+              deletion.index
+            );
+
+            if (!reinserted) {
+              return;
+            }
+
+            await renderDeferredColumn();
+            showToast(t("archivedTabDeleteUndone"));
+          } catch (error) {
+            console.warn('[tab-out] Failed to undo archived tab deletion:', error);
+            showToast(t("archivedTabActionFailed"));
+          }
+        }
+      });
+    } catch (error) {
+      console.warn('[tab-out] Failed to delete archived tab:', error);
+      showToast(t("archivedTabActionFailed"));
     }
     return;
   }
@@ -6577,27 +7205,9 @@ document.addEventListener('click', (e) => {
 document.addEventListener('input', async (e) => {
   if (e.target.id !== 'archiveSearch') return;
 
-  const q = e.target.value.trim().toLowerCase();
-  const archiveList = document.getElementById('archiveList');
-  if (!archiveList) return;
-
   try {
     const { archived } = await getSavedTabs();
-
-    if (q.length < 2) {
-      // Show all archived items
-      archiveList.innerHTML = archived.map(item => renderArchiveItem(item)).join('');
-      return;
-    }
-
-    // Filter by title or URL containing the query string
-    const results = archived.filter(item =>
-      (item.title || '').toLowerCase().includes(q) ||
-      (item.url  || '').toLowerCase().includes(q)
-    );
-
-    archiveList.innerHTML = results.map(item => renderArchiveItem(item)).join('')
-      || `<div style="font-size:12px;color:var(--muted);padding:8px 0">${t("noResults")}</div>`;
+    renderArchiveItems(archived);
   } catch (err) {
     console.warn(`[tab-out] ${t("archiveSearchFailed")}:`, err);
   }
@@ -6944,6 +7554,11 @@ function applyStaticTranslations() {
     element.title = t(key);
   });
 
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    const key = element.dataset.i18nAriaLabel;
+    element.setAttribute("aria-label", t(key));
+  });
+
   updateLanguageButton();
 }
 
@@ -6991,11 +7606,12 @@ document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
    BACKUP / IMPORT — discreet local data safety net
    ---------------------------------------------------------------- */
 
-const TAB_OUT_BACKUP_VERSION = 2;
+const TAB_OUT_BACKUP_VERSION = 3;
 const TAB_OUT_CHROME_STORAGE_BACKUP_KEYS = [
   "savedSessions",
   "tabOutSessionSchemaVersion",
   "tabOutLanguage",
+  "tabOutDashboardSettings",
   "deferred"
 ];
 const TAB_OUT_LEGACY_BACKUP_KEYS = [
@@ -7201,6 +7817,7 @@ document.addEventListener("DOMContentLoaded", setupBackupMenu);
    ---------------------------------------------------------------- */
 
    const WEATHER_CACHE_KEY = "tabOutWeatherCache";
+   const WEATHER_ENABLED_KEY = "tabOutWeatherEnabled";
    const WEATHER_CACHE_MAX_AGE = 45 * 60 * 1000; // 45 min
    const WEATHER_AUTO_REFRESH_INTERVAL = 5 * 60 * 1000; // vérifie toutes les 5 min
    let weatherAutoRefreshTimer = null;
@@ -7248,14 +7865,26 @@ document.addEventListener("DOMContentLoaded", setupBackupMenu);
 
 
    function startWeatherAutoRefresh() {
-    if (weatherAutoRefreshTimer) {
-      clearInterval(weatherAutoRefreshTimer);
+    stopWeatherAutoRefresh();
+
+    if (
+      globalThis.TabOutDashboardRuntime &&
+      !globalThis.TabOutDashboardRuntime.isModuleVisible("weather")
+    ) {
+      return;
     }
   
     weatherAutoRefreshTimer = setInterval(() => {
       loadWeather({ force: false });
     }, WEATHER_AUTO_REFRESH_INTERVAL);
   }
+
+   function stopWeatherAutoRefresh() {
+    if (weatherAutoRefreshTimer) {
+      clearInterval(weatherAutoRefreshTimer);
+      weatherAutoRefreshTimer = null;
+    }
+   }
    
    async function getStoredWeatherCache() {
      const { [WEATHER_CACHE_KEY]: cache } = await chrome.storage.local.get(WEATHER_CACHE_KEY);
@@ -7267,6 +7896,18 @@ document.addEventListener("DOMContentLoaded", setupBackupMenu);
      const isFresh = Date.now() - cache.timestamp < WEATHER_CACHE_MAX_AGE;
    
      return isFresh ? cache : null;
+   }
+
+   async function isWeatherEnabled() {
+     const stored = await chrome.storage.local.get([
+       WEATHER_ENABLED_KEY,
+       WEATHER_CACHE_KEY
+     ]);
+
+     return Boolean(
+       stored[WEATHER_ENABLED_KEY] ||
+       stored[WEATHER_CACHE_KEY]?.timestamp
+     );
    }
    
    async function saveWeatherCache(data) {
@@ -7281,7 +7922,9 @@ document.addEventListener("DOMContentLoaded", setupBackupMenu);
    function getCurrentPositionPromise() {
      return new Promise((resolve, reject) => {
        if (!navigator.geolocation) {
-         reject(new Error("Geolocation unavailable"));
+         const error = new Error("Geolocation unavailable");
+         error.code = "GEOLOCATION_UNAVAILABLE";
+         reject(error);
          return;
        }
    
@@ -7341,7 +7984,9 @@ document.addEventListener("DOMContentLoaded", setupBackupMenu);
      const response = await fetch(url);
    
      if (!response.ok) {
-       throw new Error("Weather request failed");
+       const error = new Error("Weather request failed");
+       error.code = "WEATHER_REQUEST_FAILED";
+       throw error;
      }
    
      const data = await response.json();
@@ -7418,8 +8063,45 @@ function renderWeatherWidget(weather, cityVisible = false) {
      enableBtn.hidden = false;
      content.hidden = true;
    }
+
+   function getWeatherErrorMessageKey(error) {
+     if (Number(error?.code) === 1) {
+       return "weatherPermissionDenied";
+     }
+
+     if (
+       Number(error?.code) === 2 ||
+       error?.code === "GEOLOCATION_UNAVAILABLE"
+     ) {
+       return "weatherLocationUnavailable";
+     }
+
+     if (Number(error?.code) === 3) {
+       return "weatherLocationTimeout";
+     }
+
+     if (
+       error?.code === "WEATHER_REQUEST_FAILED" ||
+       error instanceof TypeError
+     ) {
+       return "weatherNetworkError";
+     }
+
+     return "weatherLoadFailed";
+   }
    
-   async function loadWeather({ force = false } = {}) {
+   async function loadWeather({
+     force = false,
+     notifyOnError = false
+   } = {}) {
+     if (
+       globalThis.TabOutDashboardRuntime &&
+       !globalThis.TabOutDashboardRuntime.isModuleVisible("weather")
+     ) {
+       stopWeatherAutoRefresh();
+       return;
+     }
+
      try {
        const cached = !force ? await getStoredWeatherCache() : null;
        const cityVisible = false;
@@ -7427,7 +8109,12 @@ function renderWeatherWidget(weather, cityVisible = false) {
    
        if (cached) {
          renderWeatherWidget(cached, cityVisible);
-         return;
+         return true;
+       }
+
+       if (!force && !await isWeatherEnabled()) {
+         renderWeatherEnableState();
+         return false;
        }
    
        const position = await getCurrentPositionPromise();
@@ -7436,9 +8123,20 @@ function renderWeatherWidget(weather, cityVisible = false) {
        const weather = await fetchWeatherForPosition(latitude, longitude);
    
        await saveWeatherCache(weather);
+       await chrome.storage.local.set({
+         [WEATHER_ENABLED_KEY]: true
+       });
        renderWeatherWidget(weather, cityVisible);
-     } catch {
+       return true;
+     } catch (error) {
+       console.warn("[tab-out] Could not load weather:", error);
        renderWeatherEnableState();
+
+       if (notifyOnError) {
+         showToast(t(getWeatherErrorMessageKey(error)));
+       }
+
+       return false;
      }
    }
    
@@ -7450,21 +8148,27 @@ function renderWeatherWidget(weather, cityVisible = false) {
      if (!widget) {
        return;
      }
-   
-     renderWeatherEnableState();
-   
-     const cached = await getStoredWeatherCache();
-   
-     if (cached) {
-      weatherCityVisible = false;
-      renderWeatherWidget(cached, false);
-    }
-   
+
      if (enableBtn) {
        enableBtn.addEventListener("click", async () => {
+         enableBtn.disabled = true;
+         enableBtn.setAttribute("aria-busy", "true");
          enableBtn.textContent = t("weatherLoading");
-         await loadWeather({ force: true });
-         enableBtn.textContent = t("weatherEnable");
+
+         try {
+           const enabled = await loadWeather({
+             force: true,
+             notifyOnError: true
+           });
+
+           if (enabled) {
+             startWeatherAutoRefresh();
+           }
+         } finally {
+           enableBtn.disabled = false;
+           enableBtn.removeAttribute("aria-busy");
+           enableBtn.textContent = t("weatherEnable");
+         }
        });
      }
    
@@ -7476,12 +8180,29 @@ function renderWeatherWidget(weather, cityVisible = false) {
   
         if (cache) {
           renderWeatherWidget(cache, weatherCityVisible);
-        }
-      });
-    }
+         }
+       });
+     }
 
+     if (globalThis.TabOutDashboardRuntime?.ready) {
+       await globalThis.TabOutDashboardRuntime.ready;
+     }
 
-    startWeatherAutoRefresh();
+     if (
+       globalThis.TabOutDashboardRuntime &&
+       !globalThis.TabOutDashboardRuntime.isModuleVisible("weather")
+     ) {
+       stopWeatherAutoRefresh();
+       return;
+     }
+
+     const enabled = await loadWeather({ force: false });
+
+     if (enabled) {
+       startWeatherAutoRefresh();
+     } else {
+       stopWeatherAutoRefresh();
+     }
   }
   
   document.addEventListener("DOMContentLoaded", setupWeatherWidget);
@@ -7567,7 +8288,7 @@ async function getCurrentChromeGroups() {
   }
 
   const groups = await chrome.tabGroups.query({});
-  const tabs = await chrome.tabs.query({});
+  const tabs = await queryTabsWithMetadata({});
 
   return groups
     .map((group) => {
@@ -7599,7 +8320,7 @@ async function getActiveChromeGroup() {
     return null;
   }
 
-  const [activeTab] = await chrome.tabs.query({
+  const [activeTab] = await queryTabsWithMetadata({
     active: true,
     currentWindow: true
   });
@@ -7609,7 +8330,7 @@ async function getActiveChromeGroup() {
   }
 
   const chromeGroup = await chrome.tabGroups.get(activeTab.groupId);
-  const allTabs = await chrome.tabs.query({});
+  const allTabs = await queryTabsWithMetadata({});
 
   const groupTabs = allTabs
     .filter((tab) => tab.groupId === chromeGroup.id)

@@ -20,7 +20,9 @@ const POPUP_TRANSLATIONS = {
     alreadyRemoved: "Cet onglet n’est déjà plus dans « {name} ».",
     failed: "Impossible d’ajouter cet onglet.",
     removeFailed: "Impossible de retirer cet onglet.",
-    loading: "Chargement…"
+    loading: "Chargement…",
+    tabLinkCopied: "Lien de l’onglet copié.",
+    tabLinkCopyFailed: "Impossible de copier le lien."
   },
   en: {
     title: "Manage the current tab",
@@ -43,7 +45,9 @@ const POPUP_TRANSLATIONS = {
     alreadyRemoved: "This tab is already absent from “{name}”.",
     failed: "Could not add this tab.",
     removeFailed: "Could not remove this tab.",
-    loading: "Loading…"
+    loading: "Loading…",
+    tabLinkCopied: "Tab link copied.",
+    tabLinkCopyFailed: "Could not copy the link."
   }
 };
 
@@ -103,10 +107,17 @@ function applyPopupTranslations() {
 
 function renderActiveTab() {
   const activeTab = popupContext?.activeTab;
+  const activeTabCard = document.getElementById("activeTabCard");
   const favicon = document.getElementById("activeTabFavicon");
   const unsupported = document.getElementById("popupUnsupported");
 
   favicon.innerHTML = "";
+
+  if (activeTab?.url) {
+    activeTabCard.dataset.tabUrl = activeTab.url;
+  } else {
+    delete activeTabCard.dataset.tabUrl;
+  }
 
   if (activeTab?.favIconUrl) {
     const image = document.createElement("img");
@@ -281,6 +292,72 @@ async function mutateActiveTabDestination(button) {
   );
   await loadPopupContext();
 }
+
+function copyPopupTextWithExecCommand(text) {
+  const previousFocus = document.activeElement;
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus({ preventScroll: true });
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  try {
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+    previousFocus?.focus?.({ preventScroll: true });
+  }
+}
+
+async function copyPopupTextToClipboard(value) {
+  const text = String(value || "");
+
+  if (!text) {
+    return false;
+  }
+
+  let clipboardRequest = null;
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      clipboardRequest = navigator.clipboard
+        .writeText(text)
+        .then(() => true)
+        .catch(() => false);
+    } catch {}
+  }
+
+  const fallbackCopied = copyPopupTextWithExecCommand(text);
+  return clipboardRequest
+    ? (await clipboardRequest) || fallbackCopied
+    : fallbackCopied;
+}
+
+document.addEventListener("contextmenu", async (event) => {
+  if (popupContext?.copyTabLinksOnRightClick === false) {
+    return;
+  }
+
+  const tabElement = event.target.closest?.("[data-tab-url]");
+  const tabUrl = tabElement?.dataset.tabUrl || "";
+
+  if (!tabUrl) {
+    return;
+  }
+
+  event.preventDefault();
+  const copied = await copyPopupTextToClipboard(tabUrl);
+  setPopupFeedback(
+    popupText(copied ? "tabLinkCopied" : "tabLinkCopyFailed"),
+    !copied
+  );
+});
 
 document.addEventListener("click", (event) => {
   const button = event.target.closest(".destination-add");

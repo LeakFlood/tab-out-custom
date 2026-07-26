@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tab Out Custom",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Keep tabs on your tabs. New tab page that groups your open tabs by domain and lets you close them with style.",
   "permissions": ["tabs", "activeTab", "storage", "geolocation", "tabGroups"],
   "chrome_url_overrides": { "newtab": "index.html" },
@@ -13,6 +13,9 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"
     }
+  },
+  "commands": {
+    "_execute_action": {}
   },
 
 "host_permissions": [

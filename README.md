@@ -20,11 +20,27 @@ Tab Out Custom replaces the default Chrome new tab page with a clean dashboard s
 * saved sessions;
 * unassigned open-tab overview.
 
+### Dashboard settings
+
+Open the fixed gear button or press `Ctrl+,` (`Command+,` on macOS) to customize the full Tab Out dashboard.
+
+The settings workspace provides:
+
+* Original, Focus, and Compact starting layouts, with Original preserving the historical dashboard placement;
+* independent visibility and placement for the greeting, time, date, weather, website shortcuts, language, sessions, unassigned tabs, and Saved for later;
+* a responsive 12-column drag-and-drop grid with snapped resizing;
+* inline or four-corner placement for the language control;
+* tile/list/card alternatives for the major modules;
+* live preview with explicit Save and Cancel actions;
+* configurable in-page keyboard commands.
+
+The default keyboard commands are `/` for unassigned-tab search and `Ctrl+,` / `Command+,` for Settings. Navigation and creation commands can be assigned from the Keyboard settings panel.
+
 ### Quick shortcuts
 
 Add, edit, and delete custom shortcuts directly from the dashboard.
 
-Shortcuts are stored locally with `chrome.storage.local`, so they stay private to each browser profile and are not included in the repository.
+Shortcuts are stored in browser-local storage, so they stay private to each browser profile and are not included in the repository.
 
 ### Saved sessions
 
@@ -126,6 +142,7 @@ It can export and import local user data, including:
 * custom shortcuts;
 * saved sessions;
 * session group connections and display preferences;
+* dashboard layout and keyboard settings;
 * saved-for-later tabs;
 * language preference.
 
@@ -173,10 +190,11 @@ Stored locally in Chrome:
 * custom shortcuts;
 * saved sessions;
 * session group connections and display preferences;
+* dashboard layout and keyboard settings;
 * language preference;
 * weather cache.
 
-This data is stored with `chrome.storage.local` and is not included when sharing or pushing the project files.
+This data is stored with `chrome.storage.local` or browser `localStorage` and is not included when sharing or pushing the project files.
 
 The project supports an optional private configuration file:
 

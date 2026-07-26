@@ -1,4 +1,8 @@
-importScripts("collection-service.js");
+importScripts(
+  "dashboard-settings.js",
+  "tab-metadata.js",
+  "collection-service.js"
+);
 
 /**
  * background.js — Service Worker for Badge Updates
@@ -25,7 +29,7 @@ importScripts("collection-service.js");
  */
 async function updateBadge() {
   try {
-    const tabs = await chrome.tabs.query({});
+    const tabs = await queryCollectionBrowserTabs({});
 
     // Only count actual web pages — skip browser internals and extension pages
     const count = tabs.filter(t => {
@@ -93,6 +97,15 @@ chrome.tabs.onRemoved.addListener(() => {
 // Update badge when a tab's URL changes (e.g. navigating to/from chrome://)
 chrome.tabs.onUpdated.addListener(() => {
   updateBadge();
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (
+    areaName === "local" &&
+    changes[TabOutDashboardSettings.STORAGE_KEY]
+  ) {
+    updateBadge();
+  }
 });
 
 // ─── Initial run ─────────────────────────────────────────────────────────────

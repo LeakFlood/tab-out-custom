@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html
+  lang="fr"
+  data-dashboard-settings-ready="false"
+  data-dashboard-layout-mode="original"
+  data-language-dock="bottom-right"
+  data-language-visible="true"
+>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +19,21 @@
 </head>
 
 <body>
+
+  <button
+    type="button"
+    id="settingsDrawerBtn"
+    class="settings-drawer-btn"
+    data-i18n-title="settingsOpen"
+    aria-haspopup="dialog"
+    aria-controls="settingsDrawerOverlay"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.279c.063.374.313.686.645.87.074.04.147.083.219.127.325.197.72.258 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.245a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.993a6.77 6.77 0 0 1 0 .255c-.008.38.137.75.43.992l1.003.827c.424.35.534.955.26 1.43l-1.296 2.247a1.125 1.125 0 0 1-1.37.489l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.278c-.09.543-.56.941-1.11.941h-2.592c-.55 0-1.02-.398-1.11-.94l-.213-1.279c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.219-.127c-.325-.197-.72-.258-1.075-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.245a1.125 1.125 0 0 1 .26-1.431l1.003-.827c.293-.241.438-.613.43-.993a6.77 6.77 0 0 1 0-.255c.008-.38-.137-.75-.43-.992l-1.003-.827a1.125 1.125 0 0 1-.26-1.43l1.296-2.247a1.125 1.125 0 0 1 1.37-.489l1.217.456c.355.133.75.072 1.075-.124.072-.044.145-.087.22-.128.331-.183.581-.495.644-.869l.213-1.278Z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+    </svg>
+    <span class="sr-only" data-i18n="settingsOpen">Open settings</span>
+  </button>
 
   <button type="button" id="languageToggleBtn" class="language-toggle-btn">
     FR
@@ -29,6 +50,226 @@
     </div>
 
     <input type="file" id="backupImportInput" accept="application/json,.json" hidden>
+  </div>
+
+  <div id="settingsDrawerOverlay" class="settings-drawer-overlay" hidden>
+    <aside
+      id="settingsDrawer"
+      class="settings-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settingsDrawerTitle"
+    >
+      <header class="settings-drawer-header">
+        <div>
+          <span class="settings-eyebrow" data-i18n="settingsEyebrow">Customization</span>
+          <h2 id="settingsDrawerTitle" data-i18n="settingsTitle">Settings</h2>
+        </div>
+        <button
+          type="button"
+          class="settings-icon-btn"
+          data-action="cancel-dashboard-settings"
+          data-i18n-title="close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+          <span class="sr-only" data-i18n="close">Close</span>
+        </button>
+      </header>
+
+      <div class="settings-tabs" role="tablist" aria-label="Settings">
+        <button type="button" role="tab" data-settings-tab="layout" aria-selected="true" data-i18n="settingsLayout">Layout</button>
+        <button type="button" role="tab" data-settings-tab="keyboard" aria-selected="false" data-i18n="settingsKeyboard">Keyboard</button>
+        <button type="button" role="tab" data-settings-tab="general" aria-selected="false" data-i18n="settingsGeneral">General</button>
+      </div>
+
+      <div class="settings-drawer-body">
+        <section class="settings-panel settings-layout-panel is-active" data-settings-panel="layout" role="tabpanel">
+          <div class="settings-layout-editor">
+            <aside class="settings-layout-sidebar">
+              <div class="settings-block">
+                <div class="settings-block-heading">
+                  <div>
+                    <h3 data-i18n="settingsPresets">Quick layouts</h3>
+                    <p data-i18n="settingsPresetsHint">Start with a layout, then make it yours.</p>
+                  </div>
+                </div>
+                <div class="settings-presets" id="settingsPresetList"></div>
+              </div>
+
+              <div class="settings-block settings-module-palette-block">
+                <div class="settings-block-heading">
+                  <div>
+                    <h3 data-i18n="settingsModules">Elements</h3>
+                    <p data-i18n="settingsGridHint">Drag an element onto either grid. Use its edge to resize it.</p>
+                  </div>
+                </div>
+                <div class="settings-module-palette" id="settingsModulePalette"></div>
+              </div>
+
+              <div class="settings-block settings-hidden-block">
+                <div class="settings-block-heading">
+                  <div>
+                    <h3 data-i18n="settingsHiddenModules">Hidden elements</h3>
+                    <p data-i18n="settingsHiddenHint">Hidden elements keep their saved position.</p>
+                  </div>
+                </div>
+                <div class="settings-hidden-modules" id="settingsHiddenModules"></div>
+              </div>
+            </aside>
+
+            <div class="settings-layout-preview">
+              <div class="settings-layout-preview-toolbar">
+                <div>
+                  <h3 data-i18n="settingsPreview">Dashboard preview</h3>
+                  <p data-i18n="settingsPreviewHint">Positions snap to a responsive 12-column grid.</p>
+                </div>
+                <div class="settings-preview-modes" role="group" data-i18n-aria-label="settingsPreview">
+                  <button type="button" data-action="set-layout-preview" data-preview-mode="desktop" class="is-active" data-i18n="previewDesktop">Desktop</button>
+                  <button type="button" data-action="set-layout-preview" data-preview-mode="tablet" data-i18n="previewTablet">Tablet</button>
+                  <button type="button" data-action="set-layout-preview" data-preview-mode="mobile" data-i18n="previewMobile">Mobile</button>
+                </div>
+              </div>
+
+              <div id="settingsLayoutCanvas" class="settings-layout-canvas" data-preview-mode="desktop">
+                <div class="settings-floating-targets" id="settingsFloatingTargets" aria-label="Language position">
+                  <button type="button" data-language-dock-target="top-left" data-i18n-title="dockTopLeft"><span>FR</span></button>
+                  <button type="button" data-language-dock-target="top-right" data-i18n-title="dockTopRight"><span>FR</span></button>
+                  <button type="button" data-language-dock-target="bottom-left" data-i18n-title="dockBottomLeft"><span>FR</span></button>
+                  <button type="button" data-language-dock-target="bottom-right" data-i18n-title="dockBottomRight"><span>FR</span></button>
+                </div>
+
+                <section class="settings-grid-region" data-settings-grid-region="header">
+                  <div class="settings-grid-region-heading">
+                    <strong data-i18n="settingsHeaderModules">Header</strong>
+                    <span data-i18n="settingsDropHere">Drop elements here</span>
+                  </div>
+                  <div class="settings-grid-canvas" id="settingsHeaderGridCanvas" data-settings-grid="header"></div>
+                </section>
+
+                <section class="settings-grid-region" data-settings-grid-region="content">
+                  <div class="settings-grid-region-heading">
+                    <strong data-i18n="settingsContentModules">Content</strong>
+                    <span data-i18n="settingsDropHere">Drop elements here</span>
+                  </div>
+                  <div class="settings-grid-canvas" id="settingsContentGridCanvas" data-settings-grid="content"></div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="keyboard" role="tabpanel" hidden>
+          <div class="settings-block">
+            <div class="settings-block-heading">
+              <div>
+                <h3 data-i18n="settingsKeyboardTitle">Keyboard shortcuts</h3>
+                <p data-i18n="settingsKeyboardHint">Select a command, then press a combination.</p>
+              </div>
+              <button type="button" class="settings-text-btn" data-action="reset-keyboard-settings" data-i18n="restoreDefaults">Restore defaults</button>
+            </div>
+            <div class="settings-keyboard-list" id="settingsKeyboardList"></div>
+          </div>
+        </section>
+
+        <section class="settings-panel" data-settings-panel="general" role="tabpanel" hidden>
+          <div class="settings-block">
+            <div class="settings-block-heading">
+              <div>
+                <h3 data-i18n="settingsLanguageTitle">Language</h3>
+                <p data-i18n="settingsLanguageHint">Language remains available here when its dashboard button is hidden.</p>
+              </div>
+            </div>
+            <label class="settings-select-field">
+              <span data-i18n="language">Language</span>
+              <select id="settingsLanguageSelect">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsSuspendedTabsTitle" data-i18n="settingsSuspendedTabsTitle">Suspended tabs</h3>
+              <p data-i18n="settingsSuspendedTabsHint">Use the original title and URL for tabs suspended by The Marvellous Suspender.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsSuspendedTabsInput"
+                type="checkbox"
+                data-settings-behavior="includeSuspendedTabs"
+                aria-labelledby="settingsSuspendedTabsTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsRightClickCopyTitle" data-i18n="settingsRightClickCopyTitle">Right-click link copying</h3>
+              <p data-i18n="settingsRightClickCopyHint">Right-click a tab in Tab Out to copy its URL.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsRightClickCopyInput"
+                type="checkbox"
+                data-settings-behavior="copyTabLinksOnRightClick"
+                aria-labelledby="settingsRightClickCopyTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsUnassignedTabDragTitle" data-i18n="settingsUnassignedTabDragTitle">Drag unassigned tabs</h3>
+              <p data-i18n="settingsUnassignedTabDragHint">Drag an unassigned tab onto a session or another tab.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsUnassignedTabDragInput"
+                type="checkbox"
+                data-settings-behavior="dragUnassignedTabs"
+                aria-labelledby="settingsUnassignedTabDragTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsSessionReorderTitle" data-i18n="settingsSessionReorderTitle">Reorder sessions</h3>
+              <p data-i18n="settingsSessionReorderHint">Drag saved sessions to change their order.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsSessionReorderInput"
+                type="checkbox"
+                data-settings-behavior="reorderSessions"
+                aria-labelledby="settingsSessionReorderTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-block settings-reset-block">
+            <div>
+              <h3 data-i18n="settingsResetTitle">Reset dashboard</h3>
+              <p data-i18n="settingsResetHint">Restore the Original layout and default keyboard shortcuts.</p>
+            </div>
+            <button type="button" class="settings-danger-btn" data-action="reset-dashboard-settings" data-i18n="settingsReset">Reset</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="settings-drawer-footer">
+        <span id="settingsStatus" class="settings-status" role="status" aria-live="polite"></span>
+        <button type="button" class="settings-secondary-btn" data-action="cancel-dashboard-settings" data-i18n="cancel">Cancel</button>
+        <button type="button" class="settings-primary-btn" data-action="save-dashboard-settings" data-i18n="save">Save</button>
+      </div>
+    </aside>
   </div>
 
 <div
@@ -261,7 +502,7 @@
   <!-- ================================================================
        HEADER — greeting on the left, shortcuts on the right
        ================================================================ -->
-       <header>
+       <header class="dashboard-header">
         <div class="header-left">
           <div class="hero-text">
             <h1 id="greeting"></h1>
@@ -390,7 +631,7 @@
   </div><!-- end .dashboard-columns -->
 
   <footer>
-    <div class="footer-stats">
+    <div class="footer-stats" id="footerStats">
       <div class="stat">
         <div class="stat-num" id="statTabs">—</div>
         <div class="stat-label" data-i18n="openTabs">Onglets ouverts</div>
@@ -432,19 +673,23 @@
      TOAST — floats above everything, used for action confirmations
      Hidden by default via CSS (opacity:0, translateY)
      ================================================================ -->
-<div class="toast" id="toast">
+<div class="toast" id="toast" role="status" aria-live="polite">
   <!-- Checkmark circle icon (Heroicons outline) -->
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
   </svg>
   <span id="toastText"></span>
+  <button type="button" class="toast-action" id="toastAction" hidden></button>
 </div>
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
 <!-- If the file doesn't exist, that's fine — app.js uses sensible defaults. -->
 <script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
+<script src="dashboard-settings.js"></script>
+<script src="tab-metadata.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
+<script src="settings-ui.js"></script>
 </body>
 </html>

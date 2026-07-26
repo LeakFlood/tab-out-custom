@@ -3,6 +3,68 @@ const PROTECTED_GROUPS_STORAGE_KEY = "tabOutProtectedGroups";
 const SESSION_SCHEMA_VERSION_KEY = "tabOutSessionSchemaVersion";
 const SESSION_SCHEMA_VERSION = 2;
 
+async function getCollectionDashboardSettings() {
+  try {
+    const settingsApi = globalThis.TabOutDashboardSettings;
+
+    if (!settingsApi) {
+      return {
+        behavior: {
+          includeSuspendedTabs: true,
+          copyTabLinksOnRightClick: true,
+          dragUnassignedTabs: true,
+          reorderSessions: true
+        }
+      };
+    }
+
+    const stored = await chrome.storage.local.get(settingsApi.STORAGE_KEY);
+    return settingsApi.normalizeSettings(stored[settingsApi.STORAGE_KEY]);
+  } catch {
+    return {
+      behavior: {
+        includeSuspendedTabs: true,
+        copyTabLinksOnRightClick: true,
+        dragUnassignedTabs: true,
+        reorderSessions: true
+      }
+    };
+  }
+}
+
+async function getCollectionIncludeSuspendedTabsPreference() {
+  return (await getCollectionDashboardSettings())
+    .behavior.includeSuspendedTabs !== false;
+}
+
+async function queryCollectionBrowserTabs(query = {}) {
+  const [tabs, includeSuspendedTabs] = await Promise.all([
+    chrome.tabs.query(query),
+    getCollectionIncludeSuspendedTabsPreference()
+  ]);
+  const metadataApi = globalThis.TabOutTabMetadata;
+
+  if (!metadataApi) {
+    return tabs;
+  }
+
+  return tabs.map((tab) =>
+    metadataApi.normalizeBrowserTab(tab, { includeSuspendedTabs })
+  );
+}
+
+async function getCollectionBrowserTab(tabId) {
+  const [tab, includeSuspendedTabs] = await Promise.all([
+    chrome.tabs.get(tabId),
+    getCollectionIncludeSuspendedTabsPreference()
+  ]);
+  const metadataApi = globalThis.TabOutTabMetadata;
+
+  return metadataApi
+    ? metadataApi.normalizeBrowserTab(tab, { includeSuspendedTabs })
+    : tab;
+}
+
 function createMigratedSessionId(snapshotId, existingIds) {
   const baseId = `session-from-${snapshotId || Date.now()}`;
   let candidateId = baseId;
@@ -256,7 +318,19 @@ function collectionContainsUrl(tabs, url) {
 }
 
 async function getCollectionSavedSessions() {
-  return ensureUnifiedSessionsMigration();
+  const [sessions, includeSuspendedTabs] = await Promise.all([
+    ensureUnifiedSessionsMigration(),
+    getCollectionIncludeSuspendedTabsPreference()
+  ]);
+  const metadataApi = globalThis.TabOutTabMetadata;
+
+  return metadataApi
+    ? sessions.map((session) =>
+        metadataApi.normalizeSavedSession(session, {
+          includeSuspendedTabs
+        })
+      )
+    : sessions;
 }
 
 async function saveCollectionSavedSessions(sessions) {
@@ -272,7 +346,7 @@ async function getCollectionChromeGroups() {
 
   const [groups, tabs] = await Promise.all([
     chrome.tabGroups.query({}),
-    chrome.tabs.query({})
+    queryCollectionBrowserTabs({})
   ]);
 
   return groups
@@ -323,7 +397,7 @@ function normalizeCollectionSessionName(name = "") {
 }
 
 async function getCollectionActiveTab() {
-  const [activeTab] = await chrome.tabs.query({
+  const [activeTab] = await queryCollectionBrowserTabs({
     active: true,
     currentWindow: true
   });
@@ -369,17 +443,20 @@ async function getCollectionActiveTab() {
 }
 
 async function getCollectionAddDestinations() {
-  const [activeTab, sessions, liveGroups, languageData] =
+  const [activeTab, sessions, liveGroups, languageData, dashboardSettings] =
     await Promise.all([
       getCollectionActiveTab(),
       getCollectionSavedSessions(),
       getCollectionChromeGroups(),
-      chrome.storage.local.get("tabOutLanguage")
+      chrome.storage.local.get("tabOutLanguage"),
+      getCollectionDashboardSettings()
     ]);
 
   return {
     activeTab,
     language: languageData.tabOutLanguage === "en" ? "en" : "fr",
+    copyTabLinksOnRightClick:
+      dashboardSettings.behavior.copyTabLinksOnRightClick !== false,
     sessions: sessions.map((session) => {
       const liveGroup = findCollectionLiveGroupForSession(
         session,
@@ -549,7 +626,7 @@ async function handleCollectionMessage(message) {
     message.type === "tabOut:addActiveTab" ||
     message.type === "tabOut:addTabToSession"
   ) {
-    const activeTab = await chrome.tabs.get(message.tabId);
+    const activeTab = await getCollectionBrowserTab(message.tabId);
 
     if (!activeTab || isTabOutPage(activeTab.pendingUrl || activeTab.url || "")) {
       throw new Error("unsupported_url");
@@ -583,7 +660,7 @@ async function handleCollectionMessage(message) {
   }
 
   if (message.type === "tabOut:removeActiveTab") {
-    const activeTab = await chrome.tabs.get(message.tabId);
+    const activeTab = await getCollectionBrowserTab(message.tabId);
 
     if (!activeTab || isTabOutPage(activeTab.pendingUrl || activeTab.url || "")) {
       throw new Error("unsupported_url");
