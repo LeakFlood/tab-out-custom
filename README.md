@@ -4,7 +4,7 @@ A customized Chrome new tab workflow dashboard based on [Tab Out](https://github
 
 Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
-Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, and optional native tab-group connections.
+Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, optional native tab-group connections, and an optional Gmail notifier.
 
 ## Features
 
@@ -18,7 +18,8 @@ Tab Out Custom replaces the default Chrome new tab page with a clean dashboard s
 * local weather;
 * quick shortcuts;
 * saved sessions;
-* unassigned open-tab overview.
+* unassigned open-tab overview;
+* an optional multi-account Gmail notifier and conversation widget.
 
 ### Dashboard settings
 
@@ -29,6 +30,7 @@ The settings workspace provides:
 * Original, Focus, and Compact starting layouts, with Original preserving the historical dashboard placement;
 * independent visibility and placement for the greeting, time, date, weather, website shortcuts, language, sessions, unassigned tabs, and Saved for later;
 * a responsive 12-column drag-and-drop grid with snapped resizing;
+* configurable responsive left/right dashboard padding;
 * inline or four-corner placement for the language control;
 * tile/list/card alternatives for the major modules;
 * live preview with explicit Save and Cancel actions;
@@ -110,6 +112,28 @@ The city is hidden by default and only appears when clicked. It is automatically
 
 Weather data is fetched through Open-Meteo. Reverse geocoding is handled through Nominatim.
 
+### Optional Gmail notifier
+
+The Gmail module is disabled and hidden by default. Add one or more accounts from **Settings > General > Gmail notifier** to reveal it automatically.
+
+The module provides:
+
+* separate cards and preferences for each connected Gmail account;
+* guided Inbox, Unread, Starred, and Important filters;
+* an optional advanced Gmail search query;
+* limits from 5 to 25 conversations;
+* comfortable and compact dashboard views;
+* latest-message previews with an explicit full-conversation loader;
+* direct links back to Gmail and a Mail tab in the toolbar popup;
+* mark read/unread, archive, star/unstar, and move-to-trash actions;
+* configurable one, five, fifteen, or thirty-minute background checks;
+* native new-mail notifications with configurable preview privacy;
+* a toolbar badge showing open tabs, Gmail unread mail, both totals, or nothing.
+
+Tab Out requests `gmail.modify` so it can read mail and apply the listed mailbox actions. Gmail data and OAuth tokens travel only between the extension and Google. Message HTML is converted to inert text; remote images, scripts, attachments, and active email content are not rendered.
+
+Authorization uses Google Desktop OAuth credentials, an S256 PKCE challenge, and a loopback callback observed by the extension. The client secret issued for an installed application is included because Google's token endpoint requires it for this client, but it cannot be confidential inside a distributed extension; PKCE protects the one-time code. No backend or local server is used. See [`PRIVACY.md`](PRIVACY.md) for the complete data boundary.
+
 ### French / English interface
 
 The interface supports:
@@ -183,7 +207,7 @@ extension
 
 ## Privacy
 
-Tab Out Custom is designed to keep personal workflow data local.
+Tab Out Custom is designed to keep personal workflow data local. The Gmail integration is the only feature that requires an account connection, and it remains fully optional.
 
 Stored locally in Chrome:
 
@@ -192,9 +216,14 @@ Stored locally in Chrome:
 * session group connections and display preferences;
 * dashboard layout and keyboard settings;
 * language preference;
-* weather cache.
+* weather cache;
+* Gmail email addresses, local refresh tokens, preferences, short-lived access tokens, and temporary conversation metadata when Gmail is enabled.
 
-This data is stored with `chrome.storage.local` or browser `localStorage` and is not included when sharing or pushing the project files.
+This data is stored with `chrome.storage.local`, `chrome.storage.session`, or browser `localStorage` and is not included when sharing or pushing the project files.
+
+Refresh tokens remain in trusted-context `chrome.storage.local`; access tokens remain in `chrome.storage.session`. Disconnecting asks Google to revoke the refresh token and then removes the local account data.
+
+See [`PRIVACY.md`](PRIVACY.md) for retention and data-flow details.
 
 The project supports an optional private configuration file:
 
@@ -202,7 +231,7 @@ The project supports an optional private configuration file:
 extension/config.local.js
 ```
 
-This file should not be committed or shared.
+These files should not be committed or shared.
 
 ## Private configuration
 
@@ -225,6 +254,22 @@ window.TAB_OUT_DEFAULT_SHORTCUTS = [
 
 Do not commit this file if it contains personal links or private workflow data.
 
+### Gmail OAuth client
+
+The Gmail integration requires a public Google **Desktop app** OAuth client:
+
+1. Create or select a Google Cloud project.
+2. Enable the Gmail API.
+3. Configure Google Auth Platform branding, audience, test users, and the `gmail.modify` scope.
+4. Create a Desktop app OAuth client.
+5. Open **Settings → General → Gmail notifier** and enter the issued client ID and client secret.
+
+One shared client can connect multiple Gmail accounts. Accounts can also use separate dedicated clients, and both approaches can be mixed. The information button beside **Gmail notifier** contains the complete Google Cloud procedure and direct links.
+
+Desktop and other installed applications cannot keep a client secret confidential. Do not reuse this credential for a server-side application, and expect both values to be extractable from an installed extension. OAuth clients and tokens are stored only in trusted extension storage and are excluded from Tab Out backups.
+
+The extension opens Google authorization in a focused tab and observes the redirect to a randomized `127.0.0.1` loopback URL. PKCE protects the one-time authorization code; no process listens on that address.
+
 ## Git ignore
 
 The repository should ignore:
@@ -243,11 +288,20 @@ This extension may use the following Chrome permissions:
 * `storage` — save shortcuts, sessions, preferences, and weather cache;
 * `geolocation` — retrieve local weather if the user allows it.
 
+When the user explicitly connects Gmail, the extension additionally requests these optional permissions:
+
+* `alarms` - schedule per-account mail checks at the selected interval;
+* `notifications` - show native new-mail notifications and actions;
+* `https://gmail.googleapis.com/*` - fetch the connected account's Gmail data directly;
+* `https://oauth2.googleapis.com/*` - exchange, refresh, and revoke Google OAuth tokens directly.
+
 External requests are used for:
 
 * weather data;
 * reverse geocoding;
-* favicons.
+* favicons;
+* direct Gmail API reads and user-requested mailbox actions when Gmail is enabled;
+* OAuth token lifecycle requests when Gmail is enabled.
 
 ## Project structure
 
@@ -264,6 +318,8 @@ extension/
 ├── style.css
 └── icons/
 ```
+
+The Gmail implementation additionally uses `extension/dashboard-settings.js`, `extension/gmail-auth.js`, `extension/gmail-api.js`, `extension/gmail-config.js`, `extension/gmail-service.js`, and `extension/gmail-widget.js`.
 
 ## Notes
 

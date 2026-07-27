@@ -13,6 +13,8 @@ async function getCollectionDashboardSettings() {
           includeSuspendedTabs: true,
           copyTabLinksOnRightClick: true,
           dragUnassignedTabs: true,
+          expandSessionTabs: true,
+          dragSessionTabs: true,
           reorderSessions: true
         }
       };
@@ -26,6 +28,8 @@ async function getCollectionDashboardSettings() {
         includeSuspendedTabs: true,
         copyTabLinksOnRightClick: true,
         dragUnassignedTabs: true,
+        expandSessionTabs: true,
+        dragSessionTabs: true,
         reorderSessions: true
       }
     };
@@ -536,6 +540,142 @@ async function removeDescriptorFromSession(sessionId, url) {
   return { code: "removed", removed };
 }
 
+async function transferSessionTab(sourceSessionId, url, target = {}) {
+  const sessions = await getCollectionSavedSessions();
+  const sourceIndex = sessions.findIndex(
+    (session) => session.id === sourceSessionId
+  );
+
+  if (sourceIndex < 0) {
+    throw new Error("not_found");
+  }
+
+  const targetUrl = canonicalCollectionUrl(url);
+  const descriptor = (sessions[sourceIndex].tabs || []).find(
+    (tab) => canonicalCollectionUrl(tab.url) === targetUrl
+  );
+
+  if (!descriptor) {
+    return { code: "already_moved" };
+  }
+
+  if (target.kind === "session") {
+    const targetIndex = sessions.findIndex(
+      (session) => session.id === target.sessionId
+    );
+
+    if (targetIndex < 0 || targetIndex === sourceIndex) {
+      throw new Error("not_found");
+    }
+
+    const targetAlreadyContains = collectionContainsUrl(
+      sessions[targetIndex].tabs,
+      descriptor.url
+    );
+    const now = new Date().toISOString();
+    const nextSessions = sessions.map((session, index) => {
+      if (index === sourceIndex) {
+        return {
+          ...session,
+          tabs: (session.tabs || []).filter(
+            (tab) => canonicalCollectionUrl(tab.url) !== targetUrl
+          ),
+          updatedAt: now
+        };
+      }
+
+      if (index === targetIndex && !targetAlreadyContains) {
+        return {
+          ...session,
+          tabs: [...(session.tabs || []), descriptor],
+          updatedAt: now
+        };
+      }
+
+      return session;
+    });
+
+    await saveCollectionSavedSessions(nextSessions);
+    return {
+      code: targetAlreadyContains ? "already_in_target" : "moved",
+      targetKind: "session",
+      sourceSessionId,
+      targetSessionId: target.sessionId
+    };
+  }
+
+  if (target.kind !== "unassigned") {
+    throw new Error("not_found");
+  }
+
+  const assignedSessionIndexes = sessions
+    .map((session, index) =>
+      collectionContainsUrl(session.tabs, descriptor.url) ? index : -1
+    )
+    .filter((index) => index >= 0);
+
+  if (assignedSessionIndexes.length > 1 && target.removeFromAll !== true) {
+    return {
+      code: "confirmation_required",
+      assignedSessionCount: assignedSessionIndexes.length
+    };
+  }
+
+  const openTabs = await queryCollectionBrowserTabs({});
+  const assignedGroupIds = new Set(
+    sessions
+      .map((session) => session.groupLink?.chromeGroupId)
+      .filter(Number.isInteger)
+  );
+  let openTab = openTabs.find(
+    (tab) =>
+      canonicalCollectionUrl(tab.pendingUrl || tab.url || "") === targetUrl &&
+      !assignedGroupIds.has(tab.groupId)
+  );
+
+  if (!openTab) {
+    const createProperties = {
+      url: descriptor.url,
+      active: false
+    };
+
+    if (Number.isInteger(target.windowId)) {
+      createProperties.windowId = target.windowId;
+    }
+
+    try {
+      openTab = await chrome.tabs.create(createProperties);
+    } catch {
+      throw new Error("tab_creation_failed");
+    }
+  }
+
+  const indexesToRemove = target.removeFromAll === true
+    ? new Set(assignedSessionIndexes)
+    : new Set([sourceIndex]);
+  const now = new Date().toISOString();
+  const nextSessions = sessions.map((session, index) =>
+    indexesToRemove.has(index)
+      ? {
+          ...session,
+          tabs: (session.tabs || []).filter(
+            (tab) => canonicalCollectionUrl(tab.url) !== targetUrl
+          ),
+          updatedAt: now
+        }
+      : session
+  );
+
+  await saveCollectionSavedSessions(nextSessions);
+  return {
+    code: "unassigned",
+    targetKind: "unassigned",
+    sourceSessionId,
+    removedSessionCount: indexesToRemove.size,
+    openedTabId: Number.isInteger(openTab?.id) ? openTab.id : null
+  };
+}
+
 async function createSessionFromDescriptors(name, tabLikes = []) {
   const normalizedName = normalizeCollectionSessionName(name);
   const descriptorsByUrl = new Map();
@@ -659,6 +799,16 @@ async function handleCollectionMessage(message) {
     return { ok: true, ...result };
   }
 
+  if (message.type === "tabOut:transferSessionTab") {
+    const result = await transferSessionTab(
+      message.sourceSessionId,
+      message.url,
+      message.target
+    );
+
+    return { ok: true, ...result };
+  }
+
   if (message.type === "tabOut:removeActiveTab") {
     const activeTab = await getCollectionBrowserTab(message.tabId);
 
@@ -706,6 +856,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         "not_found",
         "already_added",
         "already_removed",
+        "tab_creation_failed",
         "invalid_name",
         "invalid_tabs"
       ]);

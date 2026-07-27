@@ -98,6 +98,35 @@
                 <div class="settings-presets" id="settingsPresetList"></div>
               </div>
 
+              <div class="settings-block settings-layout-frame-block">
+                <div class="settings-block-heading">
+                  <div>
+                    <h3 data-i18n="settingsLayoutFrameTitle">Dashboard width</h3>
+                    <p data-i18n="settingsLayoutFrameHint">Adjust the space to the left and right of the content.</p>
+                  </div>
+                </div>
+
+                <label class="settings-layout-padding-field" for="settingsContainerPadding">
+                  <span>
+                    <strong data-i18n="settingsContainerPaddingTitle">Horizontal content padding</strong>
+                    <small data-i18n="settingsContainerPaddingHint">At 0px, content uses the full available width. Width recenters progressively and adapts on tablet and mobile.</small>
+                  </span>
+                  <span class="settings-layout-padding-control">
+                    <input
+                      id="settingsContainerPadding"
+                      type="range"
+                      min="0"
+                      max="120"
+                      step="2"
+                      value="64"
+                      data-settings-container-padding
+                    >
+                    <output id="settingsContainerPaddingOutput" for="settingsContainerPadding">64 px</output>
+                  </span>
+                </label>
+
+              </div>
+
               <div class="settings-block settings-module-palette-block">
                 <div class="settings-block-heading">
                   <div>
@@ -254,12 +283,165 @@
             </label>
           </div>
 
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsExpandSessionTabsTitle" data-i18n="settingsExpandSessionTabsTitle">Expand session tabs</h3>
+              <p data-i18n="settingsExpandSessionTabsHint">Show the complete saved tab list directly inside a session card.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsExpandSessionTabsInput"
+                type="checkbox"
+                data-settings-behavior="expandSessionTabs"
+                aria-labelledby="settingsExpandSessionTabsTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-block settings-toggle-block">
+            <div>
+              <h3 id="settingsDragSessionTabsTitle" data-i18n="settingsDragSessionTabsTitle">Drag saved session tabs</h3>
+              <p data-i18n="settingsDragSessionTabsHint">Move saved tabs to another session or back to Unassigned tabs.</p>
+            </div>
+            <label class="settings-switch">
+              <input
+                id="settingsDragSessionTabsInput"
+                type="checkbox"
+                data-settings-behavior="dragSessionTabs"
+                aria-labelledby="settingsDragSessionTabsTitle"
+              >
+              <span class="settings-switch-track"></span>
+            </label>
+          </div>
+
           <div class="settings-block settings-reset-block">
             <div>
               <h3 data-i18n="settingsResetTitle">Reset dashboard</h3>
               <p data-i18n="settingsResetHint">Restore the Original layout and default keyboard shortcuts.</p>
             </div>
             <button type="button" class="settings-danger-btn" data-action="reset-dashboard-settings" data-i18n="settingsReset">Reset</button>
+          </div>
+
+          <div class="settings-block settings-integration-block" id="settingsGmailBlock">
+            <div class="settings-integration-heading">
+              <div>
+                <span class="settings-integration-eyebrow" data-i18n="gmailOptionalIntegration">Optional integration</span>
+                <div class="settings-gmail-title-row">
+                  <h3 data-i18n="gmailSettingsTitle">Gmail notifier</h3>
+                  <button
+                    type="button"
+                    class="settings-gmail-info-btn"
+                    data-action="open-gmail-setup-help"
+                    data-i18n-title="gmailSetupHelpOpen"
+                    data-i18n-aria-label="gmailSetupHelpOpen"
+                    aria-haspopup="dialog"
+                  >i</button>
+                </div>
+                <p data-i18n="gmailSettingsHint">Connect Gmail accounts for previews, notifications, unread counts, and safe inbox actions.</p>
+              </div>
+              <span class="settings-integration-status" id="settingsGmailStatus" data-status="disconnected"></span>
+            </div>
+
+            <div class="settings-integration-notice">
+              <strong data-i18n="gmailPrivacyTitle">Private by design</strong>
+              <span data-i18n="gmailPrivacyHint">Mail and OAuth tokens stay in this browser profile and are sent only to Google.</span>
+            </div>
+
+            <div class="settings-gmail-service-notice" id="settingsGmailAuthNotice" hidden>
+              <strong id="settingsGmailAuthTitle"></strong>
+              <span id="settingsGmailAuthMessage"></span>
+            </div>
+
+            <section class="settings-gmail-oauth-card" aria-labelledby="settingsGmailSharedClientTitle">
+              <div class="settings-gmail-oauth-heading">
+                <div>
+                  <strong id="settingsGmailSharedClientTitle" data-i18n="gmailSharedClientTitle">Shared OAuth client</strong>
+                  <span data-i18n="gmailSharedClientHint">Use one Google Desktop OAuth client for any number of Gmail accounts.</span>
+                </div>
+                <span class="settings-gmail-client-status" id="settingsGmailSharedClientStatus"></span>
+              </div>
+
+              <form id="settingsGmailSharedClientForm" class="settings-gmail-client-form" novalidate>
+                <label class="settings-field">
+                  <span data-i18n="gmailClientIdLabel">Client ID</span>
+                  <input
+                    type="text"
+                    id="settingsGmailSharedClientId"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="000000000000-example.apps.googleusercontent.com"
+                  >
+                </label>
+                <label class="settings-field">
+                  <span data-i18n="gmailClientSecretLabel">Client secret</span>
+                  <input
+                    type="password"
+                    id="settingsGmailSharedClientSecret"
+                    autocomplete="new-password"
+                    spellcheck="false"
+                    data-i18n-placeholder="gmailClientSecretPlaceholder"
+                    placeholder="Enter the client secret"
+                  >
+                  <small id="settingsGmailSharedSecretHint" data-i18n="gmailClientSecretHint">The saved secret is never displayed again. Leave this empty to keep it.</small>
+                </label>
+                <div class="settings-gmail-client-actions">
+                  <button type="submit" class="settings-primary-btn" data-i18n="gmailSaveSharedClient">Save shared client</button>
+                  <button type="button" class="settings-danger-btn" data-action="remove-shared-gmail-client" id="settingsGmailRemoveSharedClient" data-i18n="gmailRemoveSharedClient">Remove shared client</button>
+                </div>
+              </form>
+              <p class="settings-gmail-client-feedback" id="settingsGmailClientFeedback" role="status" aria-live="polite"></p>
+            </section>
+
+            <div class="settings-integration-actions settings-gmail-add-actions">
+              <button type="button" class="settings-primary-btn" data-action="connect-gmail" id="settingsGmailConnectBtn" data-i18n="gmailAddWithShared">
+                Add using shared client
+              </button>
+              <button
+                type="button"
+                class="settings-secondary-btn"
+                data-action="toggle-dedicated-gmail-client"
+                id="settingsGmailDedicatedToggle"
+                aria-expanded="false"
+                aria-controls="settingsGmailDedicatedForm"
+                data-i18n="gmailAddWithDedicated"
+              >
+                Add using its own client
+              </button>
+            </div>
+
+            <form id="settingsGmailDedicatedForm" class="settings-gmail-client-form settings-gmail-dedicated-form" novalidate hidden>
+              <div class="settings-gmail-dedicated-heading">
+                <strong data-i18n="gmailDedicatedClientTitle">Dedicated OAuth client</strong>
+                <span data-i18n="gmailDedicatedClientHint">These credentials will be assigned only to the Gmail account selected at Google.</span>
+              </div>
+              <label class="settings-field">
+                <span data-i18n="gmailClientIdLabel">Client ID</span>
+                <input type="text" id="settingsGmailDedicatedClientId" autocomplete="off" spellcheck="false" placeholder="000000000000-example.apps.googleusercontent.com">
+              </label>
+              <label class="settings-field">
+                <span data-i18n="gmailClientSecretLabel">Client secret</span>
+                <input type="password" id="settingsGmailDedicatedClientSecret" autocomplete="new-password" spellcheck="false" data-i18n-placeholder="gmailClientSecretPlaceholder" placeholder="Enter the client secret">
+              </label>
+              <div class="settings-gmail-client-actions">
+                <button type="submit" class="settings-primary-btn" data-i18n="gmailConnectDedicated">Connect with this client</button>
+                <button type="button" class="settings-secondary-btn" data-action="cancel-dedicated-gmail-client" data-i18n="cancel">Cancel</button>
+              </div>
+            </form>
+
+            <div class="settings-gmail-account-list" id="settingsGmailAccounts"></div>
+
+            <div class="settings-gmail-global-preferences">
+              <label class="settings-select-field">
+                <span data-i18n="gmailBadgeMode">Toolbar badge</span>
+                <select id="settingsGmailBadgeMode">
+                  <option value="openTabs" data-i18n="gmailBadgeOpenTabs">Open tabs</option>
+                  <option value="gmailUnread" data-i18n="gmailBadgeUnread">Gmail unread</option>
+                  <option value="combined" data-i18n="gmailBadgeCombined">Combined total</option>
+                  <option value="hidden" data-i18n="gmailBadgeHidden">Hidden</option>
+                </select>
+              </label>
+            </div>
           </div>
         </section>
       </div>
@@ -271,6 +453,169 @@
       </div>
     </aside>
   </div>
+
+<div
+  id="gmailSetupHelpModal"
+  class="session-modal gmail-setup-help-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="gmailSetupHelpTitle"
+  hidden
+>
+  <div class="session-modal-card gmail-setup-help-card">
+    <div class="session-modal-header">
+      <div>
+        <span class="settings-integration-eyebrow" data-i18n="gmailSetupHelpEyebrow">Google Cloud setup</span>
+        <h2 id="gmailSetupHelpTitle" data-i18n="gmailSetupHelpTitle">Configure Gmail access</h2>
+        <p data-i18n="gmailSetupHelpIntro">Follow these steps once for every Google OAuth client you want to use.</p>
+      </div>
+      <button type="button" class="settings-secondary-btn" data-action="close-gmail-setup-help" data-i18n="close">Close</button>
+    </div>
+
+    <div class="settings-integration-notice gmail-setup-prerequisite">
+      <strong data-i18n="gmailSetupPrerequisiteTitle">Before you begin</strong>
+      <span data-i18n="gmailSetupPrerequisiteHint">Use the Google account that will manage the Cloud project. You must be able to create or edit a Google Cloud project and access every Gmail address you want to connect.</span>
+    </div>
+
+    <div class="gmail-setup-guide">
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">1</span>
+          <h3 data-i18n="gmailSetupProjectTitle">Create or select the Google Cloud project</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupProjectOpen">Open the project selector. Check the project name shown in the top bar: every following step must be completed in this same project.</li>
+          <li data-i18n="gmailSetupProjectCreate">If needed, click “NEW PROJECT”, enter a name such as “Personal Tab Out”, then click “CREATE”.</li>
+          <li data-i18n="gmailSetupProjectSelect">Select that project and wait until its name appears at the top of the Console before continuing.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/projectselector2/home/dashboard" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkProject">Open the project selector</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">2</span>
+          <h3 data-i18n="gmailSetupApiTitle">Enable the Gmail API</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupApiOpen">Open the “Gmail API” page and confirm that the correct project is still selected at the top.</li>
+          <li data-i18n="gmailSetupApiEnable">Click “ENABLE”. If the button says “MANAGE”, the Gmail API is already enabled.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/apis/library/gmail.googleapis.com" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkApi">Open the Gmail API page</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">3</span>
+          <h3 data-i18n="gmailSetupBrandingTitle">Initialize Google Auth Platform</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupBrandingOpen">Open “Google Auth Platform → Branding”. If you see “Google Auth Platform not configured yet”, click “GET STARTED”.</li>
+          <li data-i18n="gmailSetupBrandingInfo">Under “App Information”, enter an “App name” such as “Personal Tab Out” and choose a “User support email”, then click “NEXT”.</li>
+          <li data-i18n="gmailSetupBrandingAudience">Under “Audience”, choose “External” for personal Gmail accounts. “Internal” works only for accounts in the same eligible Google Workspace organization.</li>
+          <li data-i18n="gmailSetupBrandingContact">Under “Contact Information”, enter your email. Under “Finish”, accept the Google API Services User Data Policy, then click “CONTINUE” and “CREATE”.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/auth/branding" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkAuth">Open Google Auth Platform</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">4</span>
+          <h3 data-i18n="gmailSetupAudienceTitle">Authorize the Gmail test accounts</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupAudienceOpen">Open “Google Auth Platform → Audience” and confirm that “Publishing status” is “Testing” if the app remains private.</li>
+          <li data-i18n="gmailSetupAudienceUsers">If the type is “External” and the status is “Testing”, open “Test users”, click “ADD USERS”, add every Gmail address to connect, then click “SAVE”.</li>
+          <li data-i18n="gmailSetupAudienceImportant">In this mode, an address missing from “Test users” cannot authorize access. For multiple accounts, add every address here before connecting them in Tab Out.</li>
+          <li class="is-warning" data-i18n="gmailSetupAudienceExpiry">In “Testing”, Google limits offline authorization to 7 days, so periodic reconnection is expected. Publishing with the restricted Gmail scope can require Google verification.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/auth/audience" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkAudience">Open the Audience page</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">5</span>
+          <h3 data-i18n="gmailSetupScopeTitle">Declare the Gmail permission Tab Out uses</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupScopeOpen">Open “Google Auth Platform → Data Access”, then click “ADD OR REMOVE SCOPES”.</li>
+          <li data-i18n="gmailSetupScopeAdd">Search for the exact URL below. If it is not listed, use “Manually add scopes” and paste it without changing it.</li>
+        </ol>
+        <code class="gmail-setup-scope">https://www.googleapis.com/auth/gmail.modify</code>
+        <ol start="3">
+          <li data-i18n="gmailSetupScopeConfirm">Select the “gmail.modify” row, click “UPDATE”, then click “SAVE” if that button is shown on the main page.</li>
+          <li data-i18n="gmailSetupScopeReason">Tab Out uses this scope to read messages and support read/unread, star, archive, and trash actions. It does not allow permanent deletion that bypasses Trash.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/auth/scopes" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkScopes">Open the Data Access page</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">6</span>
+          <h3 data-i18n="gmailSetupClientTitle">Create the Desktop OAuth client</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupClientOpen">Open “Google Auth Platform → Clients”, then click “CREATE CLIENT”.</li>
+          <li data-i18n="gmailSetupClientType">Under “Application type”, select exactly “Desktop app”. Do not choose “Web application” or “Chrome extension”.</li>
+          <li data-i18n="gmailSetupClientName">Under “Name”, enter a recognizable name such as “Tab Out - Brave”, then click “CREATE”.</li>
+          <li data-i18n="gmailSetupClientCopy">In the result dialog, immediately copy “Client ID” and “Client secret”. Since 2025, Google might not display the complete secret again; also use “DOWNLOAD JSON” as a backup when available.</li>
+          <li data-i18n="gmailSetupClientRedirect">Do not create an API key, JavaScript origin, or redirect URI. The Desktop client accepts the local 127.0.0.1 redirect that Tab Out configures automatically with PKCE.</li>
+        </ol>
+        <a class="gmail-setup-step-link" href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noreferrer" data-i18n="gmailSetupLinkClients">Open the Clients page</a>
+      </section>
+
+      <section class="gmail-setup-step">
+        <header>
+          <span class="gmail-setup-step-number" aria-hidden="true">7</span>
+          <h3 data-i18n="gmailSetupTabOutTitle">Save the client in Tab Out</h3>
+        </header>
+        <ol>
+          <li data-i18n="gmailSetupTabOutOpen">Return to Tab Out, open “Settings → General”, and scroll to “Gmail notifier” at the very bottom.</li>
+          <li data-i18n="gmailSetupTabOutPaste">Under “Shared OAuth client”, paste the “Client ID” and “Client secret” from the same Desktop client, then click “Save shared client”.</li>
+          <li data-i18n="gmailSetupTabOutConfigured">Wait until the status says “Configured”, then click “Add with shared client”.</li>
+          <li data-i18n="gmailSetupTabOutConsent">In the Google window, choose the intended Gmail address and approve access. If Google shows an unverified-app warning, continue only when you recognize your own project and the address is listed under “Test users”.</li>
+          <li data-i18n="gmailSetupTabOutConfirm">When complete, the Google window closes and a card with the exact account address appears in Settings and in the dashboard Gmail widget.</li>
+        </ol>
+      </section>
+    </div>
+
+    <section class="gmail-setup-multiple">
+      <header>
+        <span aria-hidden="true">+</span>
+        <h3 data-i18n="gmailSetupMultipleTitle">Add multiple Gmail accounts</h3>
+      </header>
+      <ol>
+        <li data-i18n="gmailSetupMultipleIntro">You normally do not need another project, API activation, or client: the “Shared OAuth client” can connect multiple accounts.</li>
+        <li data-i18n="gmailSetupMultipleUsers">While in “Testing”, first return to “Google Auth Platform → Audience → Test users” and add every new Gmail address.</li>
+        <li data-i18n="gmailSetupMultipleRepeat">In “Settings → General → Gmail notifier”, click “Add with shared client” again for each additional account.</li>
+        <li data-i18n="gmailSetupMultipleChooser">In Google’s account chooser, select the new account. If it is not shown, click “Use another account” and sign in with that address.</li>
+        <li data-i18n="gmailSetupMultipleResult">Repeat once per account. Every address gets its own card, unread count, visibility, filters, and notification preferences.</li>
+        <li data-i18n="gmailSetupMultipleDedicated">Use “Add with its own client” only when you want to isolate an account behind another Desktop OAuth client. Keep that client’s Client ID / Client secret pair separate.</li>
+      </ol>
+    </section>
+
+    <div class="settings-integration-notice gmail-setup-warning">
+      <strong data-i18n="gmailSetupImportantTitle">Important</strong>
+      <span data-i18n="gmailSetupImportantHint">The “Client ID” and “Client secret” must come from the same “Desktop app” client. These credentials stay in this browser profile’s local storage.</span>
+    </div>
+
+    <section class="gmail-setup-troubleshooting">
+      <h3 data-i18n="gmailSetupTroubleshootingTitle">Quick checks when connection fails</h3>
+      <ul>
+        <li data-i18n="gmailSetupTroubleshootingAccess">“Access blocked” or rejected account: check “Audience”, External/Internal, and the exact address under “Test users”.</li>
+        <li data-i18n="gmailSetupTroubleshootingClient">“invalid_client”: if the secret was lost, create a new “Desktop app” client and copy the ID and secret from that same creation.</li>
+        <li data-i18n="gmailSetupTroubleshootingApi">Gmail API error: confirm Gmail API is enabled in the same project that contains the OAuth client.</li>
+        <li data-i18n="gmailSetupTroubleshootingExpiry">Reconnect requested after 7 days: this is expected for an External project kept in “Testing”.</li>
+      </ul>
+    </section>
+
+    <div class="gmail-setup-links" aria-label="Official Google documentation" data-i18n-aria-label="gmailSetupOfficialLinks">
+      <a href="https://support.google.com/cloud/answer/15549945" target="_blank" rel="noreferrer" data-i18n="gmailSetupOfficialAudience">Official guide: Audience and test users</a>
+      <a href="https://support.google.com/cloud/answer/15549135" target="_blank" rel="noreferrer" data-i18n="gmailSetupOfficialScopes">Official guide: Data Access and scopes</a>
+      <a href="https://support.google.com/cloud/answer/15549257" target="_blank" rel="noreferrer" data-i18n="gmailSetupOfficialClients">Official guide: OAuth clients</a>
+      <a href="https://developers.google.com/workspace/gmail/api/auth/scopes" target="_blank" rel="noreferrer" data-i18n="gmailSetupOfficialGmailScopes">Official guide: Gmail scopes</a>
+    </div>
+  </div>
+</div>
 
 <div
   id="sessionModal"
@@ -630,6 +975,33 @@
 
   </div><!-- end .dashboard-columns -->
 
+  <section class="gmail-widget" id="gmailWidget" aria-labelledby="gmailWidgetTitle">
+    <div class="gmail-widget-header">
+      <div class="gmail-widget-heading">
+        <span class="gmail-widget-mark" aria-hidden="true">M</span>
+        <div>
+          <div class="gmail-widget-title-row">
+            <h2 id="gmailWidgetTitle" data-i18n="gmailWidgetTitle">Gmail</h2>
+            <span class="gmail-widget-count" id="gmailWidgetCount"></span>
+          </div>
+          <p id="gmailWidgetAccount" class="gmail-widget-account"></p>
+        </div>
+      </div>
+
+      <div class="gmail-widget-actions">
+        <span class="gmail-widget-updated" id="gmailWidgetUpdated"></span>
+        <button type="button" class="gmail-widget-icon-btn" id="gmailRefreshBtn" data-i18n-title="gmailRefresh" data-i18n-aria-label="gmailRefresh" aria-label="Refresh Gmail">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992V4.356m-1.291 15.318a9 9 0 1 1 2.122-9.474M2.985 19.644v-4.992h4.992" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="gmail-widget-state" id="gmailWidgetState" role="status" aria-live="polite" hidden></div>
+    <div class="gmail-account-cards" id="gmailAccountCards"></div>
+  </section>
+
   <footer>
     <div class="footer-stats" id="footerStats">
       <div class="stat">
@@ -640,9 +1012,6 @@
     <div class="last-refresh">
       <!-- Footer credit removed -->
     </div>
-
-   
-    
   </footer>
 
 </div><!-- end .container -->
@@ -680,6 +1049,7 @@
   </svg>
   <span id="toastText"></span>
   <button type="button" class="toast-action" id="toastAction" hidden></button>
+  <button type="button" class="toast-action toast-cancel-action" id="toastCancelAction" hidden></button>
 </div>
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
@@ -687,9 +1057,11 @@
 <script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
 <script src="dashboard-settings.js"></script>
 <script src="tab-metadata.js"></script>
+<script src="gmail-config.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>
+<script src="gmail-widget.js"></script>
 <script src="settings-ui.js"></script>
 </body>
 </html>

@@ -44,6 +44,7 @@ const I18N = {
     duplicate: "doublon",
     duplicates: "doublons",
     showTabs: "Afficher les {count} onglets",
+    showMoreTabs: "Voir {count} de plus",
     hideTabs: "Masquer les {count} onglets",
 
     inboxZeroTitle: "Zéro onglet.",
@@ -95,6 +96,21 @@ const I18N = {
     assignTabDrag: "Assigner l’onglet",
     dropAddToSession: "Déposer pour ajouter",
     dropCreatePair: "Créer une session avec ces 2 onglets",
+    dropMoveToSession: "Déplacer vers cette session",
+    dropMoveToUnassigned: "Déplacer vers les onglets non assignés",
+    moveSavedTabLabel: "Déplacer l’onglet enregistré",
+    moveSavedTab: "Déplacer {title}",
+    showSessionTabs: "Afficher les onglets de la session",
+    hideSessionTabs: "Masquer les onglets de la session",
+    sessionTabsList: "Onglets de la session {name}",
+    sessionTabMoveFailed: "Impossible de déplacer cet onglet",
+    sessionTabBackgroundOpenFailed: "Impossible d’ouvrir cet onglet en arrière-plan",
+    unassignSharedTabConfirm: "Cet onglet appartient à {count} sessions. Le retirer de toutes ?",
+    unassignFromAll: "Retirer de toutes",
+    sessionTabAlreadyMoved: "Cet onglet ne se trouve plus dans la session source",
+    sessionTabRemovedFromSource: "L’onglet était déjà dans la destination et a été retiré de la source",
+    sessionTabMovedToUnassigned: "Onglet déplacé vers les onglets non assignés",
+    sessionTabMoved: "Onglet déplacé vers {name}",
     tabAssignedToSession: "Onglet ajouté à « {name} »",
     tabAlreadyAssigned: "Cet onglet est déjà dans cette session.",
     tabAssignmentFailed: "Impossible d’assigner cet onglet.",
@@ -301,6 +317,10 @@ const I18N = {
     settingsGeneral: "Général",
     settingsPresets: "Dispositions rapides",
     settingsPresetsHint: "Commence par une base, puis personnalise-la.",
+    settingsLayoutFrameTitle: "Largeur du tableau de bord",
+    settingsLayoutFrameHint: "Ajuste l’espace à gauche et à droite du contenu.",
+    settingsContainerPaddingTitle: "Espacement horizontal du contenu",
+    settingsContainerPaddingHint: "À 0 px, le contenu utilise toute la largeur disponible. La largeur se recentre progressivement et s’adapte sur tablette et mobile.",
     settingsHeaderModules: "En-tête",
     settingsContentModules: "Contenu",
     settingsModules: "Éléments",
@@ -318,6 +338,157 @@ const I18N = {
     settingsKeyboardTitle: "Raccourcis clavier",
     settingsKeyboardHint: "Sélectionne une commande, puis saisis une combinaison. Le raccourci du menu est géré par Brave.",
     settingsLanguageTitle: "Langue",
+    gmailOptionalIntegration: "Intégration facultative",
+    gmailSettingsTitle: "Notifications Gmail",
+    gmailSettingsHint: "Connecte un ou plusieurs comptes pour lire les messages, suivre les non-lus et agir sans quitter Tab Out.",
+    gmailPrivacyTitle: "Confidentiel par conception",
+    gmailPrivacyHint: "Les e-mails et jetons OAuth restent dans ce profil de navigateur et sont envoyés uniquement à Google.",
+    gmailSetupHelpOpen: "Afficher la procédure de configuration Gmail",
+    gmailSharedClientTitle: "Client OAuth partagé",
+    gmailSharedClientHint: "Utilise un même client OAuth Google Desktop pour autant de comptes Gmail que nécessaire.",
+    gmailDedicatedClientTitle: "Client OAuth dédié",
+    gmailDedicatedClientHint: "Ces identifiants seront associés uniquement au compte Gmail sélectionné chez Google.",
+    gmailClientIdLabel: "ID client",
+    gmailClientSecretLabel: "Secret client",
+    gmailClientSecretPlaceholder: "Saisis le secret client",
+    gmailClientSecretSavedPlaceholder: "Secret enregistré · saisir pour le remplacer",
+    gmailClientSecretHint: "Le secret enregistré n’est jamais réaffiché. Laisse ce champ vide pour le conserver.",
+    gmailClientSecretRequiredHint: "L’ID et le secret du client Google Desktop sont obligatoires.",
+    gmailDedicatedSecretKeepHint: "Laisse le secret vide pour conserver le client dédié actuel.",
+    gmailSaveSharedClient: "Enregistrer le client partagé",
+    gmailRemoveSharedClient: "Supprimer le client partagé",
+    gmailAddWithShared: "Ajouter avec le client partagé",
+    gmailAddWithDedicated: "Ajouter avec son propre client",
+    gmailConnectDedicated: "Connecter avec ce client",
+    gmailClientConfigured: "Configuré",
+    gmailClientNotConfigured: "Non configuré",
+    gmailSharedClientBadge: "Client partagé",
+    gmailDedicatedClientBadge: "Client dédié",
+    gmailReplaceDedicatedClient: "Remplacer le client",
+    gmailUseDedicatedClient: "Utiliser un client dédié",
+    gmailUseSharedClient: "Utiliser le client partagé",
+    gmailReplaceAndReconnect: "Remplacer et reconnecter",
+    gmailSharedClientRequired: "Configure d’abord le client OAuth partagé, ou utilise l’option avec un client dédié.",
+    gmailClientValidationError: "Saisis un ID client Google valide et le secret correspondant.",
+    gmailClientSaving: "Enregistrement du client OAuth…",
+    gmailClientSaved: "Configuration OAuth enregistrée.",
+    gmailClientSaveFailed: "Impossible d’enregistrer la configuration OAuth.",
+    gmailClientRemoved: "Client OAuth partagé supprimé.",
+    gmailReplaceSharedConfirm: "Remplacer ce client déconnectera {count} compte(s) utilisant le client partagé. Ils devront être reconnectés. Continuer ?",
+    gmailRemoveSharedConfirm: "Supprimer ce client déconnectera {count} compte(s) utilisant le client partagé. Continuer ?",
+    gmailSetupHelpEyebrow: "Configuration Google Cloud",
+    gmailSetupHelpTitle: "Connecter Gmail à Tab Out",
+    gmailSetupHelpIntro: "Configuration initiale : suis les étapes 1 à 7 dans l’ordre. Garde cette fenêtre ouverte ; chaque bouton ouvre directement la bonne page Google Cloud dans un nouvel onglet.",
+    gmailSetupPrerequisiteTitle: "Avant de commencer",
+    gmailSetupPrerequisiteHint: "Utilise le compte Google qui gérera le projet Cloud. Tu dois pouvoir créer ou modifier un projet Google Cloud et accéder à chaque adresse Gmail que tu souhaites connecter.",
+    gmailSetupProjectTitle: "Créer ou sélectionner le projet Google Cloud",
+    gmailSetupProjectOpen: "Ouvre le sélecteur de projets. Vérifie le nom du projet affiché dans la barre supérieure : toutes les étapes suivantes doivent être réalisées dans ce même projet.",
+    gmailSetupProjectCreate: "Si nécessaire, clique sur « NEW PROJECT » / « NOUVEAU PROJET », saisis un nom comme « Tab Out personnel », puis clique sur « CREATE » / « CRÉER ».",
+    gmailSetupProjectSelect: "Sélectionne ensuite ce projet et attends que son nom apparaisse en haut de la Console avant de continuer.",
+    gmailSetupLinkProject: "Ouvrir le sélecteur de projets",
+    gmailSetupApiTitle: "Activer Gmail API",
+    gmailSetupApiOpen: "Ouvre la fiche « Gmail API » en vérifiant que le bon projet est toujours sélectionné en haut de la page.",
+    gmailSetupApiEnable: "Clique sur « ENABLE » / « ACTIVER ». Si le bouton indique « MANAGE » / « GÉRER », Gmail API est déjà activée.",
+    gmailSetupLinkApi: "Ouvrir la fiche Gmail API",
+    gmailSetupBrandingTitle: "Initialiser Google Auth Platform",
+    gmailSetupBrandingOpen: "Ouvre « Google Auth Platform → Branding ». Si le message « Google Auth Platform not configured yet » apparaît, clique sur « GET STARTED ».",
+    gmailSetupBrandingInfo: "Dans « App Information », renseigne « App name » (par exemple « Tab Out personnel ») et « User support email », puis clique sur « NEXT ».",
+    gmailSetupBrandingAudience: "Dans « Audience », choisis « External » pour des comptes Gmail personnels. « Internal » convient uniquement aux comptes de la même organisation Google Workspace.",
+    gmailSetupBrandingContact: "Dans « Contact Information », saisis ton adresse e-mail. Dans « Finish », accepte la Google API Services User Data Policy, puis clique sur « CONTINUE » et « CREATE ».",
+    gmailSetupLinkAuth: "Ouvrir Google Auth Platform",
+    gmailSetupAudienceTitle: "Autoriser les comptes Gmail de test",
+    gmailSetupAudienceOpen: "Ouvre « Google Auth Platform → Audience » et vérifie que « Publishing status » indique « Testing » si l’application reste privée.",
+    gmailSetupAudienceUsers: "Si le type est « External » et l’état « Testing », va dans « Test users », clique sur « ADD USERS », ajoute chaque adresse Gmail à connecter, puis clique sur « SAVE ».",
+    gmailSetupAudienceImportant: "Dans ce mode, une adresse absente de « Test users » ne pourra pas autoriser l’accès. Pour plusieurs comptes, ajoute-les tous ici avant de les connecter dans Tab Out.",
+    gmailSetupAudienceExpiry: "En mode « Testing », Google limite l’autorisation hors connexion à 7 jours : une reconnexion périodique est donc normale. Le passage en production avec le champ Gmail restreint peut exiger une vérification Google.",
+    gmailSetupLinkAudience: "Ouvrir la page Audience",
+    gmailSetupScopeTitle: "Déclarer l’autorisation Gmail utilisée",
+    gmailSetupScopeOpen: "Ouvre « Google Auth Platform → Data Access », puis clique sur « ADD OR REMOVE SCOPES ».",
+    gmailSetupScopeAdd: "Recherche l’adresse exacte ci-dessous. Si elle n’apparaît pas, utilise « Manually add scopes » et colle-la sans la modifier.",
+    gmailSetupScopeConfirm: "Coche le champ « gmail.modify », clique sur « UPDATE », puis sur « SAVE » si ce bouton est proposé sur la page principale.",
+    gmailSetupScopeReason: "Tab Out utilise ce champ pour lire les messages et permettre les actions lu/non lu, suivi, archivage et corbeille. Il ne permet pas une suppression définitive contournant la corbeille.",
+    gmailSetupLinkScopes: "Ouvrir la page Data Access",
+    gmailSetupClientTitle: "Créer le client OAuth Desktop",
+    gmailSetupClientOpen: "Ouvre « Google Auth Platform → Clients », puis clique sur « CREATE CLIENT ».",
+    gmailSetupClientType: "Dans « Application type », sélectionne exactement « Desktop app ». N’utilise ni « Web application » ni « Chrome extension ».",
+    gmailSetupClientName: "Dans « Name », saisis un nom reconnaissable comme « Tab Out - Brave », puis clique sur « CREATE ».",
+    gmailSetupClientCopy: "Dans la fenêtre de résultat, copie immédiatement « Client ID » et « Client secret ». Depuis 2025, Google peut ne plus réafficher le secret complet ; utilise aussi « DOWNLOAD JSON » comme sauvegarde si disponible.",
+    gmailSetupClientRedirect: "Ne crée pas de clé API, d’origine JavaScript ni d’URI de redirection. Le client Desktop accepte la redirection locale 127.0.0.1 utilisée automatiquement par Tab Out avec PKCE.",
+    gmailSetupLinkClients: "Ouvrir la page Clients",
+    gmailSetupTabOutTitle: "Enregistrer le client dans Tab Out",
+    gmailSetupTabOutOpen: "Reviens dans Tab Out, ouvre « Réglages → Général », puis descends tout en bas jusqu’à « Notifications Gmail ».",
+    gmailSetupTabOutPaste: "Dans « Client OAuth partagé », colle le « Client ID » et le « Client secret » provenant du même client Desktop, puis clique sur « Enregistrer le client partagé ».",
+    gmailSetupTabOutConfigured: "Attends que l’état affiche « Configuré », puis clique sur « Ajouter avec le client partagé ».",
+    gmailSetupTabOutConsent: "Dans la fenêtre Google, choisis l’adresse Gmail voulue et accepte l’accès demandé. Si Google affiche un avertissement d’application non vérifiée, ne continue que si tu reconnais ton propre projet et que cette adresse figure bien dans « Test users ».",
+    gmailSetupTabOutConfirm: "À la fin, la fenêtre Google se ferme et une carte portant l’adresse exacte du compte doit apparaître dans les réglages et dans le widget Gmail du tableau de bord.",
+    gmailSetupMultipleTitle: "Ajouter plusieurs comptes Gmail",
+    gmailSetupMultipleIntro: "Tu n’as normalement pas besoin de recréer un projet, d’activer l’API ou de créer un nouveau client : le « Client OAuth partagé » peut connecter plusieurs comptes.",
+    gmailSetupMultipleUsers: "En mode « Testing », retourne d’abord dans « Google Auth Platform → Audience → Test users » et ajoute toute nouvelle adresse Gmail.",
+    gmailSetupMultipleRepeat: "Dans « Réglages → Général → Notifications Gmail », clique de nouveau sur « Ajouter avec le client partagé » pour chaque compte supplémentaire.",
+    gmailSetupMultipleChooser: "Dans le sélecteur Google, choisis le nouveau compte. S’il n’est pas affiché, clique sur « Use another account » / « Utiliser un autre compte » et connecte-toi avec cette adresse.",
+    gmailSetupMultipleResult: "Répète l’opération compte par compte. Chaque adresse reçoit sa propre carte, son propre nombre de non-lus et ses propres options d’affichage, de filtres et de notifications.",
+    gmailSetupMultipleDedicated: "Utilise « Ajouter avec son propre client » uniquement si tu veux isoler un compte avec un autre client OAuth Desktop. Dans ce cas, crée et conserve séparément la paire Client ID / Client secret correspondante.",
+    gmailSetupImportantTitle: "Important",
+    gmailSetupImportantHint: "Le « Client ID » et le « Client secret » doivent provenir du même client de type « Desktop app ». Ces identifiants restent dans le stockage local de ce profil de navigateur.",
+    gmailSetupTroubleshootingTitle: "Vérification rapide en cas d’échec",
+    gmailSetupTroubleshootingAccess: "« Access blocked » ou compte refusé : vérifie « Audience », le type External/Internal et la présence exacte de l’adresse dans « Test users ».",
+    gmailSetupTroubleshootingClient: "« invalid_client » : recrée un client « Desktop app » si le secret a été perdu, puis recopie l’ID et le secret de cette même création.",
+    gmailSetupTroubleshootingApi: "Erreur Gmail API : vérifie que Gmail API est activée dans le même projet que celui contenant le client OAuth.",
+    gmailSetupTroubleshootingExpiry: "Reconnexion après 7 jours : c’est le comportement normal d’un projet External conservé en mode « Testing ».",
+    gmailSetupOfficialAudience: "Documentation officielle : Audience et utilisateurs test",
+    gmailSetupOfficialScopes: "Documentation officielle : Data Access et champs d’application",
+    gmailSetupOfficialClients: "Documentation officielle : clients OAuth",
+    gmailSetupOfficialGmailScopes: "Documentation officielle : champs Gmail",
+    gmailSetupOfficialLinks: "Documentation officielle Google",
+    gmailConnectedAccount: "Compte connecté",
+    gmailConnect: "Connecter Gmail",
+    gmailAddAccount: "Ajouter un compte Gmail",
+    gmailConnecting: "Connexion…",
+    gmailCancelConnection: "Annuler la connexion",
+    gmailReconnect: "Reconnecter Gmail",
+    gmailDisconnect: "Déconnecter",
+    gmailDisconnectConfirm: "Déconnecter Gmail, révoquer l’autorisation Google et effacer les données locales de ce compte ?",
+    gmailConnected: "Gmail est connecté.",
+    gmailDisconnected: "Gmail est déconnecté.",
+    gmailConnectFailed: "Impossible de connecter Gmail.",
+    gmailDisconnectFailed: "Impossible de déconnecter Gmail complètement.",
+    gmailFilters: "Messages à afficher",
+    gmailFilterInbox: "Boîte de réception",
+    gmailFilterUnread: "Non lus",
+    gmailFilterStarred: "Suivis",
+    gmailFilterImportant: "Importants",
+    gmailAdvancedQuery: "Recherche Gmail avancée",
+    gmailAdvancedQueryPlaceholder: "from:example.com newer_than:7d",
+    gmailAdvancedQueryHint: "Ajoutée aux filtres sélectionnés avec la syntaxe de recherche Gmail.",
+    gmailResultLimit: "Nombre de conversations",
+    gmailPollingEnabled: "Vérifier automatiquement les nouveaux messages",
+    gmailShowAccount: "Afficher ce compte dans le tableau de bord",
+    gmailPollingInterval: "Fréquence de vérification",
+    gmailPolling1: "Toutes les minutes",
+    gmailPolling5: "Toutes les 5 minutes",
+    gmailPolling15: "Toutes les 15 minutes",
+    gmailPolling30: "Toutes les 30 minutes",
+    gmailNotificationsEnabled: "Afficher les notifications système",
+    gmailNotificationPreview: "Contenu des notifications",
+    gmailPreviewPrivate: "Privé — nouveau message uniquement",
+    gmailPreviewSenderSubject: "Expéditeur et objet",
+    gmailPreviewFull: "Aperçu complet",
+    gmailBadgeMode: "Badge de la barre d’outils",
+    gmailBadgeOpenTabs: "Onglets ouverts",
+    gmailBadgeUnread: "Messages Gmail non lus",
+    gmailBadgeCombined: "Total combiné",
+    gmailBadgeHidden: "Masqué",
+    gmailServiceConfigurationTitle: "Client OAuth nécessaire",
+    gmailServiceUnavailableTitle: "Autorisation Gmail indisponible",
+    gmailServiceCheckingTitle: "Vérification OAuth locale",
+    gmailServiceChecking: "Vérification de la configuration OAuth enregistrée dans ce profil.",
+    gmailStatusConnected: "Connecté",
+    gmailStatusConnecting: "Connexion…",
+    gmailStatusDisconnecting: "Déconnexion…",
+    gmailStatusDisconnected: "Désactivé",
+    gmailStatusReconnectRequired: "Reconnexion requise",
+    gmailStatusUnavailable: "Configuration OAuth requise",
+    gmailStatusError: "Erreur",
     settingsSuspendedTabsTitle: "Onglets suspendus",
     settingsSuspendedTabsHint: "Utilise le titre et l’adresse d’origine des onglets suspendus par The Marvellous Suspender.",
     settingsRightClickCopyTitle: "Copie des liens au clic droit",
@@ -326,6 +497,10 @@ const I18N = {
     settingsUnassignedTabDragHint: "Fais glisser un onglet non assigné vers une session ou un autre onglet.",
     settingsSessionReorderTitle: "Réorganisation des sessions",
     settingsSessionReorderHint: "Fais glisser les sessions sauvegardées pour modifier leur ordre.",
+    settingsExpandSessionTabsTitle: "Déplier les onglets des sessions",
+    settingsExpandSessionTabsHint: "Affiche la liste complète des onglets directement dans chaque carte de session.",
+    settingsDragSessionTabsTitle: "Déplacer les onglets enregistrés",
+    settingsDragSessionTabsHint: "Déplace un onglet enregistré vers une autre session ou vers les onglets non assignés.",
     settingsLanguageHint: "La langue reste disponible ici lorsque son bouton est masqué.",
     settingsResetTitle: "Réinitialiser l’affichage",
     settingsResetHint: "Restaure la disposition Originale et les raccourcis par défaut.",
@@ -342,6 +517,7 @@ const I18N = {
     moduleSessions: "Sessions",
     moduleUnassigned: "Onglets non assignés",
     moduleSavedLater: "À consulter plus tard",
+    moduleGmail: "Gmail",
     moduleStats: "Statistiques des onglets",
     moduleVisible: "Afficher",
     moduleView: "Affichage",
@@ -370,6 +546,18 @@ const I18N = {
     styleDomainGrid: "Grille par domaine",
     styleCompactList: "Liste compacte",
     stylePanel: "Panneau",
+    unassignedDisplayOptions: "Affichage des onglets non assignés",
+    unassignedDensity: "Densité",
+    densityComfortable: "Confortable",
+    densityCompact: "Compacte",
+    unassignedColumns: "Colonnes",
+    columnsResponsive: "Multiples adaptatives",
+    columnsSingle: "Colonne unique",
+    unassignedMinColumnWidth: "Largeur minimale",
+    unassignedVisibleTabs: "Titres visibles",
+    visibleTabsTwo: "2 titres",
+    visibleTabsFour: "4 titres",
+    visibleTabsAll: "Tous les titres",
     presetOriginal: "Original",
     presetOriginalHint: "La disposition historique exacte de Tab Out.",
     presetFocus: "Concentration",
@@ -400,7 +588,68 @@ const I18N = {
     settingsSaveFailed: "Impossible d’enregistrer les réglages.",
     settingsModuleHidden: "Active « {module} » dans les réglages pour utiliser cette commande.",
     settingsExternalChange: "Les réglages ont changé dans un autre onglet.",
-    settingsUnsaved: "Modifications non enregistrées"
+    settingsUnsaved: "Modifications non enregistrées",
+    gmailWidgetTitle: "Gmail",
+    gmailRefresh: "Actualiser Gmail",
+    gmailExpandAccount: "Déplier ce compte",
+    gmailCollapseAccount: "Réduire ce compte",
+    gmailOpenInbox: "Ouvrir Gmail",
+    gmailOpenConversation: "Ouvrir dans Gmail",
+    gmailWidgetDisconnected: "Connecte Gmail depuis les réglages pour afficher tes conversations.",
+    gmailWidgetAccountsHidden: "Tous les comptes Gmail connectés sont masqués. Réactive un compte dans Réglages → Général.",
+    gmailWidgetUnavailable: "Configure un client OAuth Google Desktop dans Réglages → Général pour connecter Gmail.",
+    gmailWidgetLoading: "Chargement des conversations…",
+    gmailWidgetEmpty: "Aucune conversation ne correspond à ces filtres.",
+    gmailWidgetStale: "Impossible d’actualiser. Affichage du dernier résultat disponible.",
+    gmailWidgetError: "Impossible de charger Gmail.",
+    gmailInvalidQuery: "La recherche Gmail avancée n’est pas valide.",
+    gmailAuthorizationExpired: "L’autorisation Gmail a expiré. Reconnecte le compte.",
+    gmailPermissionDenied: "L’autorisation optionnelle Gmail a été refusée.",
+    gmailConfigMissing: "Configure un client OAuth partagé ou dédié dans Réglages → Général.",
+    gmailNetworkError: "Le service Gmail est temporairement indisponible.",
+    gmailOAuthCancelled: "Connexion Gmail annulée.",
+    gmailConversationCount: "{count} messages",
+    gmailShowLatest: "Lire le dernier message",
+    gmailLoadConversation: "Charger toute la conversation",
+    gmailHidePreview: "Fermer l’aperçu",
+    gmailBodyLoading: "Chargement du message…",
+    gmailConversationLoading: "Chargement de la conversation…",
+    gmailNoBody: "Aucun contenu texte disponible. Ouvre la conversation dans Gmail.",
+    gmailLastUpdatedNow: "À l’instant",
+    gmailLastUpdatedMinutes: "Il y a {count} min",
+    gmailShownCount: "{count} affichées",
+    gmailNeverUpdated: "Pas encore actualisé",
+    gmailAccountCount: "{count} compte(s)",
+    gmailUnreadCount: "{count} non lu(s)",
+    gmailTrashConfirm: "Placer cette conversation dans la corbeille ?",
+    gmailActionFailed: "Impossible d’appliquer cette action Gmail.",
+    gmailActionComplete: "Action Gmail appliquée.",
+    gmailMarkRead: "Marquer comme lu",
+    gmailMarkUnread: "Marquer comme non lu",
+    gmailStar: "Ajouter aux suivis",
+    gmailUnstar: "Retirer des suivis",
+    gmailArchive: "Archiver",
+    gmailTrash: "Mettre à la corbeille",
+    gmailAccountAlreadyConnected: "Ce compte Gmail est déjà connecté.",
+    gmailAccountNotFound: "Ce compte Gmail n’est plus connecté.",
+    gmailServiceUnavailable: "L’autorisation Gmail locale est indisponible.",
+    gmailBrowserUnsupported: "Ce navigateur ne permet pas de terminer cette connexion OAuth sans intermédiaire.",
+    gmailOAuthCallbackFailed: "Google n’a pas renvoyé de réponse d’autorisation exploitable.",
+    gmailOAuthTimeout: "La demande d’autorisation Gmail a expiré.",
+    gmailApiNotEnabled: "Active l’API Gmail dans le projet Google Cloud associé à ce client OAuth.",
+    gmailOAuthAuthorizationCodeRejected: "Google a rejeté le code d’autorisation à usage unique. Recharge Tab Out puis recommence la connexion.",
+    gmailOAuthClientInUse: "Ce client OAuth est utilisé par des comptes connectés. Confirme son remplacement pour continuer.",
+    gmailOAuthClientSecretMissing: "Google exige le secret associé à ce client OAuth Desktop. Ajoute-le aux identifiants OAuth de l’extension puis recharge-la.",
+    gmailOAuthInvalidClient: "Google a rejeté l’identifiant ou le secret OAuth. Copie les deux valeurs depuis le même client Application de bureau actif.",
+    gmailOAuthInvalidRequest: "Google a rejeté la requête OAuth. Recharge l’extension puis réessaie.",
+    gmailOAuthRedirectMismatch: "Google a refusé l’adresse de retour locale de ce client OAuth.",
+    gmailOAuthScopeNotGranted: "L’autorisation Gmail requise n’a pas été accordée ou configurée.",
+    gmailOAuthUnauthorizedClient: "Ce client OAuth n’est pas autorisé à utiliser le flux Application de bureau.",
+    gmailReconnectAccountMismatch: "Sélectionne le même compte Gmail que celui que tu souhaites reconnecter.",
+    gmailRefreshTokenMissing: "Google n’a pas accordé l’accès hors connexion. Révoque l’ancien accès puis réessaie.",
+    gmailOAuthStateMismatch: "La réponse OAuth n’a pas pu être vérifiée de manière sûre.",
+    gmailTokenExchangeFailed: "Google n’a pas pu échanger le code d’autorisation.",
+    gmailNotificationsDenied: "Les notifications système ont été refusées."
   },
 
   en: {
@@ -426,6 +675,7 @@ const I18N = {
     duplicate: "duplicate",
     duplicates: "duplicates",
     showTabs: "Show {count} tabs",
+    showMoreTabs: "Show {count} more",
     hideTabs: "Hide {count} tabs",
 
     inboxZeroTitle: "Inbox zero, but for tabs.",
@@ -477,6 +727,21 @@ const I18N = {
     assignTabDrag: "Assign tab",
     dropAddToSession: "Drop to add",
     dropCreatePair: "Create a session with these 2 tabs",
+    dropMoveToSession: "Move to this session",
+    dropMoveToUnassigned: "Move to unassigned tabs",
+    moveSavedTabLabel: "Move saved tab",
+    moveSavedTab: "Move {title}",
+    showSessionTabs: "Show session tabs",
+    hideSessionTabs: "Hide session tabs",
+    sessionTabsList: "Tabs in session {name}",
+    sessionTabMoveFailed: "Could not move this tab",
+    sessionTabBackgroundOpenFailed: "Could not open this tab in the background",
+    unassignSharedTabConfirm: "This tab belongs to {count} sessions. Remove it from all of them?",
+    unassignFromAll: "Remove from all",
+    sessionTabAlreadyMoved: "This tab is no longer in the source session",
+    sessionTabRemovedFromSource: "The tab was already in the destination and was removed from the source",
+    sessionTabMovedToUnassigned: "Tab moved to Unassigned tabs",
+    sessionTabMoved: "Tab moved to {name}",
     tabAssignedToSession: "Tab added to “{name}”",
     tabAlreadyAssigned: "This tab is already in that session.",
     tabAssignmentFailed: "Could not assign this tab.",
@@ -683,6 +948,10 @@ const I18N = {
     settingsGeneral: "General",
     settingsPresets: "Quick layouts",
     settingsPresetsHint: "Start with a layout, then make it yours.",
+    settingsLayoutFrameTitle: "Dashboard width",
+    settingsLayoutFrameHint: "Adjust the space to the left and right of the content.",
+    settingsContainerPaddingTitle: "Horizontal content padding",
+    settingsContainerPaddingHint: "At 0px, content uses the full available width. Width recenters progressively and adapts on tablet and mobile.",
     settingsHeaderModules: "Header",
     settingsContentModules: "Content",
     settingsModules: "Elements",
@@ -700,6 +969,157 @@ const I18N = {
     settingsKeyboardTitle: "Keyboard shortcuts",
     settingsKeyboardHint: "Select a command, then press a combination. The popup shortcut is managed by the browser.",
     settingsLanguageTitle: "Language",
+    gmailOptionalIntegration: "Optional integration",
+    gmailSettingsTitle: "Gmail notifier",
+    gmailSettingsHint: "Connect one or more accounts to read messages, track unread mail, and take action without leaving Tab Out.",
+    gmailPrivacyTitle: "Private by design",
+    gmailPrivacyHint: "Mail and OAuth tokens stay in this browser profile and are sent only to Google.",
+    gmailSetupHelpOpen: "Show the Gmail setup procedure",
+    gmailSharedClientTitle: "Shared OAuth client",
+    gmailSharedClientHint: "Use one Google Desktop OAuth client for any number of Gmail accounts.",
+    gmailDedicatedClientTitle: "Dedicated OAuth client",
+    gmailDedicatedClientHint: "These credentials are assigned only to the Gmail account selected at Google.",
+    gmailClientIdLabel: "Client ID",
+    gmailClientSecretLabel: "Client secret",
+    gmailClientSecretPlaceholder: "Enter the client secret",
+    gmailClientSecretSavedPlaceholder: "Secret saved · enter a value to replace it",
+    gmailClientSecretHint: "The saved secret is never displayed again. Leave this empty to keep it.",
+    gmailClientSecretRequiredHint: "The Google Desktop client ID and client secret are required.",
+    gmailDedicatedSecretKeepHint: "Leave the secret empty to keep the current dedicated client.",
+    gmailSaveSharedClient: "Save shared client",
+    gmailRemoveSharedClient: "Remove shared client",
+    gmailAddWithShared: "Add using shared client",
+    gmailAddWithDedicated: "Add using its own client",
+    gmailConnectDedicated: "Connect with this client",
+    gmailClientConfigured: "Configured",
+    gmailClientNotConfigured: "Not configured",
+    gmailSharedClientBadge: "Shared client",
+    gmailDedicatedClientBadge: "Dedicated client",
+    gmailReplaceDedicatedClient: "Replace client",
+    gmailUseDedicatedClient: "Use dedicated client",
+    gmailUseSharedClient: "Use shared client",
+    gmailReplaceAndReconnect: "Replace and reconnect",
+    gmailSharedClientRequired: "Configure the shared OAuth client first, or use the dedicated-client option.",
+    gmailClientValidationError: "Enter a valid Google client ID and its corresponding client secret.",
+    gmailClientSaving: "Saving the OAuth client…",
+    gmailClientSaved: "OAuth configuration saved.",
+    gmailClientSaveFailed: "Could not save the OAuth configuration.",
+    gmailClientRemoved: "Shared OAuth client removed.",
+    gmailReplaceSharedConfirm: "Replacing this client will disconnect {count} account(s) using the shared client. They must be reconnected. Continue?",
+    gmailRemoveSharedConfirm: "Removing this client will disconnect {count} account(s) using the shared client. Continue?",
+    gmailSetupHelpEyebrow: "Google Cloud setup",
+    gmailSetupHelpTitle: "Connect Gmail to Tab Out",
+    gmailSetupHelpIntro: "Initial setup: complete steps 1 through 7 in order. Keep this window open; every button opens the exact Google Cloud page you need in a new tab.",
+    gmailSetupPrerequisiteTitle: "Before you begin",
+    gmailSetupPrerequisiteHint: "Use the Google account that will manage the Cloud project. You must be able to create or edit a Google Cloud project and access every Gmail address you want to connect.",
+    gmailSetupProjectTitle: "Create or select the Google Cloud project",
+    gmailSetupProjectOpen: "Open the project selector. Check the project name shown in the top bar: every following step must be completed in this same project.",
+    gmailSetupProjectCreate: "If needed, click “NEW PROJECT”, enter a name such as “Personal Tab Out”, then click “CREATE”.",
+    gmailSetupProjectSelect: "Select that project and wait until its name appears at the top of the Console before continuing.",
+    gmailSetupLinkProject: "Open the project selector",
+    gmailSetupApiTitle: "Enable the Gmail API",
+    gmailSetupApiOpen: "Open the “Gmail API” page and confirm that the correct project is still selected at the top.",
+    gmailSetupApiEnable: "Click “ENABLE”. If the button says “MANAGE”, the Gmail API is already enabled.",
+    gmailSetupLinkApi: "Open the Gmail API page",
+    gmailSetupBrandingTitle: "Initialize Google Auth Platform",
+    gmailSetupBrandingOpen: "Open “Google Auth Platform → Branding”. If you see “Google Auth Platform not configured yet”, click “GET STARTED”.",
+    gmailSetupBrandingInfo: "Under “App Information”, enter an “App name” such as “Personal Tab Out” and choose a “User support email”, then click “NEXT”.",
+    gmailSetupBrandingAudience: "Under “Audience”, choose “External” for personal Gmail accounts. “Internal” works only for accounts in the same eligible Google Workspace organization.",
+    gmailSetupBrandingContact: "Under “Contact Information”, enter your email. Under “Finish”, accept the Google API Services User Data Policy, then click “CONTINUE” and “CREATE”.",
+    gmailSetupLinkAuth: "Open Google Auth Platform",
+    gmailSetupAudienceTitle: "Authorize the Gmail test accounts",
+    gmailSetupAudienceOpen: "Open “Google Auth Platform → Audience” and confirm that “Publishing status” is “Testing” if the app remains private.",
+    gmailSetupAudienceUsers: "If the type is “External” and the status is “Testing”, open “Test users”, click “ADD USERS”, add every Gmail address to connect, then click “SAVE”.",
+    gmailSetupAudienceImportant: "In this mode, an address missing from “Test users” cannot authorize access. For multiple accounts, add every address here before connecting them in Tab Out.",
+    gmailSetupAudienceExpiry: "In “Testing”, Google limits offline authorization to 7 days, so periodic reconnection is expected. Publishing with the restricted Gmail scope can require Google verification.",
+    gmailSetupLinkAudience: "Open the Audience page",
+    gmailSetupScopeTitle: "Declare the Gmail permission Tab Out uses",
+    gmailSetupScopeOpen: "Open “Google Auth Platform → Data Access”, then click “ADD OR REMOVE SCOPES”.",
+    gmailSetupScopeAdd: "Search for the exact URL below. If it is not listed, use “Manually add scopes” and paste it without changing it.",
+    gmailSetupScopeConfirm: "Select the “gmail.modify” row, click “UPDATE”, then click “SAVE” if that button is shown on the main page.",
+    gmailSetupScopeReason: "Tab Out uses this scope to read messages and support read/unread, star, archive, and trash actions. It does not allow permanent deletion that bypasses Trash.",
+    gmailSetupLinkScopes: "Open the Data Access page",
+    gmailSetupClientTitle: "Create the Desktop OAuth client",
+    gmailSetupClientOpen: "Open “Google Auth Platform → Clients”, then click “CREATE CLIENT”.",
+    gmailSetupClientType: "Under “Application type”, select exactly “Desktop app”. Do not choose “Web application” or “Chrome extension”.",
+    gmailSetupClientName: "Under “Name”, enter a recognizable name such as “Tab Out - Brave”, then click “CREATE”.",
+    gmailSetupClientCopy: "In the result dialog, immediately copy “Client ID” and “Client secret”. Since 2025, Google might not display the complete secret again; also use “DOWNLOAD JSON” as a backup when available.",
+    gmailSetupClientRedirect: "Do not create an API key, JavaScript origin, or redirect URI. The Desktop client accepts the local 127.0.0.1 redirect that Tab Out configures automatically with PKCE.",
+    gmailSetupLinkClients: "Open the Clients page",
+    gmailSetupTabOutTitle: "Save the client in Tab Out",
+    gmailSetupTabOutOpen: "Return to Tab Out, open “Settings → General”, and scroll to “Gmail notifier” at the very bottom.",
+    gmailSetupTabOutPaste: "Under “Shared OAuth client”, paste the “Client ID” and “Client secret” from the same Desktop client, then click “Save shared client”.",
+    gmailSetupTabOutConfigured: "Wait until the status says “Configured”, then click “Add with shared client”.",
+    gmailSetupTabOutConsent: "In the Google window, choose the intended Gmail address and approve access. If Google shows an unverified-app warning, continue only when you recognize your own project and the address is listed under “Test users”.",
+    gmailSetupTabOutConfirm: "When complete, the Google window closes and a card with the exact account address appears in Settings and in the dashboard Gmail widget.",
+    gmailSetupMultipleTitle: "Add multiple Gmail accounts",
+    gmailSetupMultipleIntro: "You normally do not need another project, API activation, or client: the “Shared OAuth client” can connect multiple accounts.",
+    gmailSetupMultipleUsers: "While in “Testing”, first return to “Google Auth Platform → Audience → Test users” and add every new Gmail address.",
+    gmailSetupMultipleRepeat: "In “Settings → General → Gmail notifier”, click “Add with shared client” again for each additional account.",
+    gmailSetupMultipleChooser: "In Google’s account chooser, select the new account. If it is not shown, click “Use another account” and sign in with that address.",
+    gmailSetupMultipleResult: "Repeat once per account. Every address gets its own card, unread count, visibility, filters, and notification preferences.",
+    gmailSetupMultipleDedicated: "Use “Add with its own client” only when you want to isolate an account behind another Desktop OAuth client. Keep that client’s Client ID / Client secret pair separate.",
+    gmailSetupImportantTitle: "Important",
+    gmailSetupImportantHint: "The “Client ID” and “Client secret” must come from the same “Desktop app” client. These credentials stay in this browser profile’s local storage.",
+    gmailSetupTroubleshootingTitle: "Quick checks when connection fails",
+    gmailSetupTroubleshootingAccess: "“Access blocked” or rejected account: check “Audience”, External/Internal, and the exact address under “Test users”.",
+    gmailSetupTroubleshootingClient: "“invalid_client”: if the secret was lost, create a new “Desktop app” client and copy the ID and secret from that same creation.",
+    gmailSetupTroubleshootingApi: "Gmail API error: confirm Gmail API is enabled in the same project that contains the OAuth client.",
+    gmailSetupTroubleshootingExpiry: "Reconnect requested after 7 days: this is expected for an External project kept in “Testing”.",
+    gmailSetupOfficialAudience: "Official guide: Audience and test users",
+    gmailSetupOfficialScopes: "Official guide: Data Access and scopes",
+    gmailSetupOfficialClients: "Official guide: OAuth clients",
+    gmailSetupOfficialGmailScopes: "Official guide: Gmail scopes",
+    gmailSetupOfficialLinks: "Official Google documentation",
+    gmailConnectedAccount: "Connected account",
+    gmailConnect: "Connect Gmail",
+    gmailAddAccount: "Add Gmail account",
+    gmailConnecting: "Connecting…",
+    gmailCancelConnection: "Cancel connection",
+    gmailReconnect: "Reconnect Gmail",
+    gmailDisconnect: "Disconnect",
+    gmailDisconnectConfirm: "Disconnect Gmail, revoke Google authorization, and clear this account’s local data?",
+    gmailConnected: "Gmail is connected.",
+    gmailDisconnected: "Gmail is disconnected.",
+    gmailConnectFailed: "Could not connect Gmail.",
+    gmailDisconnectFailed: "Could not completely disconnect Gmail.",
+    gmailFilters: "Messages to display",
+    gmailFilterInbox: "Inbox",
+    gmailFilterUnread: "Unread",
+    gmailFilterStarred: "Starred",
+    gmailFilterImportant: "Important",
+    gmailAdvancedQuery: "Advanced Gmail query",
+    gmailAdvancedQueryPlaceholder: "from:example.com newer_than:7d",
+    gmailAdvancedQueryHint: "Appended to the selected filters using Gmail search syntax.",
+    gmailResultLimit: "Conversation limit",
+    gmailPollingEnabled: "Automatically check for new mail",
+    gmailShowAccount: "Show this account on the dashboard",
+    gmailPollingInterval: "Check frequency",
+    gmailPolling1: "Every minute",
+    gmailPolling5: "Every 5 minutes",
+    gmailPolling15: "Every 15 minutes",
+    gmailPolling30: "Every 30 minutes",
+    gmailNotificationsEnabled: "Show system notifications",
+    gmailNotificationPreview: "Notification content",
+    gmailPreviewPrivate: "Private — new mail only",
+    gmailPreviewSenderSubject: "Sender and subject",
+    gmailPreviewFull: "Full preview",
+    gmailBadgeMode: "Toolbar badge",
+    gmailBadgeOpenTabs: "Open tabs",
+    gmailBadgeUnread: "Gmail unread",
+    gmailBadgeCombined: "Combined total",
+    gmailBadgeHidden: "Hidden",
+    gmailServiceConfigurationTitle: "OAuth client required",
+    gmailServiceUnavailableTitle: "Gmail authorization unavailable",
+    gmailServiceCheckingTitle: "Checking local OAuth",
+    gmailServiceChecking: "Checking the OAuth configuration saved in this browser profile.",
+    gmailStatusConnected: "Connected",
+    gmailStatusConnecting: "Connecting…",
+    gmailStatusDisconnecting: "Disconnecting…",
+    gmailStatusDisconnected: "Disabled",
+    gmailStatusReconnectRequired: "Reconnect required",
+    gmailStatusUnavailable: "OAuth configuration required",
+    gmailStatusError: "Error",
     settingsSuspendedTabsTitle: "Suspended tabs",
     settingsSuspendedTabsHint: "Use the original title and URL for tabs suspended by The Marvellous Suspender.",
     settingsRightClickCopyTitle: "Right-click link copying",
@@ -708,6 +1128,10 @@ const I18N = {
     settingsUnassignedTabDragHint: "Drag an unassigned tab onto a session or another tab.",
     settingsSessionReorderTitle: "Reorder sessions",
     settingsSessionReorderHint: "Drag saved sessions to change their order.",
+    settingsExpandSessionTabsTitle: "Expand session tabs",
+    settingsExpandSessionTabsHint: "Show the complete saved tab list directly inside each session card.",
+    settingsDragSessionTabsTitle: "Drag saved session tabs",
+    settingsDragSessionTabsHint: "Move a saved tab to another session or back to Unassigned tabs.",
     settingsLanguageHint: "Language remains available here when its dashboard button is hidden.",
     settingsResetTitle: "Reset dashboard",
     settingsResetHint: "Restore the Original layout and default keyboard shortcuts.",
@@ -724,6 +1148,7 @@ const I18N = {
     moduleSessions: "Sessions",
     moduleUnassigned: "Unassigned tabs",
     moduleSavedLater: "Saved for later",
+    moduleGmail: "Gmail",
     moduleStats: "Tab statistics",
     moduleVisible: "Show",
     moduleView: "View",
@@ -752,6 +1177,18 @@ const I18N = {
     styleDomainGrid: "Domain grid",
     styleCompactList: "Compact list",
     stylePanel: "Panel",
+    unassignedDisplayOptions: "Unassigned tabs display",
+    unassignedDensity: "Density",
+    densityComfortable: "Comfortable",
+    densityCompact: "Compact",
+    unassignedColumns: "Columns",
+    columnsResponsive: "Responsive multiple",
+    columnsSingle: "Single column",
+    unassignedMinColumnWidth: "Minimum width",
+    unassignedVisibleTabs: "Visible titles",
+    visibleTabsTwo: "2 titles",
+    visibleTabsFour: "4 titles",
+    visibleTabsAll: "All titles",
     presetOriginal: "Original",
     presetOriginalHint: "The exact historical Tab Out layout.",
     presetFocus: "Focus",
@@ -782,7 +1219,68 @@ const I18N = {
     settingsSaveFailed: "Could not save settings.",
     settingsModuleHidden: "Enable “{module}” in Settings to use this command.",
     settingsExternalChange: "Settings changed in another Tab Out page.",
-    settingsUnsaved: "Unsaved changes"
+    settingsUnsaved: "Unsaved changes",
+    gmailWidgetTitle: "Gmail",
+    gmailRefresh: "Refresh Gmail",
+    gmailExpandAccount: "Expand this account",
+    gmailCollapseAccount: "Collapse this account",
+    gmailOpenInbox: "Open Gmail",
+    gmailOpenConversation: "Open in Gmail",
+    gmailWidgetDisconnected: "Connect Gmail from Settings to display your conversations.",
+    gmailWidgetAccountsHidden: "All connected Gmail accounts are hidden. Show an account again in Settings → General.",
+    gmailWidgetUnavailable: "Configure a Google Desktop OAuth client in Settings → General to connect Gmail.",
+    gmailWidgetLoading: "Loading conversations…",
+    gmailWidgetEmpty: "No conversations match these filters.",
+    gmailWidgetStale: "Could not refresh. Showing the latest available result.",
+    gmailWidgetError: "Could not load Gmail.",
+    gmailInvalidQuery: "The advanced Gmail query is not valid.",
+    gmailAuthorizationExpired: "Gmail authorization expired. Reconnect the account.",
+    gmailPermissionDenied: "The optional Gmail permission was denied.",
+    gmailConfigMissing: "Configure a shared or dedicated OAuth client in Settings → General.",
+    gmailNetworkError: "The Gmail service is temporarily unavailable.",
+    gmailOAuthCancelled: "Gmail connection cancelled.",
+    gmailConversationCount: "{count} messages",
+    gmailShowLatest: "Read latest message",
+    gmailLoadConversation: "Load full conversation",
+    gmailHidePreview: "Close preview",
+    gmailBodyLoading: "Loading message…",
+    gmailConversationLoading: "Loading conversation…",
+    gmailNoBody: "No text content is available. Open the conversation in Gmail.",
+    gmailLastUpdatedNow: "Just now",
+    gmailLastUpdatedMinutes: "{count} min ago",
+    gmailShownCount: "{count} shown",
+    gmailNeverUpdated: "Not refreshed yet",
+    gmailAccountCount: "{count} account(s)",
+    gmailUnreadCount: "{count} unread",
+    gmailTrashConfirm: "Move this conversation to Trash?",
+    gmailActionFailed: "Could not apply this Gmail action.",
+    gmailActionComplete: "Gmail action applied.",
+    gmailMarkRead: "Mark as read",
+    gmailMarkUnread: "Mark as unread",
+    gmailStar: "Star",
+    gmailUnstar: "Unstar",
+    gmailArchive: "Archive",
+    gmailTrash: "Move to Trash",
+    gmailAccountAlreadyConnected: "This Gmail account is already connected.",
+    gmailAccountNotFound: "This Gmail account is no longer connected.",
+    gmailServiceUnavailable: "Local Gmail authorization is unavailable.",
+    gmailBrowserUnsupported: "This browser could not complete the direct OAuth connection.",
+    gmailOAuthCallbackFailed: "Google did not return a usable authorization response.",
+    gmailOAuthTimeout: "The Gmail authorization request expired.",
+    gmailApiNotEnabled: "Enable the Gmail API in the Google Cloud project associated with this OAuth client.",
+    gmailOAuthAuthorizationCodeRejected: "Google rejected the one-time authorization code. Reload Tab Out and start a new connection.",
+    gmailOAuthClientInUse: "Connected accounts use this OAuth client. Confirm its replacement to continue.",
+    gmailOAuthClientSecretMissing: "Google requires the secret issued with this Desktop OAuth client. Add it to the extension OAuth credentials and reload it.",
+    gmailOAuthInvalidClient: "Google rejected the OAuth client ID or client secret. Copy both values from the same active Desktop app client.",
+    gmailOAuthInvalidRequest: "Google rejected the OAuth request. Reload the extension and try again.",
+    gmailOAuthRedirectMismatch: "Google rejected the local callback address for this OAuth client.",
+    gmailOAuthScopeNotGranted: "The required Gmail permission was not granted or configured.",
+    gmailOAuthUnauthorizedClient: "This OAuth client is not authorized to use the Desktop application flow.",
+    gmailReconnectAccountMismatch: "Select the same Gmail account that you are trying to reconnect.",
+    gmailRefreshTokenMissing: "Google did not grant offline access. Revoke the previous grant and try again.",
+    gmailOAuthStateMismatch: "The OAuth response could not be verified safely.",
+    gmailTokenExchangeFailed: "Google could not exchange the authorization code.",
+    gmailNotificationsDenied: "System notifications were denied."
   }
 };
 
@@ -1319,6 +1817,7 @@ function hideToast(sequence) {
 
   const toast = document.getElementById('toast');
   const actionButton = document.getElementById('toastAction');
+  const cancelButton = document.getElementById('toastCancelAction');
 
   if (!toast) {
     return;
@@ -1331,6 +1830,12 @@ function hideToast(sequence) {
     actionButton.disabled = false;
     actionButton.onclick = null;
   }
+
+  if (cancelButton) {
+    cancelButton.hidden = true;
+    cancelButton.disabled = false;
+    cancelButton.onclick = null;
+  }
 }
 
 /**
@@ -1342,6 +1847,7 @@ function showToast(message, options = {}) {
   const toast = document.getElementById('toast');
   const text = document.getElementById('toastText');
   const actionButton = document.getElementById('toastAction');
+  const cancelButton = document.getElementById('toastCancelAction');
 
   if (!toast || !text) {
     return;
@@ -1350,10 +1856,17 @@ function showToast(message, options = {}) {
   const {
     actionLabel = "",
     onAction = null,
+    cancelLabel = "",
+    onCancel = null,
     duration = 2500
   } = options;
   const sequence = ++toastSequence;
   const hasAction = Boolean(actionButton && actionLabel && typeof onAction === "function");
+  const hasCancel = Boolean(
+    cancelButton &&
+    cancelLabel &&
+    typeof onCancel === "function"
+  );
 
   if (toastTimeoutId) {
     clearTimeout(toastTimeoutId);
@@ -1389,9 +1902,53 @@ function showToast(message, options = {}) {
     }
   }
 
+  if (cancelButton) {
+    cancelButton.hidden = !hasCancel;
+    cancelButton.disabled = false;
+    cancelButton.onclick = null;
+
+    if (hasCancel) {
+      cancelButton.textContent = cancelLabel;
+      cancelButton.onclick = async () => {
+        if (sequence !== toastSequence) {
+          return;
+        }
+
+        cancelButton.disabled = true;
+
+        try {
+          await onCancel();
+        } catch (error) {
+          console.warn('[tab-out] Toast cancel action failed:', error);
+        } finally {
+          if (sequence === toastSequence) {
+            hideToast(sequence);
+          }
+        }
+      };
+    }
+  }
+
   toast.classList.add('visible');
-  toastTimeoutId = setTimeout(() => hideToast(sequence), duration);
+  toastTimeoutId = duration > 0
+    ? setTimeout(() => hideToast(sequence), duration)
+    : null;
 }
+
+document.addEventListener("keydown", (event) => {
+  const toast = document.getElementById("toast");
+  const cancelButton = document.getElementById("toastCancelAction");
+
+  if (
+    event.key === "Escape" &&
+    toast?.classList.contains("visible") &&
+    cancelButton &&
+    !cancelButton.hidden
+  ) {
+    event.preventDefault();
+    cancelButton.click();
+  }
+});
 
 function copyTextWithExecCommand(text) {
   const previousFocus = document.activeElement;
@@ -2026,8 +2583,16 @@ function renderDomainCard(group) {
     if (!seen.has(tab.url)) { seen.add(tab.url); uniqueTabs.push(tab); }
   }
 
-  const visibleTabs = uniqueTabs.slice(0, 2);
-  const extraCount  = uniqueTabs.length - visibleTabs.length;
+  const visibleTabSetting =
+    document.documentElement.dataset.unassignedVisibleTabCount;
+  const visibleTabLimit =
+    visibleTabSetting === "all"
+      ? uniqueTabs.length
+      : visibleTabSetting === "4"
+        ? 4
+        : 2;
+  const visibleTabs = uniqueTabs.slice(0, visibleTabLimit);
+  const hiddenTabs = uniqueTabs.slice(visibleTabLimit);
 
   const pageChips = visibleTabs.map(tab => {
     let label = cleanTitle(smartTitle(stripTitleNoise(tab.title || ''), tab.url), group.domain);
@@ -2086,7 +2651,7 @@ function renderDomainCard(group) {
           ${dupeBadge}
         </div>
         <div class="mission-pages">${pageChips}</div>
-        ${uniqueTabs.length > 2 ? renderTabDropdown(uniqueTabs, `${stableId}-dropdown`) : ""}
+        ${renderTabDropdown(hiddenTabs, `${stableId}-dropdown`)}
         <div class="actions">${actionsHtml}</div>
       </div>
       <div class="mission-meta">
@@ -2097,7 +2662,7 @@ function renderDomainCard(group) {
 }
 
 function renderTabDropdown(tabs, groupId) {
-  if (!tabs || tabs.length <= 1) {
+  if (!tabs || tabs.length === 0) {
     return "";
   }
 
@@ -2130,7 +2695,7 @@ function renderTabDropdown(tabs, groupId) {
   return `
     <div class="tab-dropdown">
       <button class="tab-dropdown-toggle" data-action="toggle-tab-dropdown" data-dropdown-id="${groupId}">
-        ${t("showTabs", { count: tabs.length })}
+        ${t("showMoreTabs", { count: tabs.length })}
       </button>
 
       <div class="tab-dropdown-list" id="${groupId}" hidden>
@@ -3596,13 +4161,16 @@ async function renderDashboard() {
    let suppressSavedSessionOpenUntil = 0;
    let savedSessionDragState = null;
    let openTabAssignmentDragState = null;
+   let savedSessionTabDragState = null;
    let suppressedOpenTabFocusClick = null;
    let provisionalSessionState = null;
    let inlineSessionRenameState = null;
    let deferCollectionStorageRefreshUntil = 0;
+   const expandedSessionIds = new Set();
 
    const SAVED_SESSION_DRAG_THRESHOLD = 7;
    const OPEN_TAB_DRAG_THRESHOLD = 7;
+   const SAVED_SESSION_TAB_DRAG_THRESHOLD = 7;
 
    function createSessionDescriptorFromOpenTab(tab) {
      return {
@@ -4085,6 +4653,374 @@ async function renderDashboard() {
      await renderSavedSessions();
    }
 
+   async function toggleSessionInlineTabs(sessionId) {
+     if (!sessionId || !isDashboardBehaviorEnabled("expandSessionTabs")) {
+       return;
+     }
+
+     if (expandedSessionIds.has(sessionId)) {
+       expandedSessionIds.delete(sessionId);
+     } else {
+       expandedSessionIds.add(sessionId);
+     }
+
+     await renderSavedSessions();
+     requestAnimationFrame(() => {
+       document
+         .querySelector(
+           `.saved-session-expand[data-session-id="${CSS.escape(sessionId)}"]`
+         )
+         ?.focus({ preventScroll: true });
+     });
+   }
+
+   async function openSessionInlineTab(url) {
+     const normalizedUrl = normalizeOpenTabUrl(url);
+     const browserTabs = await queryTabsWithMetadata({});
+     const existingTab = browserTabs.find(
+       (tab) =>
+         normalizeOpenTabUrl(tab.pendingUrl || tab.url) === normalizedUrl
+     );
+
+     if (existingTab?.id) {
+       await chrome.tabs.update(existingTab.id, { active: true });
+
+       if (Number.isInteger(existingTab.windowId)) {
+         await chrome.windows.update(existingTab.windowId, { focused: true });
+       }
+
+       return;
+     }
+
+     const windowId = await getCollectionTargetWindowId();
+     const createProperties = {
+       url,
+       active: true
+     };
+
+     if (Number.isInteger(windowId)) {
+       createProperties.windowId = windowId;
+     }
+
+     try {
+       await chrome.tabs.create(createProperties);
+     } catch {
+       showToast(t("collectionDetailOpenFailed"));
+     }
+   }
+
+   function clearSavedSessionTabDropTarget(state) {
+     state?.target?.element?.classList.remove(
+       "is-saved-session-tab-drop-target"
+     );
+     state?.target?.element?.removeAttribute("data-session-tab-drop-label");
+
+     if (state) {
+       state.target = null;
+     }
+   }
+
+   function setSavedSessionTabDropTarget(state, target) {
+     if (
+       state.target?.kind === target?.kind &&
+       state.target?.element === target?.element
+     ) {
+       return;
+     }
+
+     clearSavedSessionTabDropTarget(state);
+     state.target = target;
+
+     if (!target) {
+       return;
+     }
+
+     target.element.classList.add("is-saved-session-tab-drop-target");
+     target.element.dataset.sessionTabDropLabel = t(
+       target.kind === "session"
+         ? "dropMoveToSession"
+         : "dropMoveToUnassigned"
+     );
+   }
+
+   function getSavedSessionTabDropTarget(state, x, y) {
+     const hovered = document.elementFromPoint(x, y);
+     const sessionCard = hovered?.closest(
+       '.saved-session-card[data-session-id]'
+     );
+
+     if (
+       sessionCard &&
+       sessionCard.dataset.sessionId !== state.sourceSessionId
+     ) {
+       return {
+         kind: "session",
+         element: sessionCard,
+         sessionId: sessionCard.dataset.sessionId,
+         sessionName: sessionCard.dataset.sessionName || ""
+       };
+     }
+
+     const unassignedSection = hovered?.closest("#openTabsSection");
+
+     if (unassignedSection) {
+       return {
+         kind: "unassigned",
+         element: unassignedSection
+       };
+     }
+
+     return null;
+   }
+
+   function createSavedSessionTabDragGhost(state) {
+     const ghost = document.createElement("div");
+     ghost.className = "saved-session-tab-drag-ghost";
+     const favicon = state.sourceElement.querySelector("img");
+
+     if (favicon?.src) {
+       const image = document.createElement("img");
+       image.alt = "";
+       image.src = favicon.src;
+       ghost.appendChild(image);
+     }
+
+     const copy = document.createElement("span");
+     const label = document.createElement("small");
+     label.textContent = t("moveSavedTabLabel");
+     const title = document.createElement("strong");
+     title.textContent = state.title || state.url;
+     copy.append(label, title);
+     ghost.appendChild(copy);
+     return ghost;
+   }
+
+   function startSavedSessionTabPointerDrag(event, state) {
+     const rect = state.sourceElement.getBoundingClientRect();
+
+     state.dragging = true;
+     state.offsetX = Math.min(event.clientX - rect.left, rect.width - 12);
+     state.offsetY = Math.min(event.clientY - rect.top, rect.height - 12);
+     state.ghost = createSavedSessionTabDragGhost(state);
+     suppressSavedSessionOpenUntil = Date.now() + 600;
+
+     if (state.handle.setPointerCapture) {
+       try {
+         state.handle.setPointerCapture(event.pointerId);
+       } catch {}
+     }
+
+     state.sourceElement.classList.add("is-saved-session-tab-drag-source");
+     document.body.classList.add("is-moving-saved-session-tab");
+     document
+       .querySelectorAll(
+         `.saved-session-card[data-session-id]:not([data-session-id="${CSS.escape(
+           state.sourceSessionId
+         )}"])`
+       )
+       .forEach((card) => card.classList.add("is-saved-session-tab-drop-zone"));
+     document
+       .getElementById("openTabsSection")
+       ?.classList.add("is-saved-session-tab-drop-zone");
+     document.body.appendChild(state.ghost);
+     updateSavedSessionTabPointerDrag(event);
+   }
+
+   function updateSavedSessionTabPointerDrag(event) {
+     const state = savedSessionTabDragState;
+
+     if (!state?.dragging) {
+       return;
+     }
+
+     const edgeSize = 54;
+     const scrollStep = 14;
+
+     if (event.clientY < edgeSize) {
+       window.scrollBy(0, -scrollStep);
+     } else if (event.clientY > window.innerHeight - edgeSize) {
+       window.scrollBy(0, scrollStep);
+     }
+
+     const ghostWidth = state.ghost.offsetWidth;
+     const ghostHeight = state.ghost.offsetHeight;
+     const left = Math.max(
+       8,
+       Math.min(
+         event.clientX - state.offsetX,
+         window.innerWidth - ghostWidth - 8
+       )
+     );
+     const top = Math.max(
+       8,
+       Math.min(
+         event.clientY - state.offsetY,
+         window.innerHeight - ghostHeight - 8
+       )
+     );
+
+     state.ghost.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+     setSavedSessionTabDropTarget(
+       state,
+       getSavedSessionTabDropTarget(state, event.clientX, event.clientY)
+     );
+   }
+
+   function cleanupSavedSessionTabPointerDrag(event, state) {
+     clearSavedSessionTabDropTarget(state);
+     state.sourceElement?.classList.remove(
+       "is-saved-session-tab-drag-source"
+     );
+     state.ghost?.remove();
+     document.body.classList.remove("is-moving-saved-session-tab");
+     document
+       .querySelectorAll(".is-saved-session-tab-drop-zone")
+       .forEach((element) =>
+         element.classList.remove("is-saved-session-tab-drop-zone")
+       );
+
+     if (state.handle?.releasePointerCapture) {
+       try {
+         state.handle.releasePointerCapture(event.pointerId);
+       } catch {}
+     }
+   }
+
+   function focusSavedSessionTransferOrigin(sessionId, url = "") {
+     requestAnimationFrame(() => {
+       const sessionSelector = CSS.escape(sessionId);
+       const urlSelector = url ? CSS.escape(url) : "";
+       const row = url
+         ? document.querySelector(
+             `.saved-session-inline-tab[data-session-id="${sessionSelector}"][data-tab-url="${urlSelector}"]`
+           )
+         : null;
+       const target =
+         row?.querySelector(".saved-session-tab-drag") ||
+         document.querySelector(
+           `.saved-session-expand[data-session-id="${sessionSelector}"]:not(:disabled)`
+         ) ||
+         document.querySelector(
+           `.saved-session-open[data-session-id="${sessionSelector}"]`
+         );
+
+       target?.focus({ preventScroll: true });
+     });
+   }
+
+   async function runSavedSessionTabTransfer(
+     state,
+     target,
+     { removeFromAll = false } = {}
+   ) {
+     deferCollectionStorageRefreshUntil = Date.now() + 450;
+     const runtimeTarget = target.kind === "session"
+       ? {
+           kind: "session",
+           sessionId: target.sessionId
+         }
+       : {
+           kind: "unassigned",
+           removeFromAll,
+           windowId: await getCollectionTargetWindowId()
+         };
+     const response = await sendCollectionRuntimeMessage({
+       type: "tabOut:transferSessionTab",
+       sourceSessionId: state.sourceSessionId,
+       url: state.url,
+       target: runtimeTarget
+     });
+
+     if (!response.ok) {
+       showToast(
+         t(
+           response.code === "tab_creation_failed"
+             ? "sessionTabBackgroundOpenFailed"
+             : "sessionTabMoveFailed"
+         )
+       );
+       await refreshDashboardCollections();
+       focusSavedSessionTransferOrigin(state.sourceSessionId, state.url);
+       return;
+     }
+
+     if (response.code === "confirmation_required") {
+       showToast(
+         t("unassignSharedTabConfirm", {
+           count: response.assignedSessionCount
+         }),
+         {
+           actionLabel: t("unassignFromAll"),
+           cancelLabel: t("cancel"),
+           duration: 0,
+           onAction: async () => {
+             await runSavedSessionTabTransfer(state, target, {
+               removeFromAll: true
+             });
+           },
+           onCancel: () => {
+             focusSavedSessionTransferOrigin(
+               state.sourceSessionId,
+               state.url
+             );
+           }
+         }
+       );
+       requestAnimationFrame(() => {
+         document.getElementById("toastAction")?.focus();
+       });
+       return;
+     }
+
+     if (
+       target.kind === "session" &&
+       isDashboardBehaviorEnabled("expandSessionTabs")
+     ) {
+       expandedSessionIds.add(target.sessionId);
+     }
+
+     await refreshDashboardCollections();
+
+     if (response.code === "already_moved") {
+       showToast(t("sessionTabAlreadyMoved"));
+     } else if (response.code === "already_in_target") {
+       showToast(t("sessionTabRemovedFromSource"));
+     } else if (response.code === "unassigned") {
+       showToast(t("sessionTabMovedToUnassigned"));
+     } else {
+       showToast(t("sessionTabMoved", {
+         name: target.sessionName || ""
+       }));
+     }
+
+     focusSavedSessionTransferOrigin(
+       target.kind === "session" ? target.sessionId : state.sourceSessionId,
+       target.kind === "session" ? state.url : ""
+     );
+   }
+
+   async function finishSavedSessionTabPointerDrag(
+     event,
+     { cancelled = false } = {}
+   ) {
+     const state = savedSessionTabDragState;
+
+     if (!state || state.pointerId !== event.pointerId) {
+       return;
+     }
+
+     savedSessionTabDragState = null;
+     const target = state.target;
+     const wasDragging = state.dragging;
+     cleanupSavedSessionTabPointerDrag(event, state);
+
+     if (!wasDragging || cancelled || !target) {
+       return;
+     }
+
+     await runSavedSessionTabTransfer(state, target);
+   }
+
    function focusPendingSessionNameInput() {
      const state = provisionalSessionState || inlineSessionRenameState;
 
@@ -4198,8 +5134,11 @@ async function renderDashboard() {
 
      const ghost = card.cloneNode(true);
      ghost.classList.add('saved-session-drag-ghost');
+     ghost.classList.remove('is-expanded');
+     ghost.querySelector('.saved-session-inline-tabs')?.remove();
+     ghost.querySelector('.saved-session-expand')?.remove();
      ghost.style.width = `${rect.width}px`;
-     ghost.style.height = `${rect.height}px`;
+     ghost.style.height = `${card.querySelector('.saved-session-summary')?.offsetHeight || rect.height}px`;
      ghost.style.left = "0px";
      ghost.style.top = "0px";
 
@@ -4371,9 +5310,16 @@ async function renderDashboard() {
        };
      }
 
+     const liveSignature = getGroupSignature(liveGroup);
+     const savedSignature = getGroupSignature({
+       title: session.groupTemplate?.title || session.name || "",
+       color: session.groupTemplate?.color || "grey",
+       tabs: session.tabs || []
+     });
+
      if (
-       getGroupSignature(liveGroup) !==
-       session.groupLink.lastReviewedSignature
+       liveSignature !== session.groupLink.lastReviewedSignature ||
+       liveSignature !== savedSignature
      ) {
        return {
          key: "changed",
@@ -4411,14 +5357,110 @@ async function renderDashboard() {
      }
    }
 
-   function renderUnifiedSessionCard(session, liveGroups) {
+   function getOpenTabForSessionDescriptor(descriptor, browserTabs = []) {
+     const normalizedUrl = normalizeOpenTabUrl(descriptor?.url);
+
+     return browserTabs.find(
+       (tab) =>
+         normalizeOpenTabUrl(tab.pendingUrl || tab.url) === normalizedUrl
+     ) || null;
+   }
+
+   function createSavedSessionInlineTabs(session, browserTabs = []) {
+     const panel = document.createElement("div");
+     const panelId = `saved-session-tabs-${session.id}`;
+     const expanded = expandedSessionIds.has(session.id);
+
+     panel.id = panelId;
+     panel.className = "saved-session-inline-tabs";
+     panel.dataset.sessionId = session.id;
+     panel.setAttribute("role", "list");
+     panel.setAttribute("aria-label", t("sessionTabsList", {
+       name: session.name
+     }));
+     panel.hidden = !expanded;
+
+     (session.tabs || []).forEach((tab) => {
+       const existingTab = getOpenTabForSessionDescriptor(tab, browserTabs);
+       const row = document.createElement("div");
+       row.className = "saved-session-inline-tab";
+       row.dataset.sessionId = session.id;
+       row.dataset.tabUrl = tab.url;
+       row.setAttribute("role", "listitem");
+
+       if (existingTab) {
+         row.classList.add("is-open");
+       }
+
+       if (isDashboardBehaviorEnabled("dragSessionTabs")) {
+         row.classList.add("has-drag-handle");
+         const dragHandle = document.createElement("button");
+         dragHandle.type = "button";
+         dragHandle.className = "saved-session-tab-drag";
+         dragHandle.dataset.sessionTabDragHandle = "true";
+         dragHandle.dataset.sessionId = session.id;
+         dragHandle.dataset.sessionName = session.name;
+         dragHandle.dataset.tabUrl = tab.url;
+         dragHandle.title = t("moveSavedTab", {
+           title: tab.title || tab.url
+         });
+         dragHandle.setAttribute("aria-label", dragHandle.title);
+         dragHandle.innerHTML = "<span></span><span></span><span></span>";
+         row.appendChild(dragHandle);
+       }
+
+       const openButton = document.createElement("button");
+       openButton.type = "button";
+       openButton.className = "saved-session-inline-tab-open";
+       openButton.dataset.action = "open-session-inline-tab";
+       openButton.dataset.tabUrl = tab.url;
+       openButton.dataset.sessionId = session.id;
+       openButton.title = existingTab
+         ? t("collectionDetailSwitchToTab")
+         : t("collectionDetailOpenAndSwitch");
+
+       const favicon = document.createElement("img");
+       favicon.alt = "";
+       favicon.src = tab.favIconUrl || getTabFavicon(tab.url, 16);
+       favicon.addEventListener("error", () => {
+         favicon.hidden = true;
+       }, { once: true });
+
+       const information = document.createElement("span");
+       information.className = "saved-session-inline-tab-info";
+       const title = document.createElement("span");
+       title.className = "saved-session-inline-tab-title";
+       title.textContent = tab.title || tab.url;
+       const domain = document.createElement("span");
+       domain.className = "saved-session-inline-tab-domain";
+       domain.textContent = getTabDomain(tab.url) || tab.url;
+       information.append(title, domain);
+
+       if (existingTab) {
+         const badge = document.createElement("span");
+         badge.className = "saved-session-inline-tab-badge";
+         badge.textContent = t("collectionDetailAlreadyOpen");
+         information.appendChild(badge);
+       }
+
+       openButton.append(favicon, information);
+       row.appendChild(openButton);
+       panel.appendChild(row);
+     });
+
+     return panel;
+   }
+
+   function renderUnifiedSessionCard(session, liveGroups, browserTabs = []) {
      const liveGroup = findLiveGroupForSession(session, liveGroups);
      const status = getSessionGroupStatus(session, liveGroup);
      const menuKey = `session-${session.id}`;
      const card = document.createElement("div");
+     const expanded = expandedSessionIds.has(session.id);
 
      card.className = [
        "saved-session-card",
+       expanded ? "is-expanded" : "",
        session.groupTemplate ? "has-group-template" : "",
        session.groupLink ? "has-group-link" : "",
        status?.className || ""
@@ -4427,6 +5469,9 @@ async function renderDashboard() {
      card.dataset.sessionName = session.name;
      card.dataset.sessionDraggable = "true";
      card.draggable = false;
+
+     const summary = document.createElement("div");
+     summary.className = "saved-session-summary";
 
      const openButton = document.createElement("button");
      openButton.type = "button";
@@ -4537,7 +5582,7 @@ async function renderDashboard() {
        "danger"
      ));
 
-     card.appendChild(openButton);
+     summary.appendChild(openButton);
      const renameState = inlineSessionRenameState?.sessionId === session.id
        ? inlineSessionRenameState
        : null;
@@ -4555,12 +5600,44 @@ async function renderDashboard() {
        input.dataset.sessionNameMode = "rename";
        input.dataset.sessionId = session.id;
        input.setAttribute("aria-label", t("renameSession"));
-       card.appendChild(input);
+       summary.appendChild(input);
      }
 
-     card.appendChild(renameButton);
-     card.appendChild(menuButton);
-     card.appendChild(menu);
+     summary.appendChild(renameButton);
+     summary.appendChild(menuButton);
+     summary.appendChild(menu);
+
+     if (isDashboardBehaviorEnabled("expandSessionTabs")) {
+       const expandButton = document.createElement("button");
+       const panelId = `saved-session-tabs-${session.id}`;
+
+       expandButton.type = "button";
+       expandButton.className = "saved-session-expand";
+       expandButton.dataset.action = "toggle-session-inline-tabs";
+       expandButton.dataset.sessionId = session.id;
+       expandButton.disabled = session.tabs.length === 0;
+       expandButton.setAttribute("aria-expanded", String(expanded));
+       expandButton.setAttribute("aria-controls", panelId);
+       expandButton.title = t(
+         expanded ? "hideSessionTabs" : "showSessionTabs"
+       );
+       expandButton.setAttribute("aria-label", expandButton.title);
+       expandButton.innerHTML = `
+         <svg viewBox="0 0 20 20" aria-hidden="true">
+           <path d="m5.5 7.5 4.5 4.5 4.5-4.5"></path>
+         </svg>
+       `;
+       summary.appendChild(expandButton);
+     }
+
+     card.appendChild(summary);
+
+     if (
+       isDashboardBehaviorEnabled("expandSessionTabs") &&
+       session.tabs.length > 0
+     ) {
+       card.appendChild(createSavedSessionInlineTabs(session, browserTabs));
+     }
 
      return card;
    }
@@ -4573,7 +5650,10 @@ async function renderDashboard() {
        return;
      }
 
-     if (openTabAssignmentDragState?.dragging) {
+     if (
+       openTabAssignmentDragState?.dragging ||
+       savedSessionTabDragState?.dragging
+     ) {
        return;
      }
 
@@ -4587,10 +5667,18 @@ async function renderDashboard() {
      section.hidden = false;
      savedSessionsViewMode = "sessions";
 
-     const [sessions, liveGroups] = await Promise.all([
+     const [sessions, liveGroups, browserTabs] = await Promise.all([
        getSavedSessions(),
-       getCurrentChromeGroups()
+       getCurrentChromeGroups(),
+       queryTabsWithMetadata({})
      ]);
+
+     const sessionIds = new Set(sessions.map((session) => session.id));
+     expandedSessionIds.forEach((sessionId) => {
+       if (!sessionIds.has(sessionId)) {
+         expandedSessionIds.delete(sessionId);
+       }
+     });
 
      list.innerHTML = "";
 
@@ -4604,7 +5692,9 @@ async function renderDashboard() {
      }
 
      sessions.forEach((session) => {
-       list.appendChild(renderUnifiedSessionCard(session, liveGroups));
+       list.appendChild(
+         renderUnifiedSessionCard(session, liveGroups, browserTabs)
+       );
      });
 
      const provisionalCard = renderProvisionalSessionCard();
@@ -5925,7 +7015,10 @@ function scheduleDashboardRefresh() {
   clearTimeout(tabRefreshTimer);
 
   tabRefreshTimer = setTimeout(async () => {
-    if (openTabAssignmentDragState?.dragging) {
+    if (
+      openTabAssignmentDragState?.dragging ||
+      savedSessionTabDragState?.dragging
+    ) {
       scheduleDashboardRefresh();
       return;
     }
@@ -5954,7 +7047,10 @@ function scheduleSavedSessionsRefresh() {
       return;
     }
 
-    if (openTabAssignmentDragState?.dragging) {
+    if (
+      openTabAssignmentDragState?.dragging ||
+      savedSessionTabDragState?.dragging
+    ) {
       scheduleSavedSessionsRefresh();
       return;
     }
@@ -6012,6 +7108,48 @@ if (chrome?.tabs?.onDetached) {
    ---------------------------------------------------------------- */
 
 document.addEventListener("pointerdown", (e) => {
+  const sessionTabDragHandle = e.target.closest?.(
+    '[data-session-tab-drag-handle="true"]'
+  );
+
+  if (
+    sessionTabDragHandle &&
+    isDashboardBehaviorEnabled("dragSessionTabs") &&
+    e.button === 0 &&
+    e.isPrimary !== false &&
+    !openTabAssignmentDragState &&
+    !savedSessionDragState &&
+    !provisionalSessionState &&
+    !inlineSessionRenameState
+  ) {
+    const sourceElement = sessionTabDragHandle.closest(
+      ".saved-session-inline-tab"
+    );
+
+    if (sourceElement) {
+      savedSessionTabDragState = {
+        handle: sessionTabDragHandle,
+        sourceElement,
+        sourceSessionId: sourceElement.dataset.sessionId,
+        sourceSessionName:
+          sessionTabDragHandle.dataset.sessionName || "",
+        url: sourceElement.dataset.tabUrl,
+        title:
+          sourceElement.querySelector(".saved-session-inline-tab-title")
+            ?.textContent || sourceElement.dataset.tabUrl,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        offsetX: 0,
+        offsetY: 0,
+        dragging: false,
+        ghost: null,
+        target: null
+      };
+      return;
+    }
+  }
+
   const openTabSource = e.target.closest?.(
     '[data-open-tab-draggable="true"]'
   );
@@ -6050,6 +7188,7 @@ document.addEventListener("pointerdown", (e) => {
     !card ||
     !isDashboardBehaviorEnabled("reorderSessions") ||
     openTabAssignmentDragState ||
+    savedSessionTabDragState ||
     provisionalSessionState ||
     inlineSessionRenameState ||
     savedSessionsViewMode !== "sessions"
@@ -6063,6 +7202,8 @@ document.addEventListener("pointerdown", (e) => {
     e.target.closest('.saved-session-rename') ||
     e.target.closest('.saved-session-title') ||
     e.target.closest('.session-inline-name-input') ||
+    e.target.closest('.saved-session-expand') ||
+    e.target.closest('.saved-session-inline-tabs') ||
     e.target.closest('.protected-group-menu')
   ) {
     return;
@@ -6095,6 +7236,30 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointermove", (e) => {
+  const savedTabState = savedSessionTabDragState;
+
+  if (savedTabState?.pointerId === e.pointerId) {
+    const distanceX = Math.abs(e.clientX - savedTabState.startX);
+    const distanceY = Math.abs(e.clientY - savedTabState.startY);
+
+    if (!savedTabState.dragging) {
+      if (
+        Math.max(distanceX, distanceY) <
+        SAVED_SESSION_TAB_DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      startSavedSessionTabPointerDrag(e, savedTabState);
+      return;
+    }
+
+    e.preventDefault();
+    updateSavedSessionTabPointerDrag(e);
+    return;
+  }
+
   const openTabState = openTabAssignmentDragState;
 
   if (openTabState?.pointerId === e.pointerId) {
@@ -6140,6 +7305,11 @@ document.addEventListener("pointermove", (e) => {
 });
 
 document.addEventListener("pointerup", async (e) => {
+  if (savedSessionTabDragState?.pointerId === e.pointerId) {
+    await finishSavedSessionTabPointerDrag(e);
+    return;
+  }
+
   if (openTabAssignmentDragState?.pointerId === e.pointerId) {
     await finishOpenTabPointerDrag(e);
     return;
@@ -6153,6 +7323,11 @@ document.addEventListener("pointerup", async (e) => {
 });
 
 document.addEventListener("pointercancel", async (e) => {
+  if (savedSessionTabDragState?.pointerId === e.pointerId) {
+    await finishSavedSessionTabPointerDrag(e, { cancelled: true });
+    return;
+  }
+
   if (openTabAssignmentDragState?.pointerId === e.pointerId) {
     await finishOpenTabPointerDrag(e, { cancelled: true });
     return;
@@ -6191,7 +7366,10 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("dragstart", (e) => {
-  if (e.target.closest?.('[data-open-tab-draggable="true"]')) {
+  if (
+    e.target.closest?.('[data-open-tab-draggable="true"]') ||
+    e.target.closest?.('[data-session-tab-drag-handle="true"]')
+  ) {
     e.preventDefault();
   }
 });
@@ -6713,6 +7891,20 @@ document.addEventListener('click', async (e) => {
       if (confirm(t("deleteSessionConfirm"))) {
         await deleteSavedSessionDirect(actionEl.dataset.sessionId);
       }
+      return;
+    }
+
+    if (action === "toggle-session-inline-tabs") {
+      e.preventDefault();
+      e.stopPropagation();
+      await toggleSessionInlineTabs(actionEl.dataset.sessionId);
+      return;
+    }
+
+    if (action === "open-session-inline-tab") {
+      e.preventDefault();
+      e.stopPropagation();
+      await openSessionInlineTab(actionEl.dataset.tabUrl);
       return;
     }
 
@@ -9158,7 +10350,10 @@ function scheduleProtectedGroupsRefresh() {
   clearTimeout(protectedGroupsRefreshTimer);
 
   protectedGroupsRefreshTimer = setTimeout(async () => {
-    if (openTabAssignmentDragState?.dragging) {
+    if (
+      openTabAssignmentDragState?.dragging ||
+      savedSessionTabDragState?.dragging
+    ) {
       scheduleProtectedGroupsRefresh();
       return;
     }

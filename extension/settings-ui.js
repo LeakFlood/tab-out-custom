@@ -15,6 +15,7 @@
     sessions: "moduleSessions",
     unassigned: "moduleUnassigned",
     savedLater: "moduleSavedLater",
+    gmail: "moduleGmail",
     stats: "moduleStats"
   };
 
@@ -28,6 +29,7 @@
     sessions: "savedSessionsSection",
     unassigned: "openTabsSection",
     savedLater: "deferredColumn",
+    gmail: "gmailWidget",
     stats: "footerStats"
   };
 
@@ -72,16 +74,16 @@
         ["list", "styleList"]
       ]
     },
-    unassigned: {
-      options: [
-        ["domainGrid", "styleDomainGrid"],
-        ["compactList", "styleCompactList"]
-      ]
-    },
     savedLater: {
       options: [
         ["panel", "stylePanel"],
         ["list", "styleList"]
+      ]
+    },
+    gmail: {
+      options: [
+        ["comfortable", "densityComfortable"],
+        ["compact", "styleCompact"]
       ]
     }
   };
@@ -109,6 +111,18 @@
   let layoutDragState = null;
   let layoutResizeState = null;
   let popupCommandShortcut = "";
+  let gmailOAuthSettings = {
+    shared: {
+      configured: false,
+      clientId: ""
+    },
+    accounts: []
+  };
+  let gmailOAuthBusy = false;
+  let gmailSharedClientDirty = false;
+  let gmailEditingAccountId = "";
+  const gmailAccountClientDrafts = new Map();
+  let gmailHelpReturnFocus = null;
   let readyResolve;
 
   const settingsReady = new Promise((resolve) => {
@@ -424,10 +438,56 @@
     }
   }
 
+  function applyContainerFrame(containerPadding) {
+    const viewportWidth = Math.max(
+      0,
+      window.innerWidth ||
+        document.documentElement.clientWidth ||
+        1300
+    );
+    const cappedWidth = Math.min(1300, viewportWidth);
+    const progress = Math.min(
+      1,
+      Math.max(
+        0,
+        containerPadding / settingsApi.DEFAULT_CONTAINER_PADDING
+      )
+    );
+    const easedProgress =
+      progress * progress * (3 - 2 * progress);
+    const interpolatedWidth =
+      viewportWidth -
+      (viewportWidth - cappedWidth) * easedProgress;
+
+    document.documentElement.style.setProperty(
+      "--dashboard-container-max-width",
+      `${interpolatedWidth.toFixed(2)}px`
+    );
+    document.documentElement.style.setProperty(
+      "--dashboard-container-padding-desktop",
+      `${containerPadding}px`
+    );
+    document.documentElement.style.setProperty(
+      "--dashboard-container-padding-tablet",
+      `${Math.round(containerPadding * 0.5)}px`
+    );
+    document.documentElement.style.setProperty(
+      "--dashboard-container-padding-mobile",
+      `${Math.round(containerPadding * 0.3125)}px`
+    );
+  }
+
   function applyDashboardSettings(value, { syncWeather = true } = {}) {
     const settings = settingsApi.normalizeSettings(value);
     const layoutMode = settings.layout.mode;
     const languagePlacement = settings.layout.placements.language;
+    const unassignedView = settings.views.unassigned;
+    const previousVisibleTabCount =
+      document.documentElement.dataset.unassignedVisibleTabCount;
+    const previousSessionInlineTabs =
+      document.documentElement.dataset.sessionInlineTabsEnabled;
+    const previousSessionTabDrag =
+      document.documentElement.dataset.sessionTabDragEnabled;
     const compactDensity =
       settings.views.shortcuts === "compact" &&
       settings.views.sessions === "list";
@@ -445,8 +505,15 @@
     document.documentElement.dataset.statsVisible = String(
       settings.layout.visibility.stats !== false
     );
+    applyContainerFrame(settings.layout.containerPadding);
     document.documentElement.dataset.unassignedTabDragEnabled = String(
       settings.behavior.dragUnassignedTabs !== false
+    );
+    document.documentElement.dataset.sessionInlineTabsEnabled = String(
+      settings.behavior.expandSessionTabs !== false
+    );
+    document.documentElement.dataset.sessionTabDragEnabled = String(
+      settings.behavior.dragSessionTabs !== false
     );
     document.documentElement.dataset.sessionReorderEnabled = String(
       settings.behavior.reorderSessions !== false
@@ -468,8 +535,37 @@
 
     document.documentElement.dataset.shortcutsView = settings.views.shortcuts;
     document.documentElement.dataset.sessionsView = settings.views.sessions;
-    document.documentElement.dataset.unassignedView = settings.views.unassigned;
+    document.documentElement.dataset.unassignedDensity =
+      unassignedView.density;
+    document.documentElement.dataset.unassignedColumns =
+      unassignedView.columns;
+    document.documentElement.dataset.unassignedVisibleTabCount =
+      String(unassignedView.visibleTabCount);
+    document.documentElement.style.setProperty(
+      "--unassigned-min-column-width",
+      `${unassignedView.minColumnWidth}px`
+    );
     document.documentElement.dataset.savedLaterView = settings.views.savedLater;
+    document.documentElement.dataset.gmailView = settings.views.gmail;
+
+    if (
+      previousVisibleTabCount &&
+      previousVisibleTabCount !== String(unassignedView.visibleTabCount) &&
+      typeof renderFilteredOpenTabs === "function"
+    ) {
+      renderFilteredOpenTabs();
+    }
+
+    if (
+      previousSessionInlineTabs !==
+        String(settings.behavior.expandSessionTabs !== false) ||
+      previousSessionTabDrag !==
+        String(settings.behavior.dragSessionTabs !== false)
+    ) {
+      if (typeof renderSavedSessions === "function") {
+        renderSavedSessions();
+      }
+    }
 
     if (
       typeof updateTimeDisplay === "function" &&
@@ -626,6 +722,103 @@
     return select;
   }
 
+  function createUnassignedSelect(setting, value, options, labelKey) {
+    const select = document.createElement("select");
+    select.dataset.settingsUnassignedView = setting;
+    select.setAttribute("aria-label", t(labelKey));
+
+    options.forEach(([optionValue, optionLabelKey]) => {
+      const option = document.createElement("option");
+      option.value = String(optionValue);
+      option.textContent = t(optionLabelKey);
+      option.selected = value === optionValue;
+      select.appendChild(option);
+    });
+
+    return select;
+  }
+
+  function createUnassignedOptionRow(labelKey, control) {
+    const row = document.createElement("label");
+    row.className = "settings-unassigned-option";
+    const label = document.createElement("span");
+    label.textContent = t(labelKey);
+    row.append(label, control);
+    return row;
+  }
+
+  function createUnassignedViewOptions() {
+    const view = settingsDraft.views.unassigned;
+    const panel = document.createElement("div");
+    panel.className = "settings-unassigned-options";
+    const heading = document.createElement("strong");
+    heading.textContent = t("unassignedDisplayOptions");
+
+    const options = document.createElement("div");
+    options.className = "settings-unassigned-options-grid";
+    options.append(
+      createUnassignedOptionRow(
+        "unassignedDensity",
+        createUnassignedSelect(
+          "density",
+          view.density,
+          [
+            ["comfortable", "densityComfortable"],
+            ["compact", "densityCompact"]
+          ],
+          "unassignedDensity"
+        )
+      ),
+      createUnassignedOptionRow(
+        "unassignedColumns",
+        createUnassignedSelect(
+          "columns",
+          view.columns,
+          [
+            ["responsive", "columnsResponsive"],
+            ["single", "columnsSingle"]
+          ],
+          "unassignedColumns"
+        )
+      )
+    );
+
+    const widthInput = document.createElement("input");
+    widthInput.type = "range";
+    widthInput.min = "220";
+    widthInput.max = "420";
+    widthInput.step = "10";
+    widthInput.value = String(view.minColumnWidth);
+    widthInput.disabled = view.columns === "single";
+    widthInput.dataset.settingsUnassignedView = "minColumnWidth";
+    widthInput.setAttribute("aria-label", t("unassignedMinColumnWidth"));
+
+    const widthControl = document.createElement("span");
+    widthControl.className = "settings-unassigned-range";
+    const widthOutput = document.createElement("output");
+    widthOutput.textContent = `${view.minColumnWidth} px`;
+    widthControl.append(widthInput, widthOutput);
+    options.append(
+      createUnassignedOptionRow("unassignedMinColumnWidth", widthControl),
+      createUnassignedOptionRow(
+        "unassignedVisibleTabs",
+        createUnassignedSelect(
+          "visibleTabCount",
+          view.visibleTabCount,
+          [
+            [2, "visibleTabsTwo"],
+            [4, "visibleTabsFour"],
+            ["all", "visibleTabsAll"]
+          ],
+          "unassignedVisibleTabs"
+        )
+      )
+    );
+
+    panel.append(heading, options);
+    return panel;
+  }
+
   function createVisibilitySwitch(moduleId) {
     const label = document.createElement("label");
     label.className = "settings-switch";
@@ -755,6 +948,11 @@
     }
 
     card.append(dragHandle, main, controls);
+
+    if (moduleId === "unassigned") {
+      card.appendChild(createUnassignedViewOptions());
+    }
+
     return card;
   }
 
@@ -786,6 +984,30 @@
       empty.textContent = t("settingsNothingHidden");
       hiddenContainer.appendChild(empty);
     }
+  }
+
+  function renderLayoutFrameSettings() {
+    if (!settingsDraft) {
+      return;
+    }
+
+    const paddingInput = document.getElementById(
+      "settingsContainerPadding"
+    );
+    const paddingOutput = document.getElementById(
+      "settingsContainerPaddingOutput"
+    );
+    if (paddingInput) {
+      paddingInput.min = String(settingsApi.MIN_CONTAINER_PADDING);
+      paddingInput.max = String(settingsApi.MAX_CONTAINER_PADDING);
+      paddingInput.value = String(settingsDraft.layout.containerPadding);
+    }
+
+    if (paddingOutput) {
+      paddingOutput.textContent =
+        `${settingsDraft.layout.containerPadding} px`;
+    }
+
   }
 
   function renderPresetList() {
@@ -1105,15 +1327,518 @@
     container.appendChild(popupRow);
   }
 
+  function getDraftGmailAccountPreferences(account) {
+    const gmailSettings = settingsDraft.integrations.gmail;
+    return gmailSettings.accountPreferences[account.accountId] ||
+      account.preferences ||
+      gmailSettings.accountDefaults ||
+      settingsApi.DEFAULT_GMAIL_ACCOUNT_PREFERENCES;
+  }
+
+  function createGmailCheckbox(accountId, field, labelKey, checked) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    const text = document.createElement("span");
+    input.type = "checkbox";
+    input.checked = Boolean(checked);
+    input.dataset.settingsGmailAccount = accountId;
+    input.dataset.settingsGmailField = field;
+    text.textContent = t(labelKey);
+    label.append(input, text);
+    return label;
+  }
+
+  function createGmailSelectField(
+    accountId,
+    field,
+    labelKey,
+    value,
+    options
+  ) {
+    const label = document.createElement("label");
+    const text = document.createElement("span");
+    const select = document.createElement("select");
+    label.className = "settings-select-field";
+    text.textContent = t(labelKey);
+    select.dataset.settingsGmailAccount = accountId;
+    select.dataset.settingsGmailField = field;
+    options.forEach(([optionValue, optionKey]) => {
+      const option = document.createElement("option");
+      option.value = String(optionValue);
+      option.textContent = t(optionKey);
+      select.appendChild(option);
+    });
+    select.value = String(value);
+    label.append(text, select);
+    return label;
+  }
+
+  function getGmailOAuthAccountSummary(accountId) {
+    return gmailOAuthSettings.accounts.find(
+      (account) => account.accountId === accountId
+    ) || null;
+  }
+
+  function isValidGmailOAuthClient(clientId, clientSecret) {
+    return (
+      /^[a-zA-Z0-9._-]+\.apps\.googleusercontent\.com$/.test(
+        String(clientId || "").trim()
+      ) &&
+      String(clientSecret || "").trim().length > 0
+    );
+  }
+
+  function setGmailClientFeedback(message = "", status = "") {
+    const feedback = document.getElementById(
+      "settingsGmailClientFeedback"
+    );
+
+    if (!feedback) {
+      return;
+    }
+
+    feedback.textContent = message;
+    feedback.dataset.status = status;
+  }
+
+  async function refreshGmailOAuthSettings({ render = true } = {}) {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+
+    if (!gmailRuntime?.getOAuthSettings) {
+      return gmailOAuthSettings;
+    }
+
+    const result = await gmailRuntime.getOAuthSettings();
+
+    if (result?.ok) {
+      gmailOAuthSettings = {
+        shared: {
+          configured: result.shared?.configured === true,
+          clientId: String(result.shared?.clientId || "")
+        },
+        accounts: Array.isArray(result.accounts)
+          ? result.accounts
+          : []
+      };
+    }
+
+    if (render && isDrawerOpen()) {
+      renderGmailSettings();
+    }
+
+    return gmailOAuthSettings;
+  }
+
+  function createGmailAccountClientEditor(account) {
+    const summary = getGmailOAuthAccountSummary(account.accountId);
+    const draft = gmailAccountClientDrafts.get(account.accountId);
+    const form = document.createElement("form");
+    const heading = document.createElement("strong");
+    const idLabel = document.createElement("label");
+    const idText = document.createElement("span");
+    const idInput = document.createElement("input");
+    const secretLabel = document.createElement("label");
+    const secretText = document.createElement("span");
+    const secretInput = document.createElement("input");
+    const hint = document.createElement("small");
+    const actions = document.createElement("div");
+    const submit = document.createElement("button");
+    const cancel = document.createElement("button");
+
+    form.className = "settings-gmail-account-client-editor";
+    form.dataset.gmailAccountClientForm = account.accountId;
+    form.noValidate = true;
+    heading.textContent = t("gmailDedicatedClientTitle");
+    idLabel.className = "settings-field";
+    idText.textContent = t("gmailClientIdLabel");
+    idInput.type = "text";
+    idInput.autocomplete = "off";
+    idInput.spellcheck = false;
+    idInput.value = draft
+      ? draft.clientId
+      : summary?.credentialSource === "dedicated"
+        ? summary.clientId
+        : "";
+    secretLabel.className = "settings-field";
+    secretText.textContent = t("gmailClientSecretLabel");
+    secretInput.type = "password";
+    secretInput.autocomplete = "new-password";
+    secretInput.value = draft?.clientSecret || "";
+    hint.textContent =
+      summary?.credentialSource === "dedicated"
+        ? t("gmailDedicatedSecretKeepHint")
+        : t("gmailClientSecretRequiredHint");
+    actions.className = "settings-gmail-client-actions";
+    submit.type = "submit";
+    submit.className = "settings-primary-btn";
+    submit.textContent = t("gmailReplaceAndReconnect");
+    cancel.type = "button";
+    cancel.className = "settings-secondary-btn";
+    cancel.dataset.action = "cancel-account-gmail-client";
+    cancel.textContent = t("cancel");
+    idLabel.append(idText, idInput);
+    secretLabel.append(secretText, secretInput, hint);
+    actions.append(submit, cancel);
+    form.append(heading, idLabel, secretLabel, actions);
+    return form;
+  }
+
+  function createGmailAccountSettings(account, busy) {
+    const preferences = getDraftGmailAccountPreferences(account);
+    const card = document.createElement("article");
+    card.className = "settings-gmail-account-card";
+    card.dataset.gmailAccountId = account.accountId;
+
+    const header = document.createElement("header");
+    const identity = document.createElement("div");
+    const email = document.createElement("strong");
+    const status = document.createElement("span");
+    const identityMeta = document.createElement("div");
+    const sourceBadge = document.createElement("span");
+    const actions = document.createElement("div");
+    email.textContent = account.email;
+    status.textContent = account.reconnectRequired
+      ? t("gmailStatusReconnectRequired")
+      : t("gmailUnreadCount", { count: account.unreadCount || 0 });
+    status.className =
+      account.reconnectRequired
+        ? "is-warning"
+        : "";
+    identityMeta.className = "settings-gmail-account-meta";
+    sourceBadge.className = "settings-gmail-source-badge";
+    sourceBadge.dataset.source =
+      account.credentialSource === "dedicated"
+        ? "dedicated"
+        : "shared";
+    sourceBadge.textContent =
+      account.credentialSource === "dedicated"
+        ? t("gmailDedicatedClientBadge")
+        : t("gmailSharedClientBadge");
+    identityMeta.append(status, sourceBadge);
+    identity.append(email, identityMeta);
+
+    if (account.reconnectRequired) {
+      const reconnect = document.createElement("button");
+      reconnect.type = "button";
+      reconnect.className = "settings-secondary-btn";
+      reconnect.dataset.action = "reconnect-gmail";
+      reconnect.dataset.gmailAccountId = account.accountId;
+      reconnect.textContent = t("gmailReconnect");
+      reconnect.disabled = busy;
+      actions.appendChild(reconnect);
+    }
+
+    const editClient = document.createElement("button");
+    editClient.type = "button";
+    editClient.className = "settings-secondary-btn";
+    editClient.dataset.action = "edit-account-gmail-client";
+    editClient.dataset.gmailAccountId = account.accountId;
+    editClient.textContent =
+      account.credentialSource === "dedicated"
+        ? t("gmailReplaceDedicatedClient")
+        : t("gmailUseDedicatedClient");
+    editClient.disabled = busy || gmailOAuthBusy;
+    actions.appendChild(editClient);
+
+    if (
+      account.credentialSource === "dedicated" &&
+      gmailOAuthSettings.shared.configured
+    ) {
+      const useShared = document.createElement("button");
+      useShared.type = "button";
+      useShared.className = "settings-secondary-btn";
+      useShared.dataset.action = "use-shared-gmail-client";
+      useShared.dataset.gmailAccountId = account.accountId;
+      useShared.textContent = t("gmailUseSharedClient");
+      useShared.disabled = busy || gmailOAuthBusy;
+      actions.appendChild(useShared);
+    }
+
+    const disconnect = document.createElement("button");
+    disconnect.type = "button";
+    disconnect.className = "settings-danger-btn";
+    disconnect.dataset.action = "disconnect-gmail";
+    disconnect.dataset.gmailAccountId = account.accountId;
+    disconnect.textContent = t("gmailDisconnect");
+    disconnect.disabled = busy;
+    actions.appendChild(disconnect);
+    header.append(identity, actions);
+
+    const filters = document.createElement("fieldset");
+    const legend = document.createElement("legend");
+    filters.className = "settings-gmail-filters";
+    legend.textContent = t("gmailFilters");
+    filters.append(
+      legend,
+      createGmailCheckbox(
+        account.accountId,
+        "filters.inbox",
+        "gmailFilterInbox",
+        preferences.filters.inbox
+      ),
+      createGmailCheckbox(
+        account.accountId,
+        "filters.unread",
+        "gmailFilterUnread",
+        preferences.filters.unread
+      ),
+      createGmailCheckbox(
+        account.accountId,
+        "filters.starred",
+        "gmailFilterStarred",
+        preferences.filters.starred
+      ),
+      createGmailCheckbox(
+        account.accountId,
+        "filters.important",
+        "gmailFilterImportant",
+        preferences.filters.important
+      )
+    );
+
+    const query = document.createElement("label");
+    const queryLabel = document.createElement("span");
+    const queryInput = document.createElement("input");
+    const queryHint = document.createElement("small");
+    query.className = "settings-field";
+    queryLabel.textContent = t("gmailAdvancedQuery");
+    queryInput.type = "text";
+    queryInput.autocomplete = "off";
+    queryInput.placeholder = t("gmailAdvancedQueryPlaceholder");
+    queryInput.value = preferences.advancedQuery;
+    queryInput.dataset.settingsGmailAccount = account.accountId;
+    queryInput.dataset.settingsGmailField = "advancedQuery";
+    queryHint.textContent = t("gmailAdvancedQueryHint");
+    query.append(queryLabel, queryInput, queryHint);
+
+    const options = document.createElement("div");
+    options.className = "settings-gmail-option-grid";
+    options.append(
+      createGmailSelectField(
+        account.accountId,
+        "maxResults",
+        "gmailResultLimit",
+        preferences.maxResults,
+        [5, 10, 15, 20, 25].map((value) => [value, String(value)])
+      ),
+      createGmailSelectField(
+        account.accountId,
+        "pollingIntervalMinutes",
+        "gmailPollingInterval",
+        preferences.pollingIntervalMinutes,
+        settingsApi.GMAIL_POLL_INTERVALS.map((value) => [
+          value,
+          `gmailPolling${value}`
+        ])
+      ),
+      createGmailSelectField(
+        account.accountId,
+        "notificationPreview",
+        "gmailNotificationPreview",
+        preferences.notificationPreview,
+        [
+          ["private", "gmailPreviewPrivate"],
+          ["senderSubject", "gmailPreviewSenderSubject"],
+          ["full", "gmailPreviewFull"]
+        ]
+      )
+    );
+
+    const toggles = document.createElement("div");
+    toggles.className = "settings-gmail-toggle-grid";
+    toggles.append(
+      createGmailCheckbox(
+        account.accountId,
+        "visible",
+        "gmailShowAccount",
+        preferences.visible
+      ),
+      createGmailCheckbox(
+        account.accountId,
+        "pollingEnabled",
+        "gmailPollingEnabled",
+        preferences.pollingEnabled
+      ),
+      createGmailCheckbox(
+        account.accountId,
+        "notificationsEnabled",
+        "gmailNotificationsEnabled",
+        preferences.notificationsEnabled
+      )
+    );
+
+    const preferencesContainer = document.createElement("div");
+    preferencesContainer.className = "settings-gmail-preferences";
+    preferencesContainer.append(filters, query, options, toggles);
+    card.append(header);
+
+    if (gmailEditingAccountId === account.accountId) {
+      card.appendChild(createGmailAccountClientEditor(account));
+    }
+
+    card.append(preferencesContainer);
+    return card;
+  }
+
+  function renderGmailSettings() {
+    if (!settingsDraft) {
+      return;
+    }
+
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+    const state = gmailRuntime?.getCachedState?.() || {
+      status: gmailRuntime ? "disconnected" : "unavailable",
+      authStatus: "unavailable",
+      accounts: []
+    };
+    const accounts = Array.isArray(state.accounts) ? state.accounts : [];
+    const status = document.getElementById("settingsGmailStatus");
+    const connectButton = document.getElementById("settingsGmailConnectBtn");
+    const accountList = document.getElementById("settingsGmailAccounts");
+    const authNotice = document.getElementById(
+      "settingsGmailAuthNotice"
+    );
+    const authTitle = document.getElementById("settingsGmailAuthTitle");
+    const authMessage = document.getElementById(
+      "settingsGmailAuthMessage"
+    );
+    const sharedClientStatus = document.getElementById(
+      "settingsGmailSharedClientStatus"
+    );
+    const sharedClientId = document.getElementById(
+      "settingsGmailSharedClientId"
+    );
+    const sharedClientSecret = document.getElementById(
+      "settingsGmailSharedClientSecret"
+    );
+    const sharedSecretHint = document.getElementById(
+      "settingsGmailSharedSecretHint"
+    );
+    const removeSharedClient = document.getElementById(
+      "settingsGmailRemoveSharedClient"
+    );
+    const badgeMode = document.getElementById("settingsGmailBadgeMode");
+    const busy =
+      state.status === "connecting" || state.status === "disconnecting";
+    const statusKeys = {
+      connected: "gmailStatusConnected",
+      connecting: "gmailStatusConnecting",
+      disconnecting: "gmailStatusDisconnecting",
+      reconnect_required: "gmailStatusReconnectRequired",
+      unavailable: "gmailStatusUnavailable",
+      error: "gmailStatusError",
+      disconnected: "gmailStatusDisconnected"
+    };
+
+    if (status) {
+      status.dataset.status = state.status || "disconnected";
+      status.textContent = accounts.length
+        ? t("gmailAccountCount", { count: accounts.length })
+        : t(statusKeys[state.status] || statusKeys.disconnected);
+    }
+
+    if (connectButton) {
+      connectButton.disabled =
+        state.status === "disconnecting" ||
+        gmailOAuthBusy ||
+        !gmailOAuthSettings.shared.configured;
+      connectButton.dataset.action =
+        state.status === "connecting"
+          ? "cancel-gmail-auth"
+          : "connect-gmail";
+      connectButton.textContent =
+        state.status === "connecting"
+          ? t("gmailCancelConnection")
+          : t("gmailAddWithShared");
+    }
+
+    if (sharedClientStatus) {
+      sharedClientStatus.dataset.status =
+        gmailOAuthSettings.shared.configured
+          ? "configured"
+          : "missing";
+      sharedClientStatus.textContent =
+        gmailOAuthSettings.shared.configured
+          ? t("gmailClientConfigured")
+          : t("gmailClientNotConfigured");
+    }
+
+    if (
+      sharedClientId &&
+      !gmailSharedClientDirty &&
+      document.activeElement !== sharedClientId
+    ) {
+      sharedClientId.value = gmailOAuthSettings.shared.clientId;
+    }
+
+    if (sharedClientSecret) {
+      sharedClientSecret.placeholder =
+        gmailOAuthSettings.shared.configured
+          ? t("gmailClientSecretSavedPlaceholder")
+          : t("gmailClientSecretPlaceholder");
+    }
+
+    if (sharedSecretHint) {
+      sharedSecretHint.textContent =
+        gmailOAuthSettings.shared.configured
+          ? t("gmailClientSecretHint")
+          : t("gmailClientSecretRequiredHint");
+    }
+
+    if (removeSharedClient) {
+      removeSharedClient.hidden =
+        !gmailOAuthSettings.shared.configured;
+      removeSharedClient.disabled = gmailOAuthBusy;
+    }
+
+    if (authNotice && authTitle && authMessage) {
+      const authReady = state.authStatus === "ready";
+      authNotice.hidden = authReady;
+      authNotice.dataset.status = state.authStatus || "unknown";
+      authTitle.textContent =
+        state.authStatus === "unavailable"
+          ? t("gmailServiceConfigurationTitle")
+          : state.authStatus === "error"
+            ? t("gmailServiceUnavailableTitle")
+            : t("gmailServiceCheckingTitle");
+      authMessage.textContent = t(
+        state.authMessageKey ||
+          (state.authStatus === "unavailable"
+            ? "gmailConfigMissing"
+            : state.authStatus === "error"
+              ? "gmailServiceUnavailable"
+              : "gmailServiceChecking")
+      );
+    }
+
+    if (accountList) {
+      accountList.replaceChildren();
+      accounts.forEach((account) => {
+        accountList.appendChild(
+          createGmailAccountSettings(
+            account,
+            busy || gmailOAuthBusy
+          )
+        );
+      });
+    }
+
+    if (badgeMode) {
+      badgeMode.value = settingsDraft.integrations.gmail.badgeMode;
+    }
+  }
+
   function renderSettingsDrawer() {
     if (!settingsDraft) {
       return;
     }
 
     renderPresetList();
+    renderLayoutFrameSettings();
     renderModulePalette();
     renderLayoutPreview();
     renderKeyboardList();
+    renderGmailSettings();
 
     const languageSelect = document.getElementById("settingsLanguageSelect");
 
@@ -1164,7 +1889,8 @@
 
     await Promise.all([
       typeof renderDashboard === "function" ? renderDashboard() : null,
-      typeof renderSavedSessions === "function" ? renderSavedSessions() : null
+      typeof renderSavedSessions === "function" ? renderSavedSessions() : null,
+      globalThis.TabOutGmailWidget?.refresh?.({ force: false })
     ]);
 
     if (isModuleVisible("weather")) {
@@ -1188,6 +1914,9 @@
     document
       .getElementById("settingsDrawer")
       ?.classList.toggle("is-layout-workspace", tabId === "layout");
+    document
+      .getElementById("settingsDrawer")
+      ?.classList.toggle("is-general-workspace", tabId === "general");
   }
 
   function getDrawerFocusableElements() {
@@ -1237,7 +1966,11 @@
     settingsDraftLanguage = persistedLanguage;
     recordingKeyboardAction = null;
     activePreviewMode = "desktop";
+    gmailSharedClientDirty = false;
+    gmailEditingAccountId = "";
+    gmailAccountClientDrafts.clear();
     renderSettingsDrawer();
+    void refreshGmailOAuthSettings();
     refreshPopupCommandShortcut({ render: true });
     setActiveSettingsTab("layout");
 
@@ -1270,6 +2003,7 @@
 
   function finishClosingSettings() {
     const overlay = document.getElementById("settingsDrawerOverlay");
+    closeGmailSetupHelp();
 
     if (overlay) {
       overlay.classList.remove("is-open");
@@ -1277,9 +2011,15 @@
     }
 
     document.body.classList.remove("settings-drawer-open");
-    document.getElementById("settingsDrawer")?.classList.remove("is-layout-workspace");
+    document
+      .getElementById("settingsDrawer")
+      ?.classList.remove(
+        "is-layout-workspace",
+        "is-general-workspace"
+      );
     settingsDraft = null;
     recordingKeyboardAction = null;
+    gmailAccountClientDrafts.clear();
     setSettingsStatus();
 
     if (
@@ -1516,6 +2256,21 @@
   }
 
   function handleDashboardKeyboard(event) {
+    const gmailHelpModal = document.getElementById(
+      "gmailSetupHelpModal"
+    );
+
+    if (gmailHelpModal && !gmailHelpModal.hidden) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeGmailSetupHelp();
+      } else if (event.key === "Tab") {
+        trapGmailHelpFocus(event);
+      }
+      return;
+    }
+
     if (recordKeyboardBinding(event)) {
       return;
     }
@@ -1551,6 +2306,10 @@
       (
         typeof savedSessionDragState !== "undefined" &&
         savedSessionDragState?.dragging
+      ) ||
+      (
+        typeof savedSessionTabDragState !== "undefined" &&
+        savedSessionTabDragState?.dragging
       )
     ) {
       return;
@@ -1855,7 +2614,476 @@
     }
   }
 
-  function handleDrawerClick(event) {
+  async function persistGmailModuleVisibility(visible) {
+    const nextPersisted = settingsApi.setModuleVisibility(
+      persistedSettings,
+      "gmail",
+      visible
+    );
+
+    savingSettings = true;
+
+    try {
+      await chrome.storage.local.set({
+        [settingsApi.STORAGE_KEY]: nextPersisted
+      });
+      persistedSettings = nextPersisted;
+
+      if (settingsDraft) {
+        settingsDraft = settingsApi.setModuleVisibility(
+          settingsDraft,
+          "gmail",
+          visible
+        );
+        applyDraftPreview();
+      } else {
+        applyDashboardSettings(persistedSettings);
+      }
+    } finally {
+      savingSettings = false;
+    }
+  }
+
+  async function connectGmailFromSettings(options = {}) {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+    const request =
+      typeof options === "string"
+        ? { replaceAccountId: options }
+        : options || {};
+
+    if (!gmailRuntime?.connect) {
+      showToast(t("gmailStatusUnavailable"));
+      return;
+    }
+
+    if (
+      request.credentialSource !== "dedicated" &&
+      !gmailOAuthSettings.shared.configured
+    ) {
+      await refreshGmailOAuthSettings({ render: false });
+
+      if (!gmailOAuthSettings.shared.configured) {
+        setGmailClientFeedback(
+          t("gmailSharedClientRequired"),
+          "error"
+        );
+        renderGmailSettings();
+        return { ok: false, code: "config_missing" };
+      }
+    }
+
+    renderGmailSettings();
+    const connectionRequest = gmailRuntime.connect(request);
+    const result = await connectionRequest;
+
+    if (result?.ok) {
+      const accountId = result.account?.accountId;
+
+      if (
+        accountId &&
+        !settingsDraft.integrations.gmail.accountPreferences[accountId]
+      ) {
+        settingsDraft.integrations.gmail.accountPreferences[accountId] =
+          clone(settingsDraft.integrations.gmail.accountDefaults);
+        settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+        updateDraftStatus();
+      }
+
+      await persistGmailModuleVisibility(true);
+      await gmailRuntime.refresh({ force: true });
+      await refreshGmailOAuthSettings({ render: false });
+      showToast(t("gmailConnected"));
+    } else if (result?.code !== "cancelled") {
+      showToast(t(result?.messageKey || "gmailConnectFailed"));
+    }
+
+    renderGmailSettings();
+    return result;
+  }
+
+  async function disconnectGmailFromSettings(accountId) {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+
+    if (!gmailRuntime?.disconnect || !accountId) {
+      return;
+    }
+
+    if (!confirm(t("gmailDisconnectConfirm"))) {
+      return;
+    }
+
+    const result = await gmailRuntime.disconnect(accountId);
+
+    if (result?.ok) {
+      gmailAccountClientDrafts.delete(accountId);
+      delete settingsDraft.integrations.gmail.accountPreferences[accountId];
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      updateDraftStatus();
+      const remainingAccounts =
+        gmailRuntime.getCachedState?.().accounts?.length || 0;
+
+      if (!remainingAccounts) {
+        await persistGmailModuleVisibility(false);
+      }
+
+      showToast(t("gmailDisconnected"));
+    } else {
+      showToast(t(result?.messageKey || "gmailDisconnectFailed"));
+    }
+
+    await refreshGmailOAuthSettings({ render: false });
+    renderGmailSettings();
+  }
+
+  async function cancelGmailAuthFromSettings() {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+
+    if (!gmailRuntime?.cancelConnect) {
+      return;
+    }
+
+    await gmailRuntime.cancelConnect();
+    renderGmailSettings();
+  }
+
+  function getConnectedGmailAccounts() {
+    const accounts =
+      globalThis.TabOutGmailWidget?.getCachedState?.().accounts;
+    return Array.isArray(accounts) ? accounts : [];
+  }
+
+  async function saveSharedGmailClientFromSettings() {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+    const clientId = String(
+      document.getElementById("settingsGmailSharedClientId")?.value ||
+        ""
+    ).trim();
+    const clientSecret = String(
+      document.getElementById("settingsGmailSharedClientSecret")
+        ?.value || ""
+    ).trim();
+    const keepsSavedSecret =
+      gmailOAuthSettings.shared.configured &&
+      gmailOAuthSettings.shared.clientId === clientId &&
+      !clientSecret;
+
+    if (
+      !isValidGmailOAuthClient(
+        clientId,
+        keepsSavedSecret ? "saved-secret" : clientSecret
+      )
+    ) {
+      setGmailClientFeedback(
+        t("gmailClientValidationError"),
+        "error"
+      );
+      return;
+    }
+
+    const affectedAccounts = getConnectedGmailAccounts().filter(
+      (account) => account.credentialSource !== "dedicated"
+    );
+    const replacesClient =
+      gmailOAuthSettings.shared.configured &&
+      (
+        gmailOAuthSettings.shared.clientId !== clientId ||
+        Boolean(clientSecret)
+      );
+
+    if (
+      replacesClient &&
+      affectedAccounts.length &&
+      !confirm(
+        `${t("gmailReplaceSharedConfirm", {
+          count: affectedAccounts.length
+        })}\n\n${affectedAccounts
+          .map((account) => account.email)
+          .join("\n")}`
+      )
+    ) {
+      return;
+    }
+
+    gmailOAuthBusy = true;
+    setGmailClientFeedback(t("gmailClientSaving"), "pending");
+    renderGmailSettings();
+
+    try {
+      const result = await gmailRuntime.saveSharedOAuthClient({
+        clientId,
+        clientSecret,
+        replaceConnected:
+          replacesClient && affectedAccounts.length > 0
+      });
+
+      if (!result?.ok) {
+        setGmailClientFeedback(
+          t(result?.messageKey || "gmailClientSaveFailed"),
+          "error"
+        );
+        return;
+      }
+
+      const secretInput = document.getElementById(
+        "settingsGmailSharedClientSecret"
+      );
+
+      if (secretInput) {
+        secretInput.value = "";
+      }
+
+      gmailSharedClientDirty = false;
+      await refreshGmailOAuthSettings({ render: false });
+      setGmailClientFeedback(t("gmailClientSaved"), "success");
+      showToast(t("gmailClientSaved"));
+    } finally {
+      gmailOAuthBusy = false;
+      renderGmailSettings();
+    }
+  }
+
+  async function removeSharedGmailClientFromSettings() {
+    const gmailRuntime = globalThis.TabOutGmailWidget;
+
+    if (
+      !gmailRuntime?.removeSharedOAuthClient ||
+      !gmailOAuthSettings.shared.configured
+    ) {
+      return;
+    }
+
+    const affectedAccounts = getConnectedGmailAccounts().filter(
+      (account) => account.credentialSource !== "dedicated"
+    );
+    const accountList = affectedAccounts.length
+      ? `\n\n${affectedAccounts
+          .map((account) => account.email)
+          .join("\n")}`
+      : "";
+
+    if (
+      !confirm(
+        `${t("gmailRemoveSharedConfirm", {
+          count: affectedAccounts.length
+        })}${accountList}`
+      )
+    ) {
+      return;
+    }
+
+    gmailOAuthBusy = true;
+    renderGmailSettings();
+
+    try {
+      const result = await gmailRuntime.removeSharedOAuthClient({
+        replaceConnected: affectedAccounts.length > 0
+      });
+
+      if (!result?.ok) {
+        setGmailClientFeedback(
+          t(result?.messageKey || "gmailClientSaveFailed"),
+          "error"
+        );
+        return;
+      }
+
+      gmailSharedClientDirty = false;
+      await refreshGmailOAuthSettings({ render: false });
+      setGmailClientFeedback(t("gmailClientRemoved"), "success");
+      showToast(t("gmailClientRemoved"));
+    } finally {
+      gmailOAuthBusy = false;
+      renderGmailSettings();
+    }
+  }
+
+  function setDedicatedGmailFormOpen(open) {
+    const form = document.getElementById(
+      "settingsGmailDedicatedForm"
+    );
+    const toggle = document.getElementById(
+      "settingsGmailDedicatedToggle"
+    );
+
+    if (form) {
+      form.hidden = !open;
+    }
+
+    toggle?.setAttribute("aria-expanded", String(open));
+
+    if (open) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById("settingsGmailDedicatedClientId")
+          ?.focus();
+      });
+    }
+  }
+
+  function getGmailHelpFocusableElements() {
+    const modal = document.getElementById("gmailSetupHelpModal");
+
+    if (!modal || modal.hidden) {
+      return [];
+    }
+
+    return Array.from(
+      modal.querySelectorAll(
+        'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      )
+    );
+  }
+
+  function openGmailSetupHelp(originElement) {
+    const modal = document.getElementById("gmailSetupHelpModal");
+
+    if (!modal) {
+      return;
+    }
+
+    gmailHelpReturnFocus =
+      originElement instanceof HTMLElement
+        ? originElement
+        : document.activeElement;
+    modal.hidden = false;
+    requestAnimationFrame(() => {
+      getGmailHelpFocusableElements()[0]?.focus();
+    });
+  }
+
+  function closeGmailSetupHelp() {
+    const modal = document.getElementById("gmailSetupHelpModal");
+
+    if (!modal || modal.hidden) {
+      return;
+    }
+
+    modal.hidden = true;
+
+    if (
+      gmailHelpReturnFocus instanceof HTMLElement &&
+      gmailHelpReturnFocus.isConnected
+    ) {
+      gmailHelpReturnFocus.focus();
+    }
+
+    gmailHelpReturnFocus = null;
+  }
+
+  function trapGmailHelpFocus(event) {
+    const focusable = getGmailHelpFocusableElements();
+
+    if (!focusable.length) {
+      event.preventDefault();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  async function handleGmailSettingsSubmit(event) {
+    const form = event.target;
+
+    if (form.id === "settingsGmailSharedClientForm") {
+      event.preventDefault();
+      await saveSharedGmailClientFromSettings();
+      return true;
+    }
+
+    if (form.id === "settingsGmailDedicatedForm") {
+      event.preventDefault();
+      const clientId = String(
+        document.getElementById("settingsGmailDedicatedClientId")
+          ?.value || ""
+      ).trim();
+      const clientSecret = String(
+        document.getElementById("settingsGmailDedicatedClientSecret")
+          ?.value || ""
+      ).trim();
+
+      if (!isValidGmailOAuthClient(clientId, clientSecret)) {
+        setGmailClientFeedback(
+          t("gmailClientValidationError"),
+          "error"
+        );
+        return true;
+      }
+
+      const result = await connectGmailFromSettings({
+        credentialSource: "dedicated",
+        oauthClient: {
+          clientId,
+          clientSecret
+        }
+      });
+
+      if (result?.ok) {
+        form.reset();
+        setDedicatedGmailFormOpen(false);
+      }
+
+      return true;
+    }
+
+    const accountId = form.dataset.gmailAccountClientForm;
+
+    if (!accountId) {
+      return false;
+    }
+
+    event.preventDefault();
+    const inputs = form.querySelectorAll("input");
+    const clientId = String(inputs[0]?.value || "").trim();
+    const clientSecret = String(inputs[1]?.value || "").trim();
+    const summary = getGmailOAuthAccountSummary(accountId);
+    const keepsSavedSecret =
+      summary?.credentialSource === "dedicated" &&
+      summary.clientId === clientId &&
+      !clientSecret;
+
+    if (
+      !isValidGmailOAuthClient(
+        clientId,
+        keepsSavedSecret ? "saved-secret" : clientSecret
+      )
+    ) {
+      setGmailClientFeedback(
+        t("gmailClientValidationError"),
+        "error"
+      );
+      return true;
+    }
+
+    const result = await connectGmailFromSettings({
+      replaceAccountId: accountId,
+      credentialSource: "dedicated",
+      oauthClient: keepsSavedSecret
+        ? null
+        : {
+            clientId,
+            clientSecret
+          }
+    });
+
+    if (result?.ok) {
+      gmailAccountClientDrafts.delete(accountId);
+      gmailEditingAccountId = "";
+      renderGmailSettings();
+    }
+
+    return true;
+  }
+
+  async function handleDrawerClick(event) {
     const tabButton = event.target.closest("[data-settings-tab]");
 
     if (tabButton) {
@@ -1906,6 +3134,98 @@
     }
 
     const action = actionButton.dataset.action;
+
+    if (action === "open-gmail-setup-help") {
+      openGmailSetupHelp(actionButton);
+      return;
+    }
+
+    if (action === "connect-gmail") {
+      await connectGmailFromSettings({
+        credentialSource: "shared"
+      });
+      return;
+    }
+
+    if (action === "cancel-gmail-auth") {
+      await cancelGmailAuthFromSettings();
+      return;
+    }
+
+    if (action === "reconnect-gmail") {
+      const accountId = actionButton.dataset.gmailAccountId;
+      const account = getConnectedGmailAccounts().find(
+        (candidate) => candidate.accountId === accountId
+      );
+      await connectGmailFromSettings({
+        replaceAccountId: accountId,
+        credentialSource:
+          account?.credentialSource === "dedicated"
+            ? "dedicated"
+            : "shared"
+      });
+      return;
+    }
+
+    if (action === "toggle-dedicated-gmail-client") {
+      setDedicatedGmailFormOpen(
+        actionButton.getAttribute("aria-expanded") !== "true"
+      );
+      return;
+    }
+
+    if (action === "cancel-dedicated-gmail-client") {
+      document.getElementById("settingsGmailDedicatedForm")?.reset();
+      setDedicatedGmailFormOpen(false);
+      return;
+    }
+
+    if (action === "remove-shared-gmail-client") {
+      await removeSharedGmailClientFromSettings();
+      return;
+    }
+
+    if (action === "edit-account-gmail-client") {
+      const nextAccountId = actionButton.dataset.gmailAccountId;
+
+      if (gmailEditingAccountId === nextAccountId) {
+        gmailAccountClientDrafts.delete(nextAccountId);
+        gmailEditingAccountId = "";
+      } else {
+        gmailEditingAccountId = nextAccountId;
+      }
+      renderGmailSettings();
+      requestAnimationFrame(() => {
+        document
+          .querySelector(
+            `[data-gmail-account-client-form="${gmailEditingAccountId}"] input`
+          )
+          ?.focus();
+      });
+      return;
+    }
+
+    if (action === "cancel-account-gmail-client") {
+      gmailAccountClientDrafts.delete(gmailEditingAccountId);
+      gmailEditingAccountId = "";
+      renderGmailSettings();
+      return;
+    }
+
+    if (action === "use-shared-gmail-client") {
+      await connectGmailFromSettings({
+        replaceAccountId: actionButton.dataset.gmailAccountId,
+        credentialSource: "shared"
+      });
+      return;
+    }
+
+    if (action === "disconnect-gmail") {
+      await disconnectGmailFromSettings(
+        actionButton.dataset.gmailAccountId
+      );
+      return;
+    }
 
     if (action === "cancel-dashboard-settings") {
       cancelDashboardSettings();
@@ -1988,6 +3308,63 @@
   }
 
   async function handleDrawerChange(event) {
+    const gmailAccountInput = event.target.closest(
+      "[data-settings-gmail-account][data-settings-gmail-field]"
+    );
+
+    if (gmailAccountInput && settingsDraft) {
+      const accountId = gmailAccountInput.dataset.settingsGmailAccount;
+      const field = gmailAccountInput.dataset.settingsGmailField;
+      const existing =
+        settingsDraft.integrations.gmail.accountPreferences[accountId] ||
+        settingsDraft.integrations.gmail.accountDefaults;
+      const preferences = clone(existing);
+      const value = gmailAccountInput.type === "checkbox"
+        ? gmailAccountInput.checked
+        : ["maxResults", "pollingIntervalMinutes"].includes(field)
+          ? Number(gmailAccountInput.value)
+          : gmailAccountInput.value;
+
+      if (field.startsWith("filters.")) {
+        preferences.filters[field.slice("filters.".length)] = value;
+      } else {
+        preferences[field] = value;
+      }
+
+      settingsDraft.integrations.gmail.accountPreferences[accountId] =
+        preferences;
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      updateDraftStatus();
+      return;
+    }
+
+    if (event.target.id === "settingsGmailBadgeMode" && settingsDraft) {
+      settingsDraft.integrations.gmail.badgeMode = event.target.value;
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      updateDraftStatus();
+      return;
+    }
+
+    const unassignedViewInput = event.target.closest(
+      "[data-settings-unassigned-view]"
+    );
+
+    if (unassignedViewInput && settingsDraft) {
+      const setting = unassignedViewInput.dataset.settingsUnassignedView;
+      const value =
+        setting === "minColumnWidth"
+          ? Number(unassignedViewInput.value)
+          : setting === "visibleTabCount" &&
+              unassignedViewInput.value !== "all"
+            ? Number(unassignedViewInput.value)
+            : unassignedViewInput.value;
+      settingsDraft.views.unassigned[setting] = value;
+      settingsDraft.preset = "custom";
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      applyDraftPreview();
+      return;
+    }
+
     const behaviorInput = event.target.closest("[data-settings-behavior]");
 
     if (behaviorInput && settingsDraft) {
@@ -2027,10 +3404,97 @@
     }
   }
 
+  function handleDrawerInput(event) {
+    if (
+      event.target.id === "settingsGmailSharedClientId" ||
+      event.target.id === "settingsGmailSharedClientSecret"
+    ) {
+      gmailSharedClientDirty = true;
+      setGmailClientFeedback();
+      return;
+    }
+
+    const gmailAccountClientForm = event.target.closest(
+      "[data-gmail-account-client-form]"
+    );
+
+    if (gmailAccountClientForm) {
+      const inputs = gmailAccountClientForm.querySelectorAll("input");
+      gmailAccountClientDrafts.set(
+        gmailAccountClientForm.dataset.gmailAccountClientForm,
+        {
+          clientId: String(inputs[0]?.value || ""),
+          clientSecret: String(inputs[1]?.value || "")
+        }
+      );
+      setGmailClientFeedback();
+      return;
+    }
+
+    const gmailQueryInput = event.target.closest(
+      '[data-settings-gmail-field="advancedQuery"]'
+    );
+
+    if (gmailQueryInput && settingsDraft) {
+      const accountId = gmailQueryInput.dataset.settingsGmailAccount;
+      const existing =
+        settingsDraft.integrations.gmail.accountPreferences[accountId] ||
+        settingsDraft.integrations.gmail.accountDefaults;
+      settingsDraft.integrations.gmail.accountPreferences[accountId] = {
+        ...clone(existing),
+        advancedQuery: gmailQueryInput.value
+      };
+      updateDraftStatus();
+      return;
+    }
+
+    const containerPaddingInput = event.target.closest(
+      "[data-settings-container-padding]"
+    );
+
+    if (containerPaddingInput && settingsDraft) {
+      settingsDraft.layout.containerPadding = Number(
+        containerPaddingInput.value
+      );
+      settingsDraft.preset = "custom";
+      const output = document.getElementById(
+        "settingsContainerPaddingOutput"
+      );
+
+      if (output) {
+        output.textContent = `${containerPaddingInput.value} px`;
+      }
+
+      applyDraftPreview({ render: false });
+      return;
+    }
+
+    const widthInput = event.target.closest(
+      '[data-settings-unassigned-view="minColumnWidth"]'
+    );
+
+    if (!widthInput || !settingsDraft) {
+      return;
+    }
+
+    settingsDraft.views.unassigned.minColumnWidth = Number(widthInput.value);
+    settingsDraft.preset = "custom";
+    const output = widthInput.parentElement?.querySelector("output");
+
+    if (output) {
+      output.textContent = `${widthInput.value} px`;
+    }
+
+    applyDraftPreview({ render: false });
+  }
+
   function setupSettingsInteractions() {
     const openButton = document.getElementById("settingsDrawerBtn");
     const overlay = document.getElementById("settingsDrawerOverlay");
     const drawer = document.getElementById("settingsDrawer");
+    const gmailHelpModal = document.getElementById(
+      "gmailSetupHelpModal"
+    );
 
     openButton?.addEventListener("click", () => {
       openDashboardSettings(openButton);
@@ -2043,8 +3507,21 @@
     });
 
     drawer?.addEventListener("click", handleDrawerClick);
+    drawer?.addEventListener("submit", (event) => {
+      void handleGmailSettingsSubmit(event);
+    });
     drawer?.addEventListener("change", handleDrawerChange);
+    drawer?.addEventListener("input", handleDrawerInput);
     drawer?.addEventListener("pointerdown", handleLayoutPointerDown);
+    gmailHelpModal?.addEventListener("click", (event) => {
+      const closeButton = event.target.closest(
+        '[data-action="close-gmail-setup-help"]'
+      );
+
+      if (event.target === gmailHelpModal || closeButton) {
+        closeGmailSetupHelp();
+      }
+    });
     document.addEventListener("pointermove", handleGlobalPointerMove, {
       passive: false
     });
@@ -2053,10 +3530,10 @@
     document.addEventListener("keydown", handleDashboardKeyboard, true);
     let resizeTimer = null;
     window.addEventListener("resize", () => {
+      const settings = getEffectiveSettings();
+      applyContainerFrame(settings.layout.containerPadding);
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        const settings = getEffectiveSettings();
-
         if (settings.layout.mode === "grid") {
           applyDashboardSettings(settings, { syncWeather: false });
         }
@@ -2070,6 +3547,12 @@
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden && isDrawerOpen()) {
         refreshPopupCommandShortcut({ render: true });
+      }
+    });
+    document.addEventListener("tabout:gmail-state-changed", () => {
+      if (isDrawerOpen()) {
+        renderGmailSettings();
+        void refreshGmailOAuthSettings({ render: false });
       }
     });
 
@@ -2100,6 +3583,10 @@
         } else {
           applyDashboardSettings(persistedSettings);
         }
+      }
+
+      if (changes.tabOutGmailOAuthClientsV1 && isDrawerOpen()) {
+        void refreshGmailOAuthSettings();
       }
 
       if (changes.tabOutLanguage) {
@@ -2149,6 +3636,17 @@
     } finally {
       document.documentElement.dataset.dashboardSettingsReady = "true";
       readyResolve(persistedSettings);
+
+      if (location.hash === "#settings=gmail") {
+        history.replaceState(null, "", location.pathname);
+        openDashboardSettings();
+        setActiveSettingsTab("general");
+        requestAnimationFrame(() => {
+          document.getElementById("settingsGmailBlock")?.scrollIntoView({
+            block: "start"
+          });
+        });
+      }
     }
   }
 

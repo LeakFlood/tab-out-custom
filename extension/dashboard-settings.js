@@ -1,7 +1,10 @@
 (function exposeTabOutDashboardSettings(globalObject) {
-  const SETTINGS_VERSION = 2;
+  const SETTINGS_VERSION = 6;
   const STORAGE_KEY = "tabOutDashboardSettings";
   const GRID_COLUMNS = 12;
+  const DEFAULT_CONTAINER_PADDING = 64;
+  const MIN_CONTAINER_PADDING = 0;
+  const MAX_CONTAINER_PADDING = 120;
 
   const MODULE_IDS = Object.freeze([
     "greeting",
@@ -13,6 +16,7 @@
     "sessions",
     "unassigned",
     "savedLater",
+    "gmail",
     "stats"
   ]);
 
@@ -34,6 +38,7 @@
     sessions: 4,
     unassigned: 4,
     savedLater: 3,
+    gmail: 4,
     stats: 2
   });
 
@@ -70,20 +75,72 @@
   });
 
   const DEFAULT_VISIBILITY = Object.freeze(
-    Object.fromEntries(MODULE_IDS.map((moduleId) => [moduleId, true]))
+    Object.fromEntries(
+      MODULE_IDS.map((moduleId) => [moduleId, moduleId !== "gmail"])
+    )
   );
+
+  const DEFAULT_UNASSIGNED_VIEW = Object.freeze({
+    density: "comfortable",
+    columns: "responsive",
+    minColumnWidth: 290,
+    visibleTabCount: 2
+  });
 
   const DEFAULT_VIEWS = Object.freeze({
     shortcuts: "tiles",
     sessions: "cards",
-    unassigned: "domainGrid",
-    savedLater: "panel"
+    unassigned: DEFAULT_UNASSIGNED_VIEW,
+    savedLater: "panel",
+    gmail: "comfortable"
+  });
+
+  const GMAIL_POLL_INTERVALS = Object.freeze([1, 5, 15, 30]);
+  const GMAIL_BADGE_MODES = Object.freeze([
+    "openTabs",
+    "gmailUnread",
+    "combined",
+    "hidden"
+  ]);
+  const GMAIL_NOTIFICATION_PREVIEWS = Object.freeze([
+    "private",
+    "senderSubject",
+    "full"
+  ]);
+
+  const DEFAULT_GMAIL_ACCOUNT_PREFERENCES = Object.freeze({
+    visible: true,
+    expanded: true,
+    filters: Object.freeze({
+      inbox: true,
+      unread: true,
+      starred: false,
+      important: false
+    }),
+    advancedQuery: "",
+    maxResults: 10,
+    pollingEnabled: true,
+    pollingIntervalMinutes: 5,
+    notificationsEnabled: true,
+    notificationPreview: "full"
+  });
+
+  const DEFAULT_GMAIL_INTEGRATION = Object.freeze({
+    badgeMode: "openTabs",
+    accountDefaults: DEFAULT_GMAIL_ACCOUNT_PREFERENCES,
+    accountPreferences: Object.freeze({})
+  });
+
+  const DEFAULT_INTEGRATIONS = Object.freeze({
+    gmail: DEFAULT_GMAIL_INTEGRATION
   });
 
   const DEFAULT_BEHAVIOR = Object.freeze({
     includeSuspendedTabs: true,
     copyTabLinksOnRightClick: true,
     dragUnassignedTabs: true,
+    expandSessionTabs: true,
+    dragSessionTabs: true,
     reorderSessions: true
   });
 
@@ -150,6 +207,13 @@
       column: 9,
       row: 1,
       columnSpan: 3,
+      order: 0
+    }),
+    gmail: Object.freeze({
+      region: "content",
+      column: 3,
+      row: 2,
+      columnSpan: 9,
       order: 0
     }),
     stats: Object.freeze({
@@ -295,6 +359,13 @@
             columnSpan: 4,
             order: 0
           }),
+          gmail: Object.freeze({
+            region: "content",
+            column: 4,
+            row: 2,
+            columnSpan: 8,
+            order: 0
+          }),
           stats: Object.freeze({
             region: "content",
             column: 0,
@@ -307,8 +378,14 @@
       views: Object.freeze({
         shortcuts: "compact",
         sessions: "list",
-        unassigned: "compactList",
-        savedLater: "list"
+        unassigned: Object.freeze({
+          density: "compact",
+          columns: "single",
+          minColumnWidth: 290,
+          visibleTabCount: 2
+        }),
+        savedLater: "list",
+        gmail: "compact"
       })
     })
   });
@@ -328,6 +405,18 @@
 
   function normalizeChoice(value, allowed, fallback) {
     return allowed.includes(value) ? value : fallback;
+  }
+
+  function normalizeContainerPadding(value) {
+    const requested = Number(value);
+    const padding = Number.isFinite(requested)
+      ? requested
+      : DEFAULT_CONTAINER_PADDING;
+    return clamp(
+      Math.round(padding / 2) * 2,
+      MIN_CONTAINER_PADDING,
+      MAX_CONTAINER_PADDING
+    );
   }
 
   function normalizeBinding(value) {
@@ -499,6 +588,56 @@
     return resolvePlacementCollisions(placements);
   }
 
+  function normalizeUnassignedView(value, fallback = DEFAULT_UNASSIGNED_VIEW) {
+    const fallbackView =
+      fallback && typeof fallback === "object"
+        ? fallback
+        : DEFAULT_UNASSIGNED_VIEW;
+
+    if (value === "compactList") {
+      return {
+        density: "compact",
+        columns: "single",
+        minColumnWidth: 290,
+        visibleTabCount: 2
+      };
+    }
+
+    if (value === "domainGrid") {
+      return clone(DEFAULT_UNASSIGNED_VIEW);
+    }
+
+    const requestedWidth = Number(value?.minColumnWidth);
+    const fallbackWidth = Number(fallbackView.minColumnWidth);
+    const normalizedWidth = Number.isFinite(requestedWidth)
+      ? requestedWidth
+      : fallbackWidth;
+    const requestedVisibleCount = value?.visibleTabCount;
+    const fallbackVisibleCount = [2, 4, "all"].includes(
+      fallbackView.visibleTabCount
+    )
+      ? fallbackView.visibleTabCount
+      : DEFAULT_UNASSIGNED_VIEW.visibleTabCount;
+
+    return {
+      density: normalizeChoice(
+        value?.density,
+        ["comfortable", "compact"],
+        fallbackView.density
+      ),
+      columns: normalizeChoice(
+        value?.columns,
+        ["single", "responsive"],
+        fallbackView.columns
+      ),
+      minColumnWidth:
+        Math.round(clamp(normalizedWidth, 220, 420) / 10) * 10,
+      visibleTabCount: [2, 4, "all"].includes(requestedVisibleCount)
+        ? requestedVisibleCount
+        : fallbackVisibleCount
+    };
+  }
+
   function normalizeViews(value, fallback = DEFAULT_VIEWS) {
     return {
       shortcuts: normalizeChoice(
@@ -511,15 +650,155 @@
         ["cards", "list"],
         fallback.sessions
       ),
-      unassigned: normalizeChoice(
+      unassigned: normalizeUnassignedView(
         value?.unassigned,
-        ["domainGrid", "compactList"],
         fallback.unassigned
       ),
       savedLater: normalizeChoice(
         value?.savedLater,
         ["panel", "list"],
         fallback.savedLater
+      ),
+      gmail: normalizeChoice(
+        value?.gmail,
+        ["comfortable", "compact"],
+        fallback.gmail || DEFAULT_VIEWS.gmail
+      )
+    };
+  }
+
+  function normalizeGmailAccountPreferences(
+    value,
+    fallback = DEFAULT_GMAIL_ACCOUNT_PREFERENCES
+  ) {
+    const requestedMaxResults = Number(value?.maxResults);
+    const fallbackMaxResults = [5, 10, 15, 20, 25].includes(
+      Number(fallback?.maxResults)
+    )
+      ? Number(fallback.maxResults)
+      : DEFAULT_GMAIL_ACCOUNT_PREFERENCES.maxResults;
+    const requestedPollingInterval = Number(
+      value?.pollingIntervalMinutes
+    );
+    const fallbackPollingInterval = GMAIL_POLL_INTERVALS.includes(
+      Number(fallback?.pollingIntervalMinutes)
+    )
+      ? Number(fallback.pollingIntervalMinutes)
+      : DEFAULT_GMAIL_ACCOUNT_PREFERENCES.pollingIntervalMinutes;
+
+    return {
+      visible:
+        typeof value?.visible === "boolean"
+          ? value.visible
+          : fallback.visible !== false,
+      expanded:
+        typeof value?.expanded === "boolean"
+          ? value.expanded
+          : fallback.expanded !== false,
+      filters: {
+        inbox:
+          typeof value?.filters?.inbox === "boolean"
+            ? value.filters.inbox
+            : fallback.filters.inbox,
+        unread:
+          typeof value?.filters?.unread === "boolean"
+            ? value.filters.unread
+            : fallback.filters.unread,
+        starred:
+          typeof value?.filters?.starred === "boolean"
+            ? value.filters.starred
+            : fallback.filters.starred,
+        important:
+          typeof value?.filters?.important === "boolean"
+            ? value.filters.important
+            : fallback.filters.important
+      },
+      advancedQuery: String(
+        typeof value?.advancedQuery === "string"
+          ? value.advancedQuery
+          : fallback.advancedQuery || ""
+      ).trim().slice(0, 500),
+      maxResults: [5, 10, 15, 20, 25].includes(requestedMaxResults)
+        ? requestedMaxResults
+        : fallbackMaxResults,
+      pollingEnabled:
+        typeof value?.pollingEnabled === "boolean"
+          ? value.pollingEnabled
+          : fallback.pollingEnabled !== false,
+      pollingIntervalMinutes: GMAIL_POLL_INTERVALS.includes(
+        requestedPollingInterval
+      )
+        ? requestedPollingInterval
+        : fallbackPollingInterval,
+      notificationsEnabled:
+        typeof value?.notificationsEnabled === "boolean"
+          ? value.notificationsEnabled
+          : fallback.notificationsEnabled !== false,
+      notificationPreview: normalizeChoice(
+        value?.notificationPreview,
+        GMAIL_NOTIFICATION_PREVIEWS,
+        fallback.notificationPreview ||
+          DEFAULT_GMAIL_ACCOUNT_PREFERENCES.notificationPreview
+      )
+    };
+  }
+
+  function normalizeGmailIntegration(
+    value,
+    fallback = DEFAULT_GMAIL_INTEGRATION
+  ) {
+    const legacyPreferences =
+      value?.accountDefaults ||
+      (
+        value?.filters ||
+        value?.advancedQuery !== undefined ||
+        value?.maxResults !== undefined
+          ? value
+          : null
+      );
+    const fallbackDefaults =
+      fallback?.accountDefaults ||
+      DEFAULT_GMAIL_ACCOUNT_PREFERENCES;
+    const rawAccountPreferences =
+      value?.accountPreferences &&
+      typeof value.accountPreferences === "object"
+        ? value.accountPreferences
+        : {};
+    const accountPreferences = {};
+
+    Object.entries(rawAccountPreferences)
+      .slice(0, 50)
+      .forEach(([accountId, preferences]) => {
+        if (!/^[a-zA-Z0-9_-]{8,128}$/.test(accountId)) {
+          return;
+        }
+
+        accountPreferences[accountId] =
+          normalizeGmailAccountPreferences(
+            preferences,
+            fallbackDefaults
+          );
+      });
+
+    return {
+      badgeMode: normalizeChoice(
+        value?.badgeMode,
+        GMAIL_BADGE_MODES,
+        fallback?.badgeMode || DEFAULT_GMAIL_INTEGRATION.badgeMode
+      ),
+      accountDefaults: normalizeGmailAccountPreferences(
+        legacyPreferences,
+        fallbackDefaults
+      ),
+      accountPreferences
+    };
+  }
+
+  function normalizeIntegrations(value, fallback = DEFAULT_INTEGRATIONS) {
+    return {
+      gmail: normalizeGmailIntegration(
+        value?.gmail,
+        fallback.gmail || DEFAULT_GMAIL_INTEGRATION
       )
     };
   }
@@ -629,11 +908,13 @@
       preset: PRESETS[presetId] ? presetId : "original",
       layout: {
         mode: preset.layout.mode,
+        containerPadding: DEFAULT_CONTAINER_PADDING,
         visibility: clone(preset.layout.visibility),
         placements: clone(preset.layout.placements)
       },
       views: clone(preset.views),
       behavior: clone(DEFAULT_BEHAVIOR),
+      integrations: clone(DEFAULT_INTEGRATIONS),
       keyboard: clone(DEFAULT_KEYBOARD)
     };
   }
@@ -670,28 +951,18 @@
       preset: originalOptions ? "original" : "custom",
       layout: {
         mode: "original",
+        containerPadding: DEFAULT_CONTAINER_PADDING,
         visibility,
         placements: clone(ORIGINAL_PLACEMENTS)
       },
       views,
       behavior: clone(DEFAULT_BEHAVIOR),
+      integrations: clone(DEFAULT_INTEGRATIONS),
       keyboard: normalizeKeyboard(value?.keyboard)
     };
   }
 
-  function requiresMigration(value) {
-    return Boolean(value) && Number(value.version) !== SETTINGS_VERSION;
-  }
-
-  function normalizeSettings(value) {
-    if (!value || typeof value !== "object") {
-      return getDefaultSettings();
-    }
-
-    if (Number(value.version) !== SETTINGS_VERSION) {
-      return migrateVersionOneSettings(value);
-    }
-
+  function normalizeCurrentSettings(value) {
     const fallbackPreset = PRESETS[value.preset]
       ? PRESETS[value.preset]
       : PRESETS.original;
@@ -711,6 +982,9 @@
           ["original", "grid"],
           fallbackPreset.layout.mode
         ),
+        containerPadding: normalizeContainerPadding(
+          value?.layout?.containerPadding
+        ),
         visibility: normalizeVisibility(
           value?.layout?.visibility,
           fallbackPreset.layout.visibility
@@ -721,6 +995,7 @@
         )
       },
       views: normalizeViews(value?.views, fallbackPreset.views),
+      integrations: normalizeIntegrations(value?.integrations),
       behavior: {
         includeSuspendedTabs:
           value?.behavior?.includeSuspendedTabs !== false,
@@ -728,6 +1003,10 @@
           value?.behavior?.copyTabLinksOnRightClick !== false,
         dragUnassignedTabs:
           value?.behavior?.dragUnassignedTabs !== false,
+        expandSessionTabs:
+          value?.behavior?.expandSessionTabs !== false,
+        dragSessionTabs:
+          value?.behavior?.dragSessionTabs !== false,
         reorderSessions:
           value?.behavior?.reorderSessions !== false
       },
@@ -744,6 +1023,42 @@
     return settings;
   }
 
+  function migrateVersionTwoSettings(value) {
+    return normalizeCurrentSettings({
+      ...value,
+      version: SETTINGS_VERSION
+    });
+  }
+
+  function requiresMigration(value) {
+    return Boolean(value) && Number(value.version) !== SETTINGS_VERSION;
+  }
+
+  function normalizeSettings(value) {
+    if (!value || typeof value !== "object") {
+      return getDefaultSettings();
+    }
+
+    if ([2, 3, 4].includes(Number(value.version))) {
+      return migrateVersionTwoSettings(value);
+    }
+
+    if (Number(value.version) !== SETTINGS_VERSION) {
+      if (
+        value.layout ||
+        value.views ||
+        value.integrations ||
+        value.behavior
+      ) {
+        return migrateVersionTwoSettings(value);
+      }
+
+      return migrateVersionOneSettings(value);
+    }
+
+    return normalizeCurrentSettings(value);
+  }
+
   function applyPreset(value, presetId) {
     const current = normalizeSettings(value);
     const next = getPresetSettings(
@@ -752,7 +1067,9 @@
         : "original"
     );
     next.behavior = current.behavior;
+    next.integrations = current.integrations;
     next.keyboard = current.keyboard;
+    next.layout.containerPadding = current.layout.containerPadding;
     return normalizeSettings(next);
   }
 
@@ -969,6 +1286,9 @@
     SETTINGS_VERSION,
     STORAGE_KEY,
     GRID_COLUMNS,
+    DEFAULT_CONTAINER_PADDING,
+    MIN_CONTAINER_PADDING,
+    MAX_CONTAINER_PADDING,
     MODULE_IDS,
     GRID_REGIONS,
     LANGUAGE_DOCKS,
@@ -977,8 +1297,15 @@
     PRESETS,
     DEFAULT_KEYBOARD,
     DEFAULT_VISIBILITY,
+    DEFAULT_UNASSIGNED_VIEW,
     DEFAULT_VIEWS,
     DEFAULT_BEHAVIOR,
+    GMAIL_POLL_INTERVALS,
+    GMAIL_BADGE_MODES,
+    GMAIL_NOTIFICATION_PREVIEWS,
+    DEFAULT_GMAIL_ACCOUNT_PREFERENCES,
+    DEFAULT_GMAIL_INTEGRATION,
+    DEFAULT_INTEGRATIONS,
     ORIGINAL_PLACEMENTS,
     clone,
     normalizeBinding,
