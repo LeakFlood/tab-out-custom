@@ -1039,6 +1039,8 @@
     article.dataset.gmailThreadId = thread.threadId;
     article.setAttribute("role", "listitem");
 
+    const header = document.createElement("div");
+    header.className = "gmail-thread-header";
     const summary = document.createElement("button");
     summary.type = "button";
     summary.className = "gmail-thread-summary";
@@ -1097,7 +1099,8 @@
     summary.addEventListener("click", () => {
       void toggleLatestPreview(account, thread);
     });
-    article.append(summary, createThreadActions(account, thread));
+    header.append(summary, createThreadActions(account, thread));
+    article.appendChild(header);
 
     if (expanded && !splitPane) {
       article.appendChild(
@@ -1161,6 +1164,26 @@
     const toggleLabel = t(
       expanded ? "gmailCollapseAccount" : "gmailExpandAccount"
     );
+    const toggleAccountExpansion = () => {
+      if (!pendingAccountPreferenceUpdates.has(account.accountId)) {
+        void setAccountExpanded(account.accountId, !expanded);
+      }
+    };
+    identity.setAttribute("role", "button");
+    identity.setAttribute("tabindex", "0");
+    identity.setAttribute("aria-expanded", String(expanded));
+    identity.setAttribute("aria-controls", bodyId);
+    identity.setAttribute("aria-label", toggleLabel);
+    identity.title = toggleLabel;
+    identity.addEventListener("click", toggleAccountExpansion);
+    identity.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      toggleAccountExpansion();
+    });
     const toggleButton = document.createElement("button");
     toggleButton.type = "button";
     toggleButton.className =
@@ -1177,9 +1200,7 @@
       '<path d="m7 10 5 5 5-5"></path>',
       "</svg>"
     ].join("");
-    toggleButton.addEventListener("click", () => {
-      void setAccountExpanded(account.accountId, !expanded);
-    });
+    toggleButton.addEventListener("click", toggleAccountExpansion);
     actions.appendChild(toggleButton);
     header.append(identity, actions);
     card.appendChild(header);

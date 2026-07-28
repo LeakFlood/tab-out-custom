@@ -382,7 +382,7 @@ html[data-theme="light"] .gmail-widget-text-btn.is-primary {
 html[data-theme="light"] .gmail-account-quick-actions,
 html[data-theme="light"]
   :is(
-    .gmail-thread-row,
+    .gmail-thread-header,
     .gmail-reading-pane-header
   )
   > .gmail-thread-actions {
@@ -685,7 +685,7 @@ html[data-gmail-view="spacious"] .gmail-thread-summary {
 }
 
 html[data-gmail-view="spacious"]
-  .gmail-thread-row
+  .gmail-thread-header
   > .gmail-thread-actions {
   bottom: 10px;
 }
