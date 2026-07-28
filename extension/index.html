@@ -1344,17 +1344,29 @@
 </div>
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
-<!-- If the file doesn't exist, that's fine — app.js uses sensible defaults. -->
+<!-- If the file doesn't exist, that's fine; dashboard modules use sensible defaults. -->
 <script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
   <script src="dashboard-settings.js"></script>
   <script src="tab-metadata.js"></script>
   <script src="gmail-config.js"></script>
   <script src="todo-service.js"></script>
+  <script src="dashboard/i18n.js"></script>
+  <script src="dashboard/core.js"></script>
+  <script src="dashboard/collection-client.js"></script>
+  <script src="dashboard/sessions.js"></script>
+  <script src="dashboard/browser-events.js"></script>
+  <script src="dashboard/events.js"></script>
 
-<!-- Main dashboard logic — loads last so the DOM is ready -->
+<!-- Initial dashboard render, followed by optional feature initializers -->
   <script src="app.js"></script>
+  <script src="dashboard/shortcuts.js"></script>
+  <script src="dashboard/language.js"></script>
+  <script src="dashboard/backup.js"></script>
+  <script src="dashboard/weather.js"></script>
+  <script src="dashboard/protected-groups.js"></script>
   <script src="todo-widget.js"></script>
   <script src="gmail-widget.js"></script>
-<script src="settings-ui.js"></script>
+  <script src="settings/catalog.js"></script>
+  <script src="settings-ui.js"></script>
 </body>
 </html>

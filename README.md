@@ -209,6 +209,12 @@ For normal manual updates, the recommended method is still:
 
 Removing the extension or loading it from a different folder may create a different local extension storage, which can make previous shortcuts and sessions unavailable.
 
+## Development
+
+Tab Out Custom has no build step or package manager. Chromium loads the files in
+`extension/` directly. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for script order,
+module boundaries, storage ownership, refresh flow, and validation guidance.
+
 
 ## Installation
 

@@ -5,97 +5,15 @@
     return;
   }
 
-  const MODULE_LABEL_KEYS = {
-    greeting: "moduleGreeting",
-    time: "moduleTime",
-    date: "moduleDate",
-    weather: "moduleWeather",
-    shortcuts: "moduleShortcuts",
-    language: "moduleLanguage",
-    sessions: "moduleSessions",
-    unassigned: "moduleUnassigned",
-    savedLater: "moduleSavedLater",
-    todo: "moduleTodo",
-    gmail: "moduleGmail",
-    stats: "moduleStats"
-  };
-
-  const MODULE_NODE_IDS = {
-    greeting: "greeting",
-    time: "timeDisplay",
-    date: "dateDisplay",
-    weather: "weatherWidget",
-    shortcuts: null,
-    language: "languageToggleBtn",
-    sessions: "savedSessionsSection",
-    unassigned: "openTabsSection",
-    savedLater: "deferredColumn",
-    todo: "todoWidget",
-    gmail: "gmailWidget",
-    stats: "footerStats"
-  };
-
-  const KEYBOARD_LABEL_KEYS = {
-    openSettings: "keyboardOpenSettings",
-    searchUnassigned: "keyboardSearchUnassigned",
-    focusShortcuts: "keyboardFocusShortcuts",
-    focusSessions: "keyboardFocusSessions",
-    focusUnassigned: "keyboardFocusUnassigned",
-    focusSavedLater: "keyboardFocusSavedLater",
-    createSession: "keyboardCreateSession",
-    addShortcut: "keyboardAddShortcut"
-  };
-
-  const POPUP_COMMAND_NAME = "_execute_action";
-
-  const PRESET_META = {
-    original: {
-      label: "presetOriginal",
-      hint: "presetOriginalHint"
-    },
-    focus: {
-      label: "presetFocus",
-      hint: "presetFocusHint"
-    },
-    compact: {
-      label: "presetCompact",
-      hint: "presetCompactHint"
-    }
-  };
-
-  const VIEW_META = {
-    shortcuts: {
-      options: [
-        ["tiles", "styleTiles"],
-        ["compact", "styleCompact"]
-      ]
-    },
-    sessions: {
-      options: [
-        ["cards", "styleCards"],
-        ["list", "styleList"]
-      ]
-    },
-    savedLater: {
-      options: [
-        ["panel", "stylePanel"],
-        ["list", "styleList"]
-      ]
-    },
-    todo: {
-      options: [
-        ["comfortable", "densityComfortable"],
-        ["compact", "styleCompact"]
-      ]
-    }
-  };
-
-  const MODULE_ACTION_MAP = {
-    focusShortcuts: "shortcuts",
-    focusSessions: "sessions",
-    focusUnassigned: "unassigned",
-    focusSavedLater: "savedLater"
-  };
+  const {
+    KEYBOARD_LABEL_KEYS,
+    MODULE_ACTION_MAP,
+    MODULE_LABEL_KEYS,
+    MODULE_NODE_IDS,
+    POPUP_COMMAND_NAME,
+    PRESET_META,
+    VIEW_META
+  } = globalThis.TabOutSettingsCatalog;
 
   const moduleWrappers = new Map();
   const moduleAnchors = new Map();

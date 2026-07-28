@@ -343,6 +343,19 @@ async function saveCollectionSavedSessions(sessions) {
   });
 }
 
+async function getCollectionProtectedGroups() {
+  const stored = await chrome.storage.local.get(PROTECTED_GROUPS_STORAGE_KEY);
+  return Array.isArray(stored[PROTECTED_GROUPS_STORAGE_KEY])
+    ? stored[PROTECTED_GROUPS_STORAGE_KEY]
+    : [];
+}
+
+async function saveCollectionProtectedGroups(groups) {
+  await chrome.storage.local.set({
+    [PROTECTED_GROUPS_STORAGE_KEY]: groups
+  });
+}
+
 async function getCollectionChromeGroups() {
   if (!chrome?.tabGroups?.query) {
     return [];
@@ -746,6 +759,44 @@ async function addDescriptorToDestination(target, descriptor) {
 }
 
 async function handleCollectionMessage(message) {
+  if (message.type === "tabOut:getSessions") {
+    return {
+      ok: true,
+      sessions: await getCollectionSavedSessions()
+    };
+  }
+
+  if (message.type === "tabOut:replaceSessions") {
+    if (!Array.isArray(message.sessions)) {
+      throw new Error("invalid_sessions");
+    }
+
+    await saveCollectionSavedSessions(message.sessions);
+    return {
+      ok: true,
+      sessionsCount: message.sessions.length
+    };
+  }
+
+  if (message.type === "tabOut:getProtectedGroups") {
+    return {
+      ok: true,
+      groups: await getCollectionProtectedGroups()
+    };
+  }
+
+  if (message.type === "tabOut:replaceProtectedGroups") {
+    if (!Array.isArray(message.groups)) {
+      throw new Error("invalid_groups");
+    }
+
+    await saveCollectionProtectedGroups(message.groups);
+    return {
+      ok: true,
+      groupsCount: message.groups.length
+    };
+  }
+
   if (message.type === "tabOut:ensureSessionMigration") {
     const sessions = await ensureUnifiedSessionsMigration();
     return {
@@ -858,7 +909,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         "already_removed",
         "tab_creation_failed",
         "invalid_name",
-        "invalid_tabs"
+        "invalid_tabs",
+        "invalid_sessions",
+        "invalid_groups"
       ]);
       const code = knownCodes.has(error?.message)
         ? error.message
