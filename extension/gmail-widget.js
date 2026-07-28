@@ -27,8 +27,16 @@
   const threadResults = new Map();
   const previews = new Map();
   const expandedThreads = new Set();
+  const expandedMessageIds = new Set();
   const pendingActions = new Set();
   const pendingAccountPreferenceUpdates = new Set();
+  const todoService = globalObject.TabOutTodoService;
+  const todoTasksBySourceKey = new Map();
+  const pendingTodoTaskKeys = new Set();
+  const SPLIT_PANE_MIN_WIDTH = 760;
+  let splitPaneAvailable = false;
+  let widgetResizeObserver = null;
+  let activeTodoComposer = null;
 
   function sendGmailMessage(message) {
     return new Promise((resolve) => {
@@ -106,6 +114,77 @@
 
   function getWidget() {
     return document.getElementById("gmailWidget");
+  }
+
+  function getGmailViewSettings() {
+    return (
+      globalObject.TabOutDashboardRuntime?.getEffectiveSettings?.()
+        ?.views?.gmail ||
+      globalObject.TabOutDashboardSettings?.DEFAULT_GMAIL_VIEW || {
+        conversationDisplay: "inline"
+      }
+    );
+  }
+
+  function getTodoSettings() {
+    return (
+      globalObject.TabOutDashboardRuntime?.getEffectiveSettings?.().todo ||
+      globalObject.TabOutDashboardSettings?.DEFAULT_TODO_SETTINGS || {
+        emailTaskIntegrationEnabled: true
+      }
+    );
+  }
+
+  function createGmailTaskSource(account, thread) {
+    return {
+      type: "gmailThread",
+      accountId: account.accountId,
+      accountEmail: account.email,
+      threadId: thread.threadId,
+      latestMessageId: thread.latestMessageId,
+      senderName: thread.senderName,
+      senderEmail: thread.senderEmail,
+      subject: thread.subject,
+      capturedAt: new Date().toISOString()
+    };
+  }
+
+  function getGmailTaskKey(account, thread) {
+    return todoService?.getTaskSourceKey?.(
+      createGmailTaskSource(account, thread)
+    ) || "";
+  }
+
+  async function refreshTodoTaskLinks({ renderAfter = true } = {}) {
+    if (!todoService) {
+      return;
+    }
+
+    try {
+      const todoSnapshot = await todoService.getSnapshot();
+      todoTasksBySourceKey.clear();
+
+      todoSnapshot.state.tasks.forEach((task) => {
+        const key = todoService.getTaskSourceKey(task.source);
+
+        if (key) {
+          todoTasksBySourceKey.set(key, task);
+        }
+      });
+    } catch (error) {
+      console.warn("[tab-out] Gmail task links could not be loaded:", error);
+    }
+
+    if (renderAfter) {
+      render();
+    }
+  }
+
+  function isSplitPaneActive() {
+    return (
+      getGmailViewSettings().conversationDisplay === "split" &&
+      splitPaneAvailable
+    );
   }
 
   function isWidgetVisible() {
@@ -275,9 +354,13 @@
     state.hidden = false;
   }
 
-  function createMessagePreview(message) {
+  function createMessagePreview(
+    message,
+    { collapsible = false, expanded = true, onToggle = null } = {}
+  ) {
     const article = document.createElement("article");
     article.className = "gmail-message-preview";
+    article.classList.toggle("is-collapsed", collapsible && !expanded);
     const header = document.createElement("header");
     const sender = document.createElement("strong");
     sender.textContent = message.senderName || message.senderEmail || "Gmail";
@@ -286,11 +369,46 @@
       ? new Date(message.timestamp).toISOString()
       : "";
     date.textContent = formatGmailDate(message.timestamp);
-    header.append(sender, date);
-
     const body = document.createElement("pre");
     body.className = "gmail-message-body";
     body.textContent = getMessageBodyText(message) || t("gmailNoBody");
+
+    if (collapsible) {
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "gmail-message-toggle";
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.title = t(
+        expanded ? "gmailCollapseMessage" : "gmailExpandMessage"
+      );
+      toggle.setAttribute("aria-label", toggle.title);
+      toggle.innerHTML = [
+        '<svg viewBox="0 0 20 20" aria-hidden="true">',
+        '<path d="m5.5 7.5 4.5 4.5 4.5-4.5"></path>',
+        "</svg>"
+      ].join("");
+      toggle.prepend(sender, date);
+      toggle.addEventListener("click", () => {
+        const nextExpanded = onToggle?.();
+
+        if (typeof nextExpanded !== "boolean") {
+          return;
+        }
+
+        article.classList.toggle("is-collapsed", !nextExpanded);
+        body.hidden = !nextExpanded;
+        toggle.setAttribute("aria-expanded", String(nextExpanded));
+        toggle.title = t(
+          nextExpanded ? "gmailCollapseMessage" : "gmailExpandMessage"
+        );
+        toggle.setAttribute("aria-label", toggle.title);
+      });
+      header.appendChild(toggle);
+      body.hidden = !expanded;
+    } else {
+      header.append(sender, date);
+    }
+
     article.append(header, body);
     return article;
   }
@@ -318,8 +436,27 @@
       error.textContent = t(preview.messageKey || "gmailWidgetError");
       container.appendChild(error);
     } else {
-      (preview?.messages || []).forEach((message) => {
-        container.appendChild(createMessagePreview(message));
+      const messages = preview?.messages || [];
+      messages.forEach((message, index) => {
+        const messageKey = `${key}:${message.id || index}`;
+        const collapsible =
+          preview?.mode === "thread" && index < messages.length - 1;
+        const expanded =
+          !collapsible || expandedMessageIds.has(messageKey);
+        container.appendChild(
+          createMessagePreview(message, {
+            collapsible,
+            expanded,
+            onToggle: () => {
+              if (expandedMessageIds.has(messageKey)) {
+                expandedMessageIds.delete(messageKey);
+              } else {
+                expandedMessageIds.add(messageKey);
+              }
+              return expandedMessageIds.has(messageKey);
+            }
+          })
+        );
       });
     }
 
@@ -418,7 +555,13 @@
     const previousResult = clone(
       threadResults.get(account.accountId) || { threads: [] }
     );
+    const wasExpanded = expandedThreads.has(key);
     pendingActions.add(key);
+
+    if (["archive", "trash"].includes(action)) {
+      expandedThreads.delete(key);
+    }
+
     optimisticThreadAction(account.accountId, thread.threadId, action);
     render();
     const response = await sendGmailMessage({
@@ -431,6 +574,11 @@
 
     if (!response.ok) {
       threadResults.set(account.accountId, previousResult);
+
+      if (wasExpanded) {
+        expandedThreads.add(key);
+      }
+
       if (typeof showToast === "function") {
         showToast(t(response.messageKey || "gmailActionFailed"));
       }
@@ -460,12 +608,294 @@
     render();
   }
 
-  function createThreadActions(account, thread) {
+  async function viewTodoTask(task) {
+    const focused = await globalObject.TabOutTodoWidget?.focusTask?.(
+      task?.id
+    );
+
+    if (!focused && typeof showToast === "function") {
+      showToast(t("todoEmailTaskWidgetHidden"));
+    }
+  }
+
+  function toggleTodoComposer(account, thread, placement) {
+    const key = getGmailTaskKey(account, thread);
+    const effectivePlacement = isSplitPaneActive()
+      ? "pane"
+      : placement;
+
+    if (!key) {
+      return;
+    }
+
+    if (
+      activeTodoComposer?.key === key &&
+      activeTodoComposer?.placement === effectivePlacement
+    ) {
+      activeTodoComposer = null;
+    } else {
+      activeTodoComposer = {
+        key,
+        placement: effectivePlacement,
+        title: thread.subject || t("gmailNoSubject"),
+        notes: "",
+        deadlineDate: "",
+        deadlineTime: ""
+      };
+    }
+
+    if (
+      activeTodoComposer &&
+      effectivePlacement === "pane" &&
+      !expandedThreads.has(
+        threadKey(account.accountId, thread.threadId)
+      )
+    ) {
+      void toggleLatestPreview(account, thread);
+    } else {
+      render();
+    }
+
+    requestAnimationFrame(() => {
+      document
+        .querySelector(
+          `[data-gmail-todo-composer="${CSS.escape(key)}"] ` +
+          '[data-gmail-todo-field="title"]'
+        )
+        ?.focus();
+    });
+  }
+
+  async function handleGmailTodoSubmit(event, account, thread) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const key = getGmailTaskKey(account, thread);
+
+    if (!todoService || !key || pendingTodoTaskKeys.has(key)) {
+      return;
+    }
+
+    const title =
+      form.querySelector('[data-gmail-todo-field="title"]')?.value || "";
+    const notes =
+      form.querySelector('[data-gmail-todo-field="notes"]')?.value || "";
+    const deadlineDate =
+      form.querySelector('[data-gmail-todo-field="deadlineDate"]')
+        ?.value || "";
+    const deadlineTime =
+      form.querySelector('[data-gmail-todo-field="deadlineTime"]')
+        ?.value || "";
+
+    if (!title.trim()) {
+      form
+        .querySelector('[data-gmail-todo-field="title"]')
+        ?.focus();
+      return;
+    }
+
+    pendingTodoTaskKeys.add(key);
+    render();
+
+    try {
+      const result = await todoService.addTask({
+        title,
+        notes,
+        deadline: deadlineDate
+          ? { date: deadlineDate, time: deadlineTime || null }
+          : null,
+        checklist: [],
+        source: createGmailTaskSource(account, thread)
+      });
+      const task = result.task;
+
+      if (task) {
+        todoTasksBySourceKey.set(key, task);
+      }
+
+      activeTodoComposer = null;
+      await globalObject.TabOutTodoWidget?.refresh?.();
+      render();
+
+      if (typeof showToast === "function") {
+        if (result.changed) {
+          showToast(t("todoEmailTaskAdded"), {
+            actionLabel: t("todoEmailTaskView"),
+            onAction: () => viewTodoTask(task),
+            cancelLabel: t("todoUndo"),
+            onCancel: async () => {
+              await todoService.undo();
+              await globalObject.TabOutTodoWidget?.refresh?.();
+              await refreshTodoTaskLinks();
+            },
+            duration: 6500
+          });
+        } else if (result.reason === "duplicate") {
+          showToast(t("todoEmailTaskAlreadyExists"), {
+            actionLabel: t("todoEmailTaskView"),
+            onAction: () => viewTodoTask(task),
+            duration: 5000
+          });
+        }
+      }
+    } catch (error) {
+      console.warn("[tab-out] Gmail task could not be added:", error);
+
+      if (typeof showToast === "function") {
+        showToast(t("todoEmailTaskAddFailed"));
+      }
+    } finally {
+      pendingTodoTaskKeys.delete(key);
+      render();
+    }
+  }
+
+  function createGmailTodoComposer(account, thread, placement) {
+    const key = getGmailTaskKey(account, thread);
+    const form = document.createElement("form");
+    form.className = `gmail-todo-composer is-${placement}`;
+    form.dataset.gmailTodoComposer = key;
+    form.noValidate = true;
+    const heading = document.createElement("strong");
+    heading.className = "gmail-todo-composer-title";
+    heading.textContent = t("todoEmailTaskComposerTitle");
+    const titleLabel = document.createElement("label");
+    titleLabel.className = "gmail-todo-field is-title";
+    const titleText = document.createElement("span");
+    titleText.textContent = t("todoEmailTaskTitleLabel");
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.maxLength = 200;
+    titleInput.required = true;
+    titleInput.value =
+      activeTodoComposer?.key === key
+        ? activeTodoComposer.title
+        : thread.subject || t("gmailNoSubject");
+    titleInput.dataset.gmailTodoField = "title";
+    titleLabel.append(titleText, titleInput);
+    const notesLabel = document.createElement("label");
+    notesLabel.className = "gmail-todo-field is-notes";
+    const notesText = document.createElement("span");
+    notesText.textContent = t("todoEmailTaskCommentLabel");
+    const notesInput = document.createElement("textarea");
+    notesInput.rows = 2;
+    notesInput.maxLength = 10000;
+    notesInput.placeholder = t("todoEmailTaskCommentPlaceholder");
+    notesInput.value =
+      activeTodoComposer?.key === key
+        ? activeTodoComposer.notes
+        : "";
+    notesInput.dataset.gmailTodoField = "notes";
+    notesLabel.append(notesText, notesInput);
+    const deadlineFields = document.createElement("div");
+    deadlineFields.className = "gmail-todo-deadline-fields";
+    const dateLabel = document.createElement("label");
+    dateLabel.className = "gmail-todo-field";
+    const dateText = document.createElement("span");
+    dateText.textContent = t("todoEmailTaskDeadlineLabel");
+    const dateInput = document.createElement("input");
+    dateInput.type = "date";
+    dateInput.value =
+      activeTodoComposer?.key === key
+        ? activeTodoComposer.deadlineDate
+        : "";
+    dateInput.dataset.gmailTodoField = "deadlineDate";
+    dateLabel.append(dateText, dateInput);
+    const timeLabel = document.createElement("label");
+    timeLabel.className = "gmail-todo-field";
+    const timeText = document.createElement("span");
+    timeText.textContent = t("todoEmailTaskDeadlineTimeLabel");
+    const timeInput = document.createElement("input");
+    timeInput.type = "time";
+    timeInput.value =
+      activeTodoComposer?.key === key
+        ? activeTodoComposer.deadlineTime
+        : "";
+    timeInput.dataset.gmailTodoField = "deadlineTime";
+    timeLabel.append(timeText, timeInput);
+    deadlineFields.append(dateLabel, timeLabel);
+    const actions = document.createElement("div");
+    actions.className = "gmail-todo-composer-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "gmail-widget-text-btn";
+    cancel.textContent = t("cancel");
+    cancel.addEventListener("click", () => {
+      activeTodoComposer = null;
+      render();
+    });
+    const add = document.createElement("button");
+    add.type = "submit";
+    add.className = "gmail-widget-text-btn is-primary";
+    add.textContent = t("todoEmailTaskAdd");
+    add.disabled = pendingTodoTaskKeys.has(key);
+    actions.append(cancel, add);
+    form.append(
+      heading,
+      titleLabel,
+      notesLabel,
+      deadlineFields,
+      actions
+    );
+    form.addEventListener("submit", (event) => {
+      void handleGmailTodoSubmit(event, account, thread);
+    });
+    form.addEventListener("input", (event) => {
+      const field = event.target.dataset.gmailTodoField;
+
+      if (
+        activeTodoComposer?.key === key &&
+        ["title", "notes", "deadlineDate", "deadlineTime"].includes(
+          field
+        )
+      ) {
+        activeTodoComposer[field] = event.target.value;
+      }
+    });
+    return form;
+  }
+
+  function createThreadActions(account, thread, placement = "row") {
     const actions = document.createElement("span");
     actions.className = "gmail-thread-actions";
+    const todoKey = getGmailTaskKey(account, thread);
+    const linkedTask = todoTasksBySourceKey.get(todoKey);
     const pending = pendingActions.has(
       threadKey(account.accountId, thread.threadId)
     );
+
+    if (
+      todoService &&
+      getTodoSettings().emailTaskIntegrationEnabled !== false
+    ) {
+      const todoButton = document.createElement("button");
+      todoButton.type = "button";
+      todoButton.className = "gmail-thread-action is-todo";
+      todoButton.classList.toggle("is-linked", Boolean(linkedTask));
+      todoButton.classList.toggle(
+        "is-active",
+        activeTodoComposer?.key === todoKey
+      );
+      todoButton.innerHTML = linkedTask
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/><path d="M5 20h14"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h10M4 12h7M4 18h6"/><path d="M18 11v8M14 15h8"/></svg>';
+      todoButton.title = t(
+        linkedTask ? "todoViewEmailTask" : "todoAddEmailTask"
+      );
+      todoButton.setAttribute("aria-label", todoButton.title);
+      todoButton.disabled =
+        pending || pendingTodoTaskKeys.has(todoKey);
+      todoButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        if (linkedTask) {
+          void viewTodoTask(linkedTask);
+        } else {
+          toggleTodoComposer(account, thread, placement);
+        }
+      });
+      actions.appendChild(todoButton);
+    }
+
     const actionDefinitions = [
       {
         action: thread.unread ? "markRead" : "markUnread",
@@ -510,11 +940,102 @@
     return actions;
   }
 
-  function createThreadRow(account, thread) {
+  function createReadingPane(account, thread) {
+    const pane = document.createElement("section");
+    pane.className = "gmail-reading-pane";
+    pane.tabIndex = -1;
+    pane.setAttribute("aria-label", t("gmailReadingPane"));
+
+    if (!thread) {
+      const empty = document.createElement("div");
+      empty.className = "gmail-reading-pane-empty";
+      const title = document.createElement("strong");
+      title.textContent = t("gmailReadingPaneEmptyTitle");
+      const hint = document.createElement("span");
+      hint.textContent = t("gmailReadingPaneEmptyHint");
+      empty.append(title, hint);
+      pane.appendChild(empty);
+      return pane;
+    }
+
     const key = threadKey(account.accountId, thread.threadId);
+    const header = document.createElement("header");
+    header.className = "gmail-reading-pane-header";
+    const identity = document.createElement("div");
+    identity.className = "gmail-reading-pane-identity";
+    const subject = document.createElement("strong");
+    subject.textContent = thread.subject || t("gmailNoSubject");
+    const sender = document.createElement("span");
+    sender.textContent =
+      thread.senderName || thread.senderEmail || "Gmail";
+    const metadata = document.createElement("time");
+    metadata.dateTime = thread.timestamp
+      ? new Date(thread.timestamp).toISOString()
+      : "";
+    metadata.textContent = formatGmailDate(thread.timestamp);
+    identity.append(subject, sender);
+    header.append(
+      identity,
+      metadata,
+      createThreadActions(account, thread, "pane")
+    );
+
+    const preview = createThreadPreview(
+      account,
+      thread,
+      previews.get(key)
+    );
+    preview.classList.add("is-reading-pane");
+    pane.appendChild(header);
+
+    if (
+      activeTodoComposer?.key === key &&
+      activeTodoComposer.placement === "pane"
+    ) {
+      pane.appendChild(createGmailTodoComposer(account, thread, "pane"));
+    }
+
+    pane.appendChild(preview);
+    return pane;
+  }
+
+  function getSplitPaneThread(accountId, threads) {
+    const prefix = `${accountId}:`;
+    const availableIds = new Set(
+      (threads || []).map((thread) => thread.threadId)
+    );
+    const accountKeys = Array.from(expandedThreads).filter((key) =>
+      key.startsWith(prefix)
+    );
+    const matchingKeys = accountKeys.filter((key) =>
+      availableIds.has(key.slice(prefix.length))
+    );
+    const selectedKey = matchingKeys[matchingKeys.length - 1] || "";
+
+    accountKeys.forEach((key) => {
+      if (key !== selectedKey) {
+        expandedThreads.delete(key);
+      }
+    });
+
+    return (threads || []).find(
+      (thread) => threadKey(accountId, thread.threadId) === selectedKey
+    ) || null;
+  }
+
+  function createThreadRow(
+    account,
+    thread,
+    { splitPane = false, selectedThreadId = "" } = {}
+  ) {
+    const key = threadKey(account.accountId, thread.threadId);
+    const expanded = splitPane
+      ? thread.threadId === selectedThreadId
+      : expandedThreads.has(key);
     const article = document.createElement("article");
     article.className = "gmail-thread-row";
     article.classList.toggle("is-unread", Boolean(thread.unread));
+    article.classList.toggle("is-selected", expanded);
     article.dataset.gmailThreadId = thread.threadId;
     article.setAttribute("role", "listitem");
 
@@ -523,7 +1044,7 @@
     summary.className = "gmail-thread-summary";
     summary.setAttribute(
       "aria-expanded",
-      String(expandedThreads.has(key))
+      String(expanded)
     );
 
     const avatar = document.createElement("span");
@@ -578,10 +1099,17 @@
     });
     article.append(summary, createThreadActions(account, thread));
 
-    if (expandedThreads.has(key)) {
+    if (expanded && !splitPane) {
       article.appendChild(
         createThreadPreview(account, thread, previews.get(key))
       );
+    }
+
+    if (
+      activeTodoComposer?.key === getGmailTaskKey(account, thread) &&
+      activeTodoComposer.placement === "row"
+    ) {
+      article.appendChild(createGmailTodoComposer(account, thread, "row"));
     }
 
     return article;
@@ -602,6 +1130,7 @@
     const identity = document.createElement("div");
     identity.className = "gmail-account-identity";
     const email = document.createElement("strong");
+    email.className = "gmail-account-email";
     email.textContent = account.email;
     const accountMeta = document.createElement("span");
     accountMeta.textContent = [
@@ -612,7 +1141,9 @@
 
     const actions = document.createElement("div");
     actions.className = "gmail-account-actions";
-    actions.append(
+    const quickActions = document.createElement("div");
+    quickActions.className = "gmail-account-quick-actions";
+    quickActions.append(
       createButton({
         className: "gmail-account-action",
         textKey: "gmailRefresh",
@@ -626,6 +1157,7 @@
         action: () => void openGmail(account.accountId)
       })
     );
+    actions.appendChild(quickActions);
     const toggleLabel = t(
       expanded ? "gmailCollapseAccount" : "gmailExpandAccount"
     );
@@ -673,6 +1205,10 @@
     }
 
     const result = threadResults.get(account.accountId);
+    const splitPane = isSplitPaneActive();
+    const selectedThread = splitPane
+      ? getSplitPaneThread(account.accountId, result?.threads)
+      : null;
     const list = document.createElement("div");
     list.className = "gmail-thread-list";
     list.setAttribute("role", "list");
@@ -694,7 +1230,12 @@
       list.appendChild(empty);
     } else {
       result.threads.forEach((thread) => {
-        list.appendChild(createThreadRow(account, thread));
+        list.appendChild(
+          createThreadRow(account, thread, {
+            splitPane,
+            selectedThreadId: selectedThread?.threadId || ""
+          })
+        );
       });
     }
 
@@ -705,7 +1246,16 @@
       body.appendChild(stale);
     }
 
-    body.appendChild(list);
+    const content = document.createElement("div");
+    content.className = "gmail-account-content";
+    content.classList.toggle("is-split", splitPane);
+    content.appendChild(list);
+
+    if (splitPane) {
+      content.appendChild(createReadingPane(account, selectedThread));
+    }
+
+    body.appendChild(content);
     card.appendChild(body);
     return card;
   }
@@ -771,6 +1321,73 @@
     }
   }
 
+  function captureThreadListViewports(cards) {
+    const viewports = new Map();
+
+    cards
+      .querySelectorAll(".gmail-account-card[data-gmail-account-id]")
+      .forEach((card) => {
+        const accountId = card.dataset.gmailAccountId;
+        const list = card.querySelector(".gmail-thread-list");
+
+        if (!accountId || !list) {
+          return;
+        }
+
+        const listRect = list.getBoundingClientRect();
+        const anchor = Array.from(
+          list.querySelectorAll(".gmail-thread-row[data-gmail-thread-id]")
+        ).find((row) =>
+          row.getBoundingClientRect().bottom > listRect.top + 1
+        );
+
+        viewports.set(accountId, {
+          scrollTop: list.scrollTop,
+          anchorThreadId: anchor?.dataset.gmailThreadId || "",
+          anchorOffset: anchor
+            ? anchor.getBoundingClientRect().top - listRect.top
+            : 0
+        });
+      });
+
+    return viewports;
+  }
+
+  function restoreThreadListViewports(cards, viewports) {
+    cards
+      .querySelectorAll(".gmail-account-card[data-gmail-account-id]")
+      .forEach((card) => {
+        const viewport = viewports.get(card.dataset.gmailAccountId);
+        const list = card.querySelector(".gmail-thread-list");
+
+        if (!viewport || !list) {
+          return;
+        }
+
+        list.scrollTop = viewport.scrollTop;
+
+        if (!viewport.anchorThreadId) {
+          return;
+        }
+
+        const anchor = Array.from(
+          list.querySelectorAll(".gmail-thread-row[data-gmail-thread-id]")
+        ).find(
+          (row) =>
+            row.dataset.gmailThreadId === viewport.anchorThreadId
+        );
+
+        if (!anchor) {
+          return;
+        }
+
+        const nextOffset =
+          anchor.getBoundingClientRect().top -
+          list.getBoundingClientRect().top;
+        list.scrollTop += nextOffset - viewport.anchorOffset;
+      });
+  }
+
   function render() {
     const widget = getWidget();
     const state = document.getElementById("gmailWidgetState");
@@ -783,11 +1400,18 @@
       return;
     }
 
+    const pageScroll = {
+      left: window.scrollX,
+      top: window.scrollY
+    };
+    const threadListViewports = captureThreadListViewports(cards);
     cards.replaceChildren();
     cards.hidden = true;
     state.hidden = true;
     state.replaceChildren();
     widget.dataset.gmailStatus = cachedState.status;
+    widget.dataset.gmailEffectiveDisplay =
+      isSplitPaneActive() ? "split" : "inline";
     const visibleAccounts = getVisibleAccounts();
 
     if (count) {
@@ -844,6 +1468,8 @@
       cards.appendChild(createAccountCard(account));
     });
     cards.hidden = false;
+    restoreThreadListViewports(cards, threadListViewports);
+    window.scrollTo(pageScroll.left, pageScroll.top);
   }
 
   async function checkReadiness() {
@@ -1081,6 +1707,14 @@
       return;
     }
 
+    if (isSplitPaneActive()) {
+      const prefix = `${account.accountId}:`;
+
+      Array.from(expandedThreads)
+        .filter((candidate) => candidate.startsWith(prefix))
+        .forEach((candidate) => expandedThreads.delete(candidate));
+    }
+
     expandedThreads.add(key);
 
     if (previews.has(key)) {
@@ -1154,6 +1788,280 @@
     });
   }
 
+  function findAccountForLinkedThread(source) {
+    const accountEmail = String(source?.accountEmail || "")
+      .trim()
+      .toLowerCase();
+
+    return (
+      cachedState.accounts.find(
+        (account) =>
+          accountEmail &&
+          String(account.email || "").toLowerCase() === accountEmail
+      ) ||
+      cachedState.accounts.find(
+        (account) => account.accountId === source?.accountId
+      ) ||
+      null
+    );
+  }
+
+  function createLinkedThreadSummary(
+    account,
+    source,
+    messages = [],
+    currentThread = null
+  ) {
+    const latestMessage = messages[messages.length - 1] || null;
+
+    return {
+      accountId: account.accountId,
+      threadId: source.threadId,
+      latestMessageId:
+        latestMessage?.id ||
+        source.latestMessageId ||
+        currentThread?.latestMessageId ||
+        "",
+      senderName:
+        latestMessage?.senderName ||
+        source.senderName ||
+        currentThread?.senderName ||
+        "",
+      senderEmail:
+        latestMessage?.senderEmail ||
+        source.senderEmail ||
+        currentThread?.senderEmail ||
+        "",
+      subject:
+        latestMessage?.subject ||
+        source.subject ||
+        currentThread?.subject ||
+        t("gmailNoSubject"),
+      snippet: currentThread?.snippet || "",
+      timestamp:
+        latestMessage?.timestamp ||
+        currentThread?.timestamp ||
+        Date.parse(source.capturedAt || "") ||
+        0,
+      unread: messages.length
+        ? messages.some((message) => message.unread)
+        : Boolean(currentThread?.unread),
+      starred: latestMessage
+        ? latestMessage.starred === true
+        : Boolean(currentThread?.starred),
+      inbox: latestMessage
+        ? latestMessage.inbox === true
+        : Boolean(currentThread?.inbox),
+      messageCount: Math.max(
+        1,
+        messages.length,
+        Number(currentThread?.messageCount) || 0
+      )
+    };
+  }
+
+  function upsertLinkedThread(accountId, thread) {
+    const currentResult = threadResults.get(accountId) || {
+      threads: [],
+      loading: false,
+      error: false,
+      stale: false
+    };
+    const currentThreads = Array.isArray(currentResult.threads)
+      ? currentResult.threads
+      : [];
+    const existingIndex = currentThreads.findIndex(
+      (candidate) => candidate.threadId === thread.threadId
+    );
+    const nextThreads = [...currentThreads];
+
+    if (existingIndex >= 0) {
+      nextThreads[existingIndex] = thread;
+    } else {
+      nextThreads.unshift(thread);
+    }
+
+    threadResults.set(accountId, {
+      ...currentResult,
+      threads: nextThreads,
+      loading: false,
+      error: false
+    });
+  }
+
+  async function focusDisplayedThread(accountId, threadId) {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const accountCard = document.querySelector(
+      `[data-gmail-account-id="${CSS.escape(accountId)}"]`
+    );
+
+    if (!accountCard) {
+      return false;
+    }
+
+    const target = isSplitPaneActive()
+      ? accountCard.querySelector(".gmail-reading-pane")
+      : accountCard.querySelector(
+          `[data-gmail-thread-id="${CSS.escape(threadId)}"]`
+        );
+
+    if (!target) {
+      return false;
+    }
+
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+    target.classList.add("is-targeted");
+    (
+      target.matches(".gmail-reading-pane")
+        ? target
+        : target.querySelector(".gmail-thread-summary")
+    )?.focus({ preventScroll: true });
+    setTimeout(() => target.classList.remove("is-targeted"), 1800);
+    return true;
+  }
+
+  async function showLinkedThread(source) {
+    if (!isWidgetVisible()) {
+      return {
+        ok: false,
+        reason: "widget_hidden",
+        messageKey: "todoEmailTaskShowWidgetHidden"
+      };
+    }
+
+    const account = findAccountForLinkedThread(source);
+
+    if (!account) {
+      return {
+        ok: false,
+        reason: "account_disconnected",
+        messageKey: "todoEmailTaskShowDisconnected"
+      };
+    }
+
+    if (account.preferences?.visible === false) {
+      return {
+        ok: false,
+        reason: "account_hidden",
+        messageKey: "todoEmailTaskShowAccountHidden"
+      };
+    }
+
+    if (account.reconnectRequired) {
+      return {
+        ok: false,
+        reason: "reconnect_required",
+        messageKey: "todoEmailTaskShowReconnect"
+      };
+    }
+
+    const threadId = String(source?.threadId || "");
+
+    if (!threadId) {
+      return {
+        ok: false,
+        reason: "thread_missing",
+        messageKey: "todoEmailTaskShowFailed"
+      };
+    }
+
+    account.preferences = {
+      ...account.preferences,
+      expanded: true
+    };
+    const currentThread =
+      threadResults
+        .get(account.accountId)
+        ?.threads?.find((thread) => thread.threadId === threadId) ||
+      null;
+    const thread = createLinkedThreadSummary(
+      account,
+      source,
+      [],
+      currentThread
+    );
+    const key = threadKey(account.accountId, threadId);
+    const cachedPreview = previews.get(key);
+    upsertLinkedThread(account.accountId, thread);
+
+    if (isSplitPaneActive()) {
+      const prefix = `${account.accountId}:`;
+
+      Array.from(expandedThreads)
+        .filter((candidate) => candidate.startsWith(prefix))
+        .forEach((candidate) => expandedThreads.delete(candidate));
+    }
+
+    expandedThreads.add(key);
+
+    if (
+      cachedPreview?.mode === "thread" &&
+      !cachedPreview.loading &&
+      !cachedPreview.error
+    ) {
+      render();
+      await focusDisplayedThread(account.accountId, threadId);
+      return {
+        ok: true,
+        accountId: account.accountId,
+        threadId,
+        cached: true
+      };
+    }
+
+    previews.set(key, {
+      mode: "thread",
+      loading: true,
+      messages: []
+    });
+    render();
+    await focusDisplayedThread(account.accountId, threadId);
+    const response = await sendGmailMessage({
+      type: "tabOutGmail:getThread",
+      accountId: account.accountId,
+      threadId
+    });
+
+    if (!response.ok) {
+      previews.set(key, {
+        mode: "thread",
+        loading: false,
+        messages: [],
+        error: true,
+        messageKey: response.messageKey
+      });
+      render();
+      await focusDisplayedThread(account.accountId, threadId);
+      return {
+        ok: false,
+        displayed: true,
+        reason: response.code || "thread_load_failed",
+        messageKey: "todoEmailTaskShowFailed"
+      };
+    }
+
+    const messages = Array.isArray(response.thread?.messages)
+      ? response.thread.messages
+      : [];
+    upsertLinkedThread(
+      account.accountId,
+      createLinkedThreadSummary(account, source, messages, thread)
+    );
+    previews.set(key, {
+      mode: "thread",
+      loading: false,
+      messages
+    });
+    render();
+    await focusDisplayedThread(account.accountId, threadId);
+    return {
+      ok: true,
+      accountId: account.accountId,
+      threadId,
+      cached: false
+    };
+  }
+
   function focusHashTarget() {
     const match = location.hash.match(/^#gmail=([^&]+)/);
 
@@ -1170,12 +2078,51 @@
     setTimeout(() => card?.classList.remove("is-targeted"), 1800);
   }
 
+  function setupResponsiveReadingPane() {
+    const widget = getWidget();
+
+    if (!widget) {
+      return;
+    }
+
+    splitPaneAvailable = widget.clientWidth >= SPLIT_PANE_MIN_WIDTH;
+
+    if (typeof ResizeObserver !== "function") {
+      return;
+    }
+
+    widgetResizeObserver?.disconnect();
+    widgetResizeObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect?.width || widget.clientWidth;
+      const nextAvailable = width >= SPLIT_PANE_MIN_WIDTH;
+
+      if (nextAvailable === splitPaneAvailable) {
+        return;
+      }
+
+      splitPaneAvailable = nextAvailable;
+      render();
+    });
+    widgetResizeObserver.observe(widget);
+  }
+
   function setupWidgetEvents() {
     document.getElementById("gmailRefreshBtn")?.addEventListener(
       "click",
       () => void refresh({ force: true })
     );
     document.addEventListener("keydown", (event) => {
+      if (
+        event.key === "Escape" &&
+        activeTodoComposer &&
+        event.target instanceof Element &&
+        event.target.closest("#gmailWidget")
+      ) {
+        activeTodoComposer = null;
+        render();
+        return;
+      }
+
       if (
         event.key === "Escape" &&
         expandedThreads.size &&
@@ -1192,6 +2139,13 @@
       }
     });
     window.addEventListener("hashchange", focusHashTarget);
+    document.addEventListener("tabout:settings-applied", () => {
+      if (getTodoSettings().emailTaskIntegrationEnabled === false) {
+        activeTodoComposer = null;
+      }
+
+      render();
+    });
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== "local") {
         return;
@@ -1203,6 +2157,11 @@
         changes[SETTINGS_KEY]
       ) {
         void refresh({ force: false });
+      } else if (
+        todoService &&
+        changes[todoService.STORAGE_KEY]
+      ) {
+        void refreshTodoTaskLinks();
       } else if (changes.tabOutLanguage) {
         render();
       }
@@ -1217,11 +2176,13 @@
 
   async function initialize() {
     setupWidgetEvents();
+    setupResponsiveReadingPane();
 
     if (globalObject.TabOutDashboardRuntime?.ready) {
       await globalObject.TabOutDashboardRuntime.ready;
     }
 
+    await refreshTodoTaskLinks({ renderAfter: false });
     await checkReadiness();
     await refresh({ force: false });
   }
@@ -1238,6 +2199,7 @@
     refreshState,
     render,
     performThreadAction,
+    showLinkedThread,
     getCachedState: () => clone(cachedState)
   });
 

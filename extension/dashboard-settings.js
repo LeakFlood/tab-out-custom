@@ -1,5 +1,5 @@
 (function exposeTabOutDashboardSettings(globalObject) {
-  const SETTINGS_VERSION = 6;
+  const SETTINGS_VERSION = 10;
   const STORAGE_KEY = "tabOutDashboardSettings";
   const GRID_COLUMNS = 12;
   const DEFAULT_CONTAINER_PADDING = 64;
@@ -16,6 +16,7 @@
     "sessions",
     "unassigned",
     "savedLater",
+    "todo",
     "gmail",
     "stats"
   ]);
@@ -38,6 +39,7 @@
     sessions: 4,
     unassigned: 4,
     savedLater: 3,
+    todo: 4,
     gmail: 4,
     stats: 2
   });
@@ -76,7 +78,10 @@
 
   const DEFAULT_VISIBILITY = Object.freeze(
     Object.fromEntries(
-      MODULE_IDS.map((moduleId) => [moduleId, moduleId !== "gmail"])
+      MODULE_IDS.map((moduleId) => [
+        moduleId,
+        !["gmail", "todo"].includes(moduleId)
+      ])
     )
   );
 
@@ -87,12 +92,69 @@
     visibleTabCount: 2
   });
 
+  const DEFAULT_APPEARANCE = Object.freeze({
+    theme: "dark"
+  });
+
+  const GMAIL_VIEW_PRESETS = Object.freeze({
+    scan: Object.freeze({
+      preset: "scan",
+      density: "compact",
+      textSize: "small",
+      snippetLines: 1,
+      unreadEmphasis: "strong",
+      conversationDisplay: "inline",
+      readingWidth: "normal",
+      messageSpacing: "compact"
+    }),
+    balanced: Object.freeze({
+      preset: "balanced",
+      density: "comfortable",
+      textSize: "medium",
+      snippetLines: 2,
+      unreadEmphasis: "strong",
+      conversationDisplay: "split",
+      readingWidth: "normal",
+      messageSpacing: "comfortable"
+    }),
+    reading: Object.freeze({
+      preset: "reading",
+      density: "spacious",
+      textSize: "large",
+      snippetLines: 3,
+      unreadEmphasis: "strong",
+      conversationDisplay: "split",
+      readingWidth: "focused",
+      messageSpacing: "spacious"
+    })
+  });
+
+  const DEFAULT_GMAIL_VIEW = GMAIL_VIEW_PRESETS.balanced;
+
   const DEFAULT_VIEWS = Object.freeze({
     shortcuts: "tiles",
     sessions: "cards",
     unassigned: DEFAULT_UNASSIGNED_VIEW,
     savedLater: "panel",
-    gmail: "comfortable"
+    todo: "comfortable",
+    gmail: DEFAULT_GMAIL_VIEW
+  });
+
+  const DEFAULT_TODO_COLORS = Object.freeze({
+    overdue: "#dc2626",
+    today: "#f97316",
+    soon: "#d97706",
+    future: "#2563eb"
+  });
+
+  const DEFAULT_TODO_SETTINGS = Object.freeze({
+    completionAction: "archive",
+    emailTaskIntegrationEnabled: true,
+    emailCompletionAction: "keep",
+    showFullTitles: false,
+    deadlineColorsEnabled: true,
+    dueSoonDays: 3,
+    colors: DEFAULT_TODO_COLORS
   });
 
   const GMAIL_POLL_INTERVALS = Object.freeze([1, 5, 15, 30]);
@@ -127,6 +189,7 @@
 
   const DEFAULT_GMAIL_INTEGRATION = Object.freeze({
     badgeMode: "openTabs",
+    maskAccountAddresses: false,
     accountDefaults: DEFAULT_GMAIL_ACCOUNT_PREFERENCES,
     accountPreferences: Object.freeze({})
   });
@@ -214,6 +277,13 @@
       column: 3,
       row: 2,
       columnSpan: 9,
+      order: 0
+    }),
+    todo: Object.freeze({
+      region: "content",
+      column: 0,
+      row: 3,
+      columnSpan: 12,
       order: 0
     }),
     stats: Object.freeze({
@@ -366,6 +436,13 @@
             columnSpan: 8,
             order: 0
           }),
+          todo: Object.freeze({
+            region: "content",
+            column: 0,
+            row: 3,
+            columnSpan: 12,
+            order: 0
+          }),
           stats: Object.freeze({
             region: "content",
             column: 0,
@@ -385,7 +462,8 @@
           visibleTabCount: 2
         }),
         savedLater: "list",
-        gmail: "compact"
+        todo: "compact",
+        gmail: GMAIL_VIEW_PRESETS.scan
       })
     })
   });
@@ -638,6 +716,83 @@
     };
   }
 
+  function normalizeGmailView(value, fallback = DEFAULT_GMAIL_VIEW) {
+    if (value === "compact") {
+      return clone(GMAIL_VIEW_PRESETS.scan);
+    }
+
+    if (value === "comfortable") {
+      return clone(GMAIL_VIEW_PRESETS.balanced);
+    }
+
+    if (!value || typeof value !== "object") {
+      return clone(
+        fallback && typeof fallback === "object"
+          ? fallback
+          : DEFAULT_GMAIL_VIEW
+      );
+    }
+
+    const presetId = String(value?.preset || "");
+
+    if (Object.prototype.hasOwnProperty.call(GMAIL_VIEW_PRESETS, presetId)) {
+      return clone(GMAIL_VIEW_PRESETS[presetId]);
+    }
+
+    const fallbackView =
+      fallback && typeof fallback === "object"
+        ? fallback
+        : DEFAULT_GMAIL_VIEW;
+    const requestedSnippetLines = Number(value?.snippetLines);
+
+    return {
+      preset: "custom",
+      density: normalizeChoice(
+        value?.density,
+        ["compact", "comfortable", "spacious"],
+        fallbackView.density
+      ),
+      textSize: normalizeChoice(
+        value?.textSize,
+        ["small", "medium", "large"],
+        fallbackView.textSize
+      ),
+      snippetLines: [0, 1, 2, 3].includes(requestedSnippetLines)
+        ? requestedSnippetLines
+        : fallbackView.snippetLines,
+      unreadEmphasis: normalizeChoice(
+        value?.unreadEmphasis,
+        ["subtle", "strong"],
+        fallbackView.unreadEmphasis
+      ),
+      conversationDisplay: normalizeChoice(
+        value?.conversationDisplay,
+        ["inline", "split"],
+        fallbackView.conversationDisplay
+      ),
+      readingWidth: normalizeChoice(
+        value?.readingWidth,
+        ["focused", "normal", "wide"],
+        fallbackView.readingWidth
+      ),
+      messageSpacing: normalizeChoice(
+        value?.messageSpacing,
+        ["compact", "comfortable", "spacious"],
+        fallbackView.messageSpacing
+      )
+    };
+  }
+
+  function normalizeAppearance(value, fallback = DEFAULT_APPEARANCE) {
+    return {
+      theme: normalizeChoice(
+        value?.theme,
+        ["dark", "light"],
+        fallback?.theme || DEFAULT_APPEARANCE.theme
+      )
+    };
+  }
+
   function normalizeViews(value, fallback = DEFAULT_VIEWS) {
     return {
       shortcuts: normalizeChoice(
@@ -659,9 +814,13 @@
         ["panel", "list"],
         fallback.savedLater
       ),
-      gmail: normalizeChoice(
-        value?.gmail,
+      todo: normalizeChoice(
+        value?.todo,
         ["comfortable", "compact"],
+        fallback.todo || DEFAULT_VIEWS.todo
+      ),
+      gmail: normalizeGmailView(
+        value?.gmail,
         fallback.gmail || DEFAULT_VIEWS.gmail
       )
     };
@@ -786,6 +945,10 @@
         GMAIL_BADGE_MODES,
         fallback?.badgeMode || DEFAULT_GMAIL_INTEGRATION.badgeMode
       ),
+      maskAccountAddresses:
+        typeof value?.maskAccountAddresses === "boolean"
+          ? value.maskAccountAddresses
+          : fallback?.maskAccountAddresses === true,
       accountDefaults: normalizeGmailAccountPreferences(
         legacyPreferences,
         fallbackDefaults
@@ -799,6 +962,52 @@
       gmail: normalizeGmailIntegration(
         value?.gmail,
         fallback.gmail || DEFAULT_GMAIL_INTEGRATION
+      )
+    };
+  }
+
+  function normalizeTodoColor(value, fallback) {
+    const color = String(value || "").trim();
+    return /^#[0-9a-f]{6}$/i.test(color)
+      ? color.toLowerCase()
+      : fallback;
+  }
+
+  function normalizeTodoSettings(value, fallback = DEFAULT_TODO_SETTINGS) {
+    const requestedDueSoonDays = Number(value?.dueSoonDays);
+    const dueSoonDays = Number.isFinite(requestedDueSoonDays)
+      ? Math.round(clamp(requestedDueSoonDays, 1, 30))
+      : fallback.dueSoonDays;
+
+    return {
+      completionAction: normalizeChoice(
+        value?.completionAction,
+        ["archive", "keepCompleted", "delete"],
+        fallback.completionAction
+      ),
+      emailTaskIntegrationEnabled:
+        value?.emailTaskIntegrationEnabled !== false,
+      emailCompletionAction: normalizeChoice(
+        value?.emailCompletionAction,
+        ["keep", "markRead", "archive"],
+        fallback.emailCompletionAction ||
+          DEFAULT_TODO_SETTINGS.emailCompletionAction
+      ),
+      showFullTitles:
+        typeof value?.showFullTitles === "boolean"
+          ? value.showFullTitles
+          : fallback.showFullTitles,
+      deadlineColorsEnabled:
+        value?.deadlineColorsEnabled !== false,
+      dueSoonDays,
+      colors: Object.fromEntries(
+        Object.keys(DEFAULT_TODO_COLORS).map((colorId) => [
+          colorId,
+          normalizeTodoColor(
+            value?.colors?.[colorId],
+            fallback.colors?.[colorId] || DEFAULT_TODO_COLORS[colorId]
+          )
+        ])
       )
     };
   }
@@ -906,6 +1115,7 @@
     return {
       version: SETTINGS_VERSION,
       preset: PRESETS[presetId] ? presetId : "original",
+      appearance: clone(DEFAULT_APPEARANCE),
       layout: {
         mode: preset.layout.mode,
         containerPadding: DEFAULT_CONTAINER_PADDING,
@@ -915,6 +1125,7 @@
       views: clone(preset.views),
       behavior: clone(DEFAULT_BEHAVIOR),
       integrations: clone(DEFAULT_INTEGRATIONS),
+      todo: clone(DEFAULT_TODO_SETTINGS),
       keyboard: clone(DEFAULT_KEYBOARD)
     };
   }
@@ -949,6 +1160,7 @@
     return {
       version: SETTINGS_VERSION,
       preset: originalOptions ? "original" : "custom",
+      appearance: clone(DEFAULT_APPEARANCE),
       layout: {
         mode: "original",
         containerPadding: DEFAULT_CONTAINER_PADDING,
@@ -958,6 +1170,7 @@
       views,
       behavior: clone(DEFAULT_BEHAVIOR),
       integrations: clone(DEFAULT_INTEGRATIONS),
+      todo: clone(DEFAULT_TODO_SETTINGS),
       keyboard: normalizeKeyboard(value?.keyboard)
     };
   }
@@ -976,6 +1189,7 @@
     const settings = {
       version: SETTINGS_VERSION,
       preset: requestedPreset,
+      appearance: normalizeAppearance(value?.appearance),
       layout: {
         mode: normalizeChoice(
           value?.layout?.mode,
@@ -996,6 +1210,7 @@
       },
       views: normalizeViews(value?.views, fallbackPreset.views),
       integrations: normalizeIntegrations(value?.integrations),
+      todo: normalizeTodoSettings(value?.todo),
       behavior: {
         includeSuspendedTabs:
           value?.behavior?.includeSuspendedTabs !== false,
@@ -1047,8 +1262,10 @@
       if (
         value.layout ||
         value.views ||
+        value.appearance ||
         value.integrations ||
-        value.behavior
+        value.behavior ||
+        value.todo
       ) {
         return migrateVersionTwoSettings(value);
       }
@@ -1067,10 +1284,21 @@
         : "original"
     );
     next.behavior = current.behavior;
+    next.appearance = current.appearance;
     next.integrations = current.integrations;
+    next.todo = current.todo;
     next.keyboard = current.keyboard;
     next.layout.containerPadding = current.layout.containerPadding;
     return normalizeSettings(next);
+  }
+
+  function applyGmailViewPreset(value, presetId) {
+    const settings = normalizeSettings(value);
+    const preset = GMAIL_VIEW_PRESETS[presetId] ||
+      GMAIL_VIEW_PRESETS.balanced;
+    settings.views.gmail = clone(preset);
+    settings.preset = "custom";
+    return normalizeSettings(settings);
   }
 
   function updateModulePlacement(value, moduleId, updates) {
@@ -1298,6 +1526,9 @@
     DEFAULT_KEYBOARD,
     DEFAULT_VISIBILITY,
     DEFAULT_UNASSIGNED_VIEW,
+    DEFAULT_APPEARANCE,
+    GMAIL_VIEW_PRESETS,
+    DEFAULT_GMAIL_VIEW,
     DEFAULT_VIEWS,
     DEFAULT_BEHAVIOR,
     GMAIL_POLL_INTERVALS,
@@ -1306,6 +1537,8 @@
     DEFAULT_GMAIL_ACCOUNT_PREFERENCES,
     DEFAULT_GMAIL_INTEGRATION,
     DEFAULT_INTEGRATIONS,
+    DEFAULT_TODO_COLORS,
+    DEFAULT_TODO_SETTINGS,
     ORIGINAL_PLACEMENTS,
     clone,
     normalizeBinding,
@@ -1313,6 +1546,7 @@
     normalizePlacements,
     getDefaultSettings,
     applyPreset,
+    applyGmailViewPreset,
     updateModulePlacement,
     resizeModule,
     nudgeModule,

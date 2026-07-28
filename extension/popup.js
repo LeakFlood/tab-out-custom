@@ -1,4 +1,5 @@
 const POPUP_VIEW_KEY = "tabOutPopupLastView";
+const DASHBOARD_SETTINGS_KEY = "tabOutDashboardSettings";
 const POPUP_TRANSLATIONS = {
   fr: {
     titleCurrent: "Gérer l’onglet actuel",
@@ -104,6 +105,19 @@ const pendingDestinations = new Set();
 const gmailThreads = new Map();
 const gmailPreviews = new Map();
 const pendingGmailActions = new Set();
+
+function applyPopupPreferences(value) {
+  document.documentElement.dataset.theme =
+    value?.appearance?.theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.gmailAccountMask = String(
+    value?.integrations?.gmail?.maskAccountAddresses === true
+  );
+}
+
+async function loadPopupPreferences() {
+  const stored = await chrome.storage.local.get(DASHBOARD_SETTINGS_KEY);
+  applyPopupPreferences(stored[DASHBOARD_SETTINGS_KEY]);
+}
 
 function popupText(key, replacements = {}) {
   let value = POPUP_TRANSLATIONS[popupLanguage]?.[key] ||
@@ -488,6 +502,7 @@ function createMailAccount(account) {
   const header = document.createElement("header");
   const identity = document.createElement("span");
   const email = document.createElement("strong");
+  email.className = "mail-account-email";
   const unread = document.createElement("small");
   email.textContent = account.email;
   unread.textContent = popupText("gmailUnread", {
@@ -816,7 +831,8 @@ async function initializePopup() {
   const [stored, target] = await Promise.all([
     chrome.storage.session.get(POPUP_VIEW_KEY),
     sendPopupMessage({ type: "tabOutGmail:getPopupTarget" }),
-    loadPopupContext()
+    loadPopupContext(),
+    loadPopupPreferences()
   ]);
   gmailTarget = target.ok ? target.target : null;
   setPopupView(
@@ -828,5 +844,16 @@ async function initializePopup() {
     { persist: false }
   );
 }
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (
+    areaName === "local" &&
+    changes[DASHBOARD_SETTINGS_KEY]
+  ) {
+    applyPopupPreferences(
+      changes[DASHBOARD_SETTINGS_KEY].newValue
+    );
+  }
+});
 
 void initializePopup();

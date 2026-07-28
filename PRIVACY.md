@@ -4,7 +4,7 @@ Tab Out Custom is a local-first browser extension. The optional Gmail notifier i
 
 ## Data kept in the browser
 
-Normal dashboard data remains in `chrome.storage.local`, `chrome.storage.session`, or `localStorage`, including shortcuts, sessions, layout settings, language, weather cache, and saved-for-later tabs.
+Normal dashboard data remains in `chrome.storage.local`, `chrome.storage.session`, or `localStorage`, including shortcuts, sessions, layout settings, language, weather cache, saved-for-later tabs, TODO tasks, the bounded TODO-only undo history, and the bounded Unassigned tabs removal history used to restore explicitly closed tabs.
 
 When Gmail is enabled, the browser stores:
 

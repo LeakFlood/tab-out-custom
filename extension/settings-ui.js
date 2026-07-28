@@ -15,6 +15,7 @@
     sessions: "moduleSessions",
     unassigned: "moduleUnassigned",
     savedLater: "moduleSavedLater",
+    todo: "moduleTodo",
     gmail: "moduleGmail",
     stats: "moduleStats"
   };
@@ -29,6 +30,7 @@
     sessions: "savedSessionsSection",
     unassigned: "openTabsSection",
     savedLater: "deferredColumn",
+    todo: "todoWidget",
     gmail: "gmailWidget",
     stats: "footerStats"
   };
@@ -80,7 +82,7 @@
         ["list", "styleList"]
       ]
     },
-    gmail: {
+    todo: {
       options: [
         ["comfortable", "densityComfortable"],
         ["compact", "styleCompact"]
@@ -482,6 +484,7 @@
     const layoutMode = settings.layout.mode;
     const languagePlacement = settings.layout.placements.language;
     const unassignedView = settings.views.unassigned;
+    const gmailView = settings.views.gmail;
     const previousVisibleTabCount =
       document.documentElement.dataset.unassignedVisibleTabCount;
     const previousSessionInlineTabs =
@@ -492,6 +495,10 @@
       settings.views.shortcuts === "compact" &&
       settings.views.sessions === "list";
 
+    document.documentElement.dataset.theme = settings.appearance.theme;
+    document.documentElement.dataset.gmailAccountMask = String(
+      settings.integrations.gmail.maskAccountAddresses === true
+    );
     document.documentElement.dataset.dashboardLayoutMode = layoutMode;
     document.documentElement.dataset.dashboardDensity =
       compactDensity ? "compact" : "standard";
@@ -546,7 +553,23 @@
       `${unassignedView.minColumnWidth}px`
     );
     document.documentElement.dataset.savedLaterView = settings.views.savedLater;
-    document.documentElement.dataset.gmailView = settings.views.gmail;
+    document.documentElement.dataset.todoView = settings.views.todo;
+    document.documentElement.dataset.todoFullTitles = String(
+      settings.todo.showFullTitles === true
+    );
+    document.documentElement.dataset.gmailView = gmailView.density;
+    document.documentElement.dataset.gmailTextSize = gmailView.textSize;
+    document.documentElement.dataset.gmailSnippetLines = String(
+      gmailView.snippetLines
+    );
+    document.documentElement.dataset.gmailUnreadEmphasis =
+      gmailView.unreadEmphasis;
+    document.documentElement.dataset.gmailConversationDisplay =
+      gmailView.conversationDisplay;
+    document.documentElement.dataset.gmailReadingWidth =
+      gmailView.readingWidth;
+    document.documentElement.dataset.gmailMessageSpacing =
+      gmailView.messageSpacing;
 
     if (
       previousVisibleTabCount &&
@@ -591,6 +614,12 @@
     if (syncWeather) {
       syncWeatherModule(settings.layout.visibility.weather);
     }
+
+    document.dispatchEvent(
+      new CustomEvent("tabout:settings-applied", {
+        detail: { settings: clone(settings) }
+      })
+    );
 
     return settings;
   }
@@ -819,6 +848,171 @@
     return panel;
   }
 
+  function createGmailDisplaySelect(setting, value, options, labelKey) {
+    const select = document.createElement("select");
+    select.dataset.settingsGmailView = setting;
+    select.setAttribute("aria-label", t(labelKey));
+
+    options.forEach(([optionValue, optionLabelKey]) => {
+      const option = document.createElement("option");
+      option.value = String(optionValue);
+      option.textContent = t(optionLabelKey);
+      option.selected = value === optionValue;
+      select.appendChild(option);
+    });
+
+    return select;
+  }
+
+  function createGmailDisplayOptionRow(labelKey, control) {
+    const row = document.createElement("label");
+    row.className = "settings-gmail-display-option";
+    const label = document.createElement("span");
+    label.textContent = t(labelKey);
+    row.append(label, control);
+    return row;
+  }
+
+  function createGmailViewOptions() {
+    const view = settingsDraft.views.gmail;
+    const panel = document.createElement("div");
+    panel.className = "settings-gmail-display-options";
+    const heading = document.createElement("div");
+    heading.className = "settings-gmail-display-heading";
+    const headingText = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = t("gmailDisplayOptions");
+    const hint = document.createElement("span");
+    hint.textContent = t(
+      view.preset === "scan"
+        ? "gmailPresetScanHint"
+        : view.preset === "reading"
+          ? "gmailPresetReadingHint"
+          : view.preset === "balanced"
+            ? "gmailPresetBalancedHint"
+            : "gmailPresetCustomHint"
+    );
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "settings-text-btn";
+    reset.dataset.action = "reset-gmail-display";
+    reset.textContent = t("gmailResetDisplay");
+    headingText.append(title, hint);
+    heading.append(headingText, reset);
+
+    const options = document.createElement("div");
+    options.className = "settings-gmail-display-grid";
+    options.append(
+      createGmailDisplayOptionRow(
+        "gmailDisplayPreset",
+        createGmailDisplaySelect(
+          "preset",
+          view.preset,
+          [
+            ["scan", "gmailPresetScan"],
+            ["balanced", "gmailPresetBalanced"],
+            ["reading", "gmailPresetReading"],
+            ["custom", "presetCustom"]
+          ],
+          "gmailDisplayPreset"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailListDensity",
+        createGmailDisplaySelect(
+          "density",
+          view.density,
+          [
+            ["compact", "gmailDensityCompact"],
+            ["comfortable", "gmailDensityComfortable"],
+            ["spacious", "gmailDensitySpacious"]
+          ],
+          "gmailListDensity"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailTextSize",
+        createGmailDisplaySelect(
+          "textSize",
+          view.textSize,
+          [
+            ["small", "gmailTextSmall"],
+            ["medium", "gmailTextMedium"],
+            ["large", "gmailTextLarge"]
+          ],
+          "gmailTextSize"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailSnippetLines",
+        createGmailDisplaySelect(
+          "snippetLines",
+          view.snippetLines,
+          [
+            [0, "gmailSnippetHidden"],
+            [1, "gmailSnippetOne"],
+            [2, "gmailSnippetTwo"],
+            [3, "gmailSnippetThree"]
+          ],
+          "gmailSnippetLines"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailUnreadEmphasis",
+        createGmailDisplaySelect(
+          "unreadEmphasis",
+          view.unreadEmphasis,
+          [
+            ["subtle", "gmailUnreadSubtle"],
+            ["strong", "gmailUnreadStrong"]
+          ],
+          "gmailUnreadEmphasis"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailConversationDisplay",
+        createGmailDisplaySelect(
+          "conversationDisplay",
+          view.conversationDisplay,
+          [
+            ["inline", "gmailDisplayInline"],
+            ["split", "gmailDisplaySplit"]
+          ],
+          "gmailConversationDisplay"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailReadingWidth",
+        createGmailDisplaySelect(
+          "readingWidth",
+          view.readingWidth,
+          [
+            ["focused", "gmailReadingFocused"],
+            ["normal", "gmailReadingNormal"],
+            ["wide", "gmailReadingWide"]
+          ],
+          "gmailReadingWidth"
+        )
+      ),
+      createGmailDisplayOptionRow(
+        "gmailMessageSpacing",
+        createGmailDisplaySelect(
+          "messageSpacing",
+          view.messageSpacing,
+          [
+            ["compact", "gmailSpacingCompact"],
+            ["comfortable", "gmailSpacingComfortable"],
+            ["spacious", "gmailSpacingSpacious"]
+          ],
+          "gmailMessageSpacing"
+        )
+      )
+    );
+
+    panel.append(heading, options);
+    return panel;
+  }
+
   function createVisibilitySwitch(moduleId) {
     const label = document.createElement("label");
     label.className = "settings-switch";
@@ -951,6 +1145,10 @@
 
     if (moduleId === "unassigned") {
       card.appendChild(createUnassignedViewOptions());
+    }
+
+    if (moduleId === "gmail") {
+      card.appendChild(createGmailViewOptions());
     }
 
     return card;
@@ -1496,6 +1694,7 @@
     const identityMeta = document.createElement("div");
     const sourceBadge = document.createElement("span");
     const actions = document.createElement("div");
+    email.className = "settings-gmail-account-email";
     email.textContent = account.email;
     status.textContent = account.reconnectRequired
       ? t("gmailStatusReconnectRequired")
@@ -1718,6 +1917,9 @@
       "settingsGmailRemoveSharedClient"
     );
     const badgeMode = document.getElementById("settingsGmailBadgeMode");
+    const maskAccounts = document.getElementById(
+      "settingsGmailMaskAccounts"
+    );
     const busy =
       state.status === "connecting" || state.status === "disconnecting";
     const statusKeys = {
@@ -1791,6 +1993,11 @@
       removeSharedClient.disabled = gmailOAuthBusy;
     }
 
+    if (maskAccounts) {
+      maskAccounts.checked =
+        settingsDraft.integrations.gmail.maskAccountAddresses === true;
+    }
+
     if (authNotice && authTitle && authMessage) {
       const authReady = state.authStatus === "ready";
       authNotice.hidden = authReady;
@@ -1828,6 +2035,79 @@
     }
   }
 
+  function renderTodoSettings() {
+    if (!settingsDraft) {
+      return;
+    }
+
+    const completionAction = document.getElementById(
+      "settingsTodoCompletionAction"
+    );
+    const emailIntegrationEnabled = document.getElementById(
+      "settingsTodoEmailIntegrationEnabled"
+    );
+    const emailCompletionAction = document.getElementById(
+      "settingsTodoEmailCompletionAction"
+    );
+    const colorsEnabled = document.getElementById(
+      "settingsTodoDeadlineColorsEnabled"
+    );
+    const showFullTitles = document.getElementById(
+      "settingsTodoShowFullTitles"
+    );
+    const dueSoonDays = document.getElementById(
+      "settingsTodoDueSoonDays"
+    );
+    const dueSoonOutput = document.getElementById(
+      "settingsTodoDueSoonDaysOutput"
+    );
+
+    if (completionAction) {
+      completionAction.value = settingsDraft.todo.completionAction;
+    }
+
+    if (emailIntegrationEnabled) {
+      emailIntegrationEnabled.checked =
+        settingsDraft.todo.emailTaskIntegrationEnabled !== false;
+    }
+
+    if (emailCompletionAction) {
+      emailCompletionAction.value =
+        settingsDraft.todo.emailCompletionAction;
+      emailCompletionAction.disabled =
+        settingsDraft.todo.emailTaskIntegrationEnabled === false;
+    }
+
+    if (colorsEnabled) {
+      colorsEnabled.checked =
+        settingsDraft.todo.deadlineColorsEnabled !== false;
+    }
+
+    if (showFullTitles) {
+      showFullTitles.checked =
+        settingsDraft.todo.showFullTitles === true;
+    }
+
+    if (dueSoonDays) {
+      dueSoonDays.value = String(settingsDraft.todo.dueSoonDays);
+    }
+
+    if (dueSoonOutput) {
+      dueSoonOutput.textContent = t("todoDueSoonDaysValue", {
+        count: settingsDraft.todo.dueSoonDays
+      });
+    }
+
+    document
+      .querySelectorAll("[data-settings-todo-color]")
+      .forEach((input) => {
+        input.value =
+          settingsDraft.todo.colors[input.dataset.settingsTodoColor];
+        input.disabled =
+          settingsDraft.todo.deadlineColorsEnabled === false;
+      });
+  }
+
   function renderSettingsDrawer() {
     if (!settingsDraft) {
       return;
@@ -1839,11 +2119,17 @@
     renderLayoutPreview();
     renderKeyboardList();
     renderGmailSettings();
+    renderTodoSettings();
 
     const languageSelect = document.getElementById("settingsLanguageSelect");
+    const themeSelect = document.getElementById("settingsThemeSelect");
 
     if (languageSelect) {
       languageSelect.value = settingsDraftLanguage;
+    }
+
+    if (themeSelect) {
+      themeSelect.value = settingsDraft.appearance.theme;
     }
 
     document
@@ -1890,7 +2176,8 @@
     await Promise.all([
       typeof renderDashboard === "function" ? renderDashboard() : null,
       typeof renderSavedSessions === "function" ? renderSavedSessions() : null,
-      globalThis.TabOutGmailWidget?.refresh?.({ force: false })
+      globalThis.TabOutGmailWidget?.refresh?.({ force: false }),
+      globalThis.TabOutTodoWidget?.refresh?.()
     ]);
 
     if (isModuleVisible("weather")) {
@@ -3300,6 +3587,24 @@
       return;
     }
 
+    if (action === "reset-todo-colors") {
+      settingsDraft.todo.colors = clone(settingsApi.DEFAULT_TODO_COLORS);
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      applyDashboardSettings(settingsDraft, { syncWeather: false });
+      renderTodoSettings();
+      updateDraftStatus();
+      return;
+    }
+
+    if (action === "reset-gmail-display") {
+      settingsDraft = settingsApi.applyGmailViewPreset(
+        settingsDraft,
+        "balanced"
+      );
+      applyDraftPreview();
+      return;
+    }
+
     if (action === "reset-dashboard-settings") {
       settingsDraft = settingsApi.getDefaultSettings();
       recordingKeyboardAction = null;
@@ -3307,7 +3612,96 @@
     }
   }
 
+  function updateTodoDraftFromInput(input) {
+    if (!settingsDraft || !input) {
+      return false;
+    }
+
+    const field = input.dataset.settingsTodo;
+    const colorId = input.dataset.settingsTodoColor;
+
+    if (colorId) {
+      settingsDraft.todo.colors[colorId] = input.value;
+    } else if (field === "showFullTitles") {
+      settingsDraft.todo.showFullTitles = input.checked;
+    } else if (field === "deadlineColorsEnabled") {
+      settingsDraft.todo.deadlineColorsEnabled = input.checked;
+    } else if (field === "dueSoonDays") {
+      settingsDraft.todo.dueSoonDays = Number(input.value);
+    } else if (field === "completionAction") {
+      settingsDraft.todo.completionAction = input.value;
+    } else if (field === "emailTaskIntegrationEnabled") {
+      settingsDraft.todo.emailTaskIntegrationEnabled = input.checked;
+    } else if (field === "emailCompletionAction") {
+      settingsDraft.todo.emailCompletionAction = input.value;
+    } else {
+      return false;
+    }
+
+    settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+    applyDashboardSettings(settingsDraft, { syncWeather: false });
+    renderTodoSettings();
+    updateDraftStatus();
+    return true;
+  }
+
   async function handleDrawerChange(event) {
+    const gmailViewInput = event.target.closest(
+      "[data-settings-gmail-view]"
+    );
+
+    if (gmailViewInput && settingsDraft) {
+      const field = gmailViewInput.dataset.settingsGmailView;
+
+      if (field === "preset") {
+        if (gmailViewInput.value === "custom") {
+          settingsDraft.views.gmail.preset = "custom";
+          settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+          applyDraftPreview();
+        } else {
+          settingsDraft = settingsApi.applyGmailViewPreset(
+            settingsDraft,
+            gmailViewInput.value
+          );
+          applyDraftPreview();
+        }
+        return;
+      }
+
+      settingsDraft.views.gmail[field] =
+        field === "snippetLines"
+          ? Number(gmailViewInput.value)
+          : gmailViewInput.value;
+      settingsDraft.views.gmail.preset = "custom";
+      settingsDraft.preset = "custom";
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      applyDraftPreview();
+      return;
+    }
+
+    if (event.target.id === "settingsThemeSelect" && settingsDraft) {
+      settingsDraft.appearance.theme = event.target.value;
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      applyDraftPreview();
+      return;
+    }
+
+    if (event.target.id === "settingsGmailMaskAccounts" && settingsDraft) {
+      settingsDraft.integrations.gmail.maskAccountAddresses =
+        event.target.checked;
+      settingsDraft = settingsApi.normalizeSettings(settingsDraft);
+      applyDraftPreview();
+      return;
+    }
+
+    const todoInput = event.target.closest(
+      "[data-settings-todo], [data-settings-todo-color]"
+    );
+
+    if (updateTodoDraftFromInput(todoInput)) {
+      return;
+    }
+
     const gmailAccountInput = event.target.closest(
       "[data-settings-gmail-account][data-settings-gmail-field]"
     );
@@ -3405,6 +3799,14 @@
   }
 
   function handleDrawerInput(event) {
+    const todoInput = event.target.closest(
+      '[data-settings-todo="dueSoonDays"], [data-settings-todo-color]'
+    );
+
+    if (updateTodoDraftFromInput(todoInput)) {
+      return;
+    }
+
     if (
       event.target.id === "settingsGmailSharedClientId" ||
       event.target.id === "settingsGmailSharedClientSecret"

@@ -4,7 +4,7 @@ A customized Chrome new tab workflow dashboard based on [Tab Out](https://github
 
 Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
-Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, optional native tab-group connections, and an optional Gmail notifier.
+Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, optional native tab-group connections, an optional local TODO list, and an optional Gmail notifier.
 
 ## Features
 
@@ -19,6 +19,7 @@ Tab Out Custom replaces the default Chrome new tab page with a clean dashboard s
 * quick shortcuts;
 * saved sessions;
 * unassigned open-tab overview;
+* an optional local TODO list with deadlines and archives;
 * an optional multi-account Gmail notifier and conversation widget.
 
 ### Dashboard settings
@@ -28,7 +29,8 @@ Open the fixed gear button or press `Ctrl+,` (`Command+,` on macOS) to customize
 The settings workspace provides:
 
 * Original, Focus, and Compact starting layouts, with Original preserving the historical dashboard placement;
-* independent visibility and placement for the greeting, time, date, weather, website shortcuts, language, sessions, unassigned tabs, and Saved for later;
+* independent visibility and placement for the greeting, time, date, weather, website shortcuts, language, sessions, unassigned tabs, Saved for later, TODO list, Gmail, and statistics;
+* a Dark theme that preserves the original appearance and an optional Light theme, both shared with the toolbar popup;
 * a responsive 12-column drag-and-drop grid with snapped resizing;
 * configurable responsive left/right dashboard padding;
 * inline or four-corner placement for the language control;
@@ -82,9 +84,10 @@ You can:
 * close a single tab;
 * close all unassigned tabs from a domain;
 * close duplicate tabs;
+* undo up to 20 explicit removal actions, including after dashboard or browser reloads;
 * expand grouped tabs through a dropdown.
 
-Dragging uses a movement threshold, so a normal click still focuses the tab. While dragging, the source, floating tab preview, session targets, and two-tab creation target are visually distinct.
+The Unassigned tabs undo history records only explicit close actions. Assigning or moving a tab into a saved session never adds an undo entry. Dragging uses a movement threshold, so a normal click still focuses the tab. While dragging, the source, floating tab preview, session targets, and two-tab creation target are visually distinct.
 
 ### Live refresh
 
@@ -119,11 +122,13 @@ The Gmail module is disabled and hidden by default. Add one or more accounts fro
 The module provides:
 
 * separate cards and preferences for each connected Gmail account;
+* an optional privacy mask that replaces connected account addresses with a black redaction bar across the dashboard, Settings, and toolbar popup;
 * guided Inbox, Unread, Starred, and Important filters;
 * an optional advanced Gmail search query;
 * limits from 5 to 25 conversations;
-* comfortable and compact dashboard views;
-* latest-message previews with an explicit full-conversation loader;
+* Scan, Balanced, and Reading display presets plus custom density, text size, snippet length, unread emphasis, reading width, and message spacing;
+* an adaptive split reading pane on wide widgets with an automatic inline fallback when space is limited;
+* latest-message previews with an explicit full-conversation loader and collapsible earlier messages;
 * direct links back to Gmail and a Mail tab in the toolbar popup;
 * mark read/unread, archive, star/unstar, and move-to-trash actions;
 * configurable one, five, fifteen, or thirty-minute background checks;
@@ -133,6 +138,25 @@ The module provides:
 Tab Out requests `gmail.modify` so it can read mail and apply the listed mailbox actions. Gmail data and OAuth tokens travel only between the extension and Google. Message HTML is converted to inert text; remote images, scripts, attachments, and active email content are not rendered.
 
 Authorization uses Google Desktop OAuth credentials, an S256 PKCE challenge, and a loopback callback observed by the extension. The client secret issued for an installed application is included because Google's token endpoint requires it for this client, but it cannot be confidential inside a distributed extension; PKCE protects the one-time code. No backend or local server is used. See [`PRIVACY.md`](PRIVACY.md) for the complete data boundary.
+
+Gmail display preferences are available in **Settings > Layout > Gmail** so layout and readability changes can be previewed together. Balanced is the default; selecting an individual display control switches the Gmail preset to Custom.
+
+### Optional TODO list
+
+The TODO module is hidden by default. Enable and position it from **Settings > Layout**, then configure its behavior from **Settings > General > TODO list**.
+
+Each task supports:
+
+* a required title, optional notes, and an optional checklist;
+* a choice between compact single-line titles and complete multi-line titles;
+* a local deadline date with an optional time;
+* configurable overdue, today, due-soon, and future priority colors;
+* automatic archiving, manual archiving, or automatic deletion after completion;
+* creation and completion dates in the archive;
+* restoration or deletion of archived tasks;
+* a dedicated 20-step undo history that survives dashboard reloads.
+
+Tasks and TODO undo history remain in browser-local storage. Task data is included in manual backups, while undo history is intentionally cleared after importing a backup.
 
 ### French / English interface
 
@@ -168,6 +192,7 @@ It can export and import local user data, including:
 * session group connections and display preferences;
 * dashboard layout and keyboard settings;
 * saved-for-later tabs;
+* TODO tasks and their archive;
 * language preference.
 
 The export creates a local JSON backup file.

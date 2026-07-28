@@ -57,6 +57,17 @@ const I18N = {
     allTabsAssignedTitle: "Tout est organisé.",
     allTabsAssignedSubtitle: "Tous les onglets ouverts sont déjà assignés à une session.",
     unassignedTabsClosed: "Tous les onglets non assignés ont été fermés.",
+    unassignedTabsClosedPartial: "{count} onglet(s) non assigné(s) fermé(s)",
+    unassignedDuplicatesClosed: "Doublons fermés, une copie conservée",
+    unassignedDuplicatesClosedPartial: "Les doublons disponibles ont été fermés",
+    unassignedUndoRemoval: "Annuler fermeture",
+    unassignedUndoRemovalTitle: "Restaurer la dernière fermeture · {count} disponible(s)",
+    unassignedUndoRemovalEmpty: "Aucune fermeture d’onglets non assignés à annuler",
+    unassignedRemovalRestored: "{count} onglet(s) restauré(s)",
+    unassignedRemovalRestorePartial: "{restored} onglet(s) restauré(s) · {failed} échec(s)",
+    unassignedRemovalRestoreFailed: "Impossible de restaurer les onglets fermés",
+    unassignedRemovalAlreadyRestored: "Ces onglets sont déjà ouverts",
+    unassignedRemovalCloseFailed: "Impossible de fermer les onglets sélectionnés",
 
     justNow: "à l’instant",
     minAgo: "il y a {count} min",
@@ -338,11 +349,18 @@ const I18N = {
     settingsKeyboardTitle: "Raccourcis clavier",
     settingsKeyboardHint: "Sélectionne une commande, puis saisis une combinaison. Le raccourci du menu est géré par Brave.",
     settingsLanguageTitle: "Langue",
+    settingsAppearanceTitle: "Apparence",
+    settingsAppearanceHint: "Choisis le thème de couleurs de l’extension. Le mode sombre conserve l’apparence actuelle.",
+    settingsThemeLabel: "Thème de couleurs",
+    settingsThemeDark: "Sombre",
+    settingsThemeLight: "Clair",
     gmailOptionalIntegration: "Intégration facultative",
     gmailSettingsTitle: "Notifications Gmail",
     gmailSettingsHint: "Connecte un ou plusieurs comptes pour lire les messages, suivre les non-lus et agir sans quitter Tab Out.",
     gmailPrivacyTitle: "Confidentiel par conception",
     gmailPrivacyHint: "Les e-mails et jetons OAuth restent dans ce profil de navigateur et sont envoyés uniquement à Google.",
+    gmailMaskAccountsTitle: "Masquer les adresses des comptes",
+    gmailMaskAccountsHint: "Recouvre les adresses connectées d’une barre noire dans le tableau de bord, les réglages et le menu de l’extension.",
     gmailSetupHelpOpen: "Afficher la procédure de configuration Gmail",
     gmailSharedClientTitle: "Client OAuth partagé",
     gmailSharedClientHint: "Utilise un même client OAuth Google Desktop pour autant de comptes Gmail que nécessaire.",
@@ -589,6 +607,182 @@ const I18N = {
     settingsModuleHidden: "Active « {module} » dans les réglages pour utiliser cette commande.",
     settingsExternalChange: "Les réglages ont changé dans un autre onglet.",
     settingsUnsaved: "Modifications non enregistrées",
+    moduleTodo: "Liste TODO",
+    todoWidgetTitle: "Liste TODO",
+    todoWidgetHint: "Garde les prochaines actions visibles et locales.",
+    todoAddTask: "Ajouter une tÃ¢che",
+    todoUndo: "Annuler",
+    todoTaskTitleLabel: "Titre de la tÃ¢che",
+    todoTaskTitlePlaceholder: "Que faut-il faire ?",
+    todoMoreDetails: "Plus de dÃ©tails",
+    todoNotesLabel: "Notes",
+    todoNotesPlaceholder: "Ajoute un commentaire ou du contexteâ€¦",
+    todoTaskAppearanceTitle: "Apparence de la tâche",
+    todoTaskAppearanceHint: "Ajoute un repère visuel facultatif sans modifier la priorité de l’échéance.",
+    todoTaskColorLabel: "Couleur",
+    todoTaskColorNone: "Aucune couleur",
+    todoTaskColorCustom: "Couleur personnalisée",
+    todoTaskColorRed: "Rouge",
+    todoTaskColorOrange: "Orange",
+    todoTaskColorYellow: "Jaune",
+    todoTaskColorGreen: "Vert",
+    todoTaskColorBlue: "Bleu",
+    todoTaskColorPurple: "Violet",
+    todoTaskColorPink: "Rose",
+    todoTaskColorSlate: "Gris ardoise",
+    todoTaskIconLabel: "Icône",
+    todoTaskIconNone: "Aucune icône",
+    todoTaskIconWork: "Travail",
+    todoTaskIconPersonal: "Personnel",
+    todoTaskIconEmail: "E-mail",
+    todoTaskIconCall: "Appel",
+    todoTaskIconShopping: "Achats",
+    todoTaskIconWarning: "Avertissement",
+    todoTaskIconStar: "Étoile",
+    todoDeadlineDateLabel: "Date limite",
+    todoDeadlineTimeLabel: "Heure facultative",
+    todoChecklistLabel: "Liste",
+    todoChecklistPlaceholder: "Ajouter une Ã©tapeâ€¦",
+    todoAddChecklistItem: "Ajouter",
+    todoChecklistItemLabel: "Ã‰tape de la liste",
+    todoRemoveChecklistItem: "Supprimer cette Ã©tape",
+    todoSaveTask: "Enregistrer la tÃ¢che",
+    todoSaveChanges: "Enregistrer les modifications",
+    todoEmptyTitle: "Rien Ã  faire pour lâ€™instant.",
+    todoEmptyHint: "Ajoute une tÃ¢che pour garder la prochaine Ã©tape Ã  portÃ©e de main.",
+    todoTaskCount: "{count} tÃ¢che",
+    todoTasksCount: "{count} tÃ¢ches",
+    todoDeadlineOverdue: "En retard",
+    todoDeadlineToday: "Aujourdâ€™hui",
+    todoDeadlineSoon: "BientÃ´t",
+    todoDeadlineFuture: "Ã€ venir",
+    todoToggleComplete: "Marquer la tÃ¢che comme terminÃ©e",
+    todoEditTask: "Modifier la tÃ¢che",
+    todoReorderTask: "Faire glisser pour réordonner. Utiliser les flèches haut et bas au clavier.",
+    todoExpandTask: "DÃ©velopper le contenu de la tÃ¢che",
+    todoCollapseTask: "RÃ©duire le contenu de la tÃ¢che",
+    todoArchiveTask: "Archiver la tÃ¢che",
+    todoRestoreTask: "Restaurer la tÃ¢che",
+    todoDeleteTask: "Supprimer la tÃ¢che",
+    todoCreatedDate: "CrÃ©Ã©e le {date}",
+    todoCompletedDate: "TerminÃ©e le {date}",
+    todoTitleRequired: "Le titre de la tÃ¢che est obligatoire.",
+    todoSaveFailed: "Impossible dâ€™enregistrer la modification TODO.",
+    todoTaskAdded: "TÃ¢che ajoutÃ©e.",
+    todoTaskUpdated: "TÃ¢che mise Ã  jour.",
+    todoTaskCompleted: "TÃ¢che terminÃ©e.",
+    todoTaskReopened: "TÃ¢che rouverte.",
+    todoTaskArchived: "TÃ¢che archivÃ©e.",
+    todoTaskRestored: "TÃ¢che restaurÃ©e.",
+    todoTaskDeleted: "TÃ¢che supprimÃ©e.",
+    todoTasksReordered: "Ordre des tâches enregistré.",
+    todoNothingToUndo: "Aucune modification TODO Ã  annuler.",
+    todoUndoSuccess: "Modification TODO annulÃ©e.",
+    todoUndoConflict: "Cette modification ne peut plus Ãªtre annulÃ©e aprÃ¨s un changement externe.",
+    todoUndoFailed: "Impossible dâ€™annuler la modification TODO.",
+    todoUndoAdd: "ajout de tÃ¢che",
+    todoUndoEdit: "modification de tÃ¢che",
+    todoUndoChecklist: "modification de liste",
+    todoUndoComplete: "tÃ¢che terminÃ©e",
+    todoUndoReopen: "rÃ©ouverture de tÃ¢che",
+    todoUndoArchive: "archivage de tÃ¢che",
+    todoUndoRestore: "restauration de tÃ¢che",
+    todoUndoDelete: "suppression de tÃ¢che",
+    todoUndoReorder: "réorganisation des tâches",
+    todoUndoChange: "derniÃ¨re modification",
+    todoOptionalWidget: "Widget local facultatif",
+    todoSettingsTitle: "Liste TODO",
+    todoSettingsHint: "Configure ce qui arrive aux tÃ¢ches terminÃ©es et la maniÃ¨re dont les Ã©chÃ©ances indiquent lâ€™urgence.",
+    todoLocalOnlyTitle: "StockÃ© localement",
+    todoLocalOnlyHint: "Les tÃ¢ches et lâ€™historique dâ€™annulation restent dans ce profil de navigateur.",
+    todoEmailIntegrationTitle: "Transformer les e-mails en tâches",
+    todoEmailIntegrationHint: "Ajoute une action rapide aux conversations Gmail pour créer une tâche liée. Les tâches déjà liées restent disponibles si cette option est désactivée.",
+    todoEmailCompletionActionLabel: "Lorsqu’une tâche liée à un e-mail est terminée",
+    todoEmailCompletionKeep: "Ne pas modifier l’e-mail",
+    todoEmailCompletionMarkRead: "Marquer l’e-mail comme lu",
+    todoEmailCompletionArchive: "Archiver l’e-mail",
+    todoEmailCompletionHint: "Cette action s’applique uniquement à la finalisation. Rouvrir la tâche n’annule pas l’action Gmail.",
+    todoAddEmailTask: "Ajouter cet e-mail à la liste TODO",
+    todoViewEmailTask: "Afficher la tâche liée",
+    todoEmailTaskComposerTitle: "Créer une tâche depuis cet e-mail",
+    todoEmailTaskTitleLabel: "Titre de la tâche",
+    todoEmailTaskCommentLabel: "Commentaire facultatif",
+    todoEmailTaskCommentPlaceholder: "Ajouter le contexte ou la prochaine action…",
+    todoEmailTaskDeadlineLabel: "Date limite facultative",
+    todoEmailTaskDeadlineTimeLabel: "Heure facultative",
+    todoEmailTaskAdd: "Ajouter à TODO",
+    todoEmailTaskAdded: "E-mail ajouté à la liste TODO.",
+    todoEmailTaskAlreadyExists: "Cet e-mail est déjà lié à une tâche.",
+    todoEmailTaskAddFailed: "Impossible de créer la tâche liée à cet e-mail.",
+    todoEmailTaskView: "Voir la tâche",
+    todoEmailTaskOpen: "Ouvrir l’e-mail",
+    todoEmailTaskShow: "Afficher dans le widget",
+    todoEmailTaskOpenExternal: "Ouvrir dans Gmail ↗",
+    todoEmailTaskSourceLabel: "Conversation Gmail liée",
+    todoEmailTaskUnavailable: "Impossible d’ouvrir cette conversation Gmail.",
+    todoEmailTaskWidgetHidden: "La tâche existe, mais le widget TODO est masqué dans la disposition.",
+    todoEmailTaskShowWidgetHidden: "Le widget Gmail est masqué dans la disposition. Réactive-le dans Réglages → Disposition.",
+    todoEmailTaskShowAccountHidden: "Ce compte Gmail est masqué. Réactive-le dans Réglages → Général.",
+    todoEmailTaskShowDisconnected: "Ce compte Gmail n’est plus connecté.",
+    todoEmailTaskShowReconnect: "Reconnecte ce compte Gmail avant d’afficher la conversation.",
+    todoEmailTaskShowFailed: "Impossible d’afficher cette conversation dans le widget Gmail.",
+    todoEmailActionFailed: "La tâche est terminée, mais l’action Gmail n’a pas pu être appliquée.",
+    todoCompletionActionLabel: "Lorsquâ€™une tÃ¢che est terminÃ©e",
+    todoCompletionArchive: "Archiver automatiquement",
+    todoCompletionKeep: "Conserver comme terminÃ©e avant archivage manuel",
+    todoCompletionDelete: "Supprimer automatiquement",
+    todoShowFullTitlesTitle: "Afficher les titres complets",
+    todoShowFullTitlesHint: "Autorise les titres longs Ã  utiliser plusieurs lignes au lieu de les raccourcir.",
+    todoDeadlineColorsTitle: "Couleurs de prioritÃ© des Ã©chÃ©ances",
+    todoDeadlineColorsHint: "DiffÃ©rencie les Ã©chÃ©ances en retard, du jour, proches et futures.",
+    todoDueSoonThresholdTitle: "Seuil dâ€™Ã©chÃ©ance proche",
+    todoDueSoonThresholdHint: "Les Ã©chÃ©ances dans ce nombre de jours utilisent la prioritÃ© proche.",
+    todoDueSoonDaysValue: "{count} jours",
+    todoLayoutHint: "Affiche, dÃ©place, redimensionne ou masque ce widget depuis le menu Disposition.",
+    todoResetColors: "RÃ©initialiser les couleurs",
+    gmailDisplayOptions: "Lisibilité Gmail",
+    gmailDisplayPreset: "Préréglage",
+    gmailPresetScan: "Lecture rapide",
+    gmailPresetBalanced: "Équilibré",
+    gmailPresetReading: "Lecture",
+    gmailPresetScanHint: "Lignes compactes, extraits courts et messages non lus très visibles.",
+    gmailPresetBalancedHint: "Hiérarchie plus claire, extraits sur deux lignes et volet de lecture adaptatif.",
+    gmailPresetReadingHint: "Texte plus grand, espacement généreux et largeur de lecture concentrée.",
+    gmailPresetCustomHint: "Combinaison personnalisée des options d’affichage Gmail.",
+    gmailResetDisplay: "Rétablir Équilibré",
+    gmailListDensity: "Densité de la liste",
+    gmailDensityCompact: "Compacte",
+    gmailDensityComfortable: "Confortable",
+    gmailDensitySpacious: "Aérée",
+    gmailTextSize: "Taille du texte",
+    gmailTextSmall: "Petite",
+    gmailTextMedium: "Moyenne",
+    gmailTextLarge: "Grande",
+    gmailSnippetLines: "Lignes d’extrait",
+    gmailSnippetHidden: "Masqué",
+    gmailSnippetOne: "1 ligne",
+    gmailSnippetTwo: "2 lignes",
+    gmailSnippetThree: "3 lignes",
+    gmailUnreadEmphasis: "Messages non lus",
+    gmailUnreadSubtle: "Discret",
+    gmailUnreadStrong: "Marqué",
+    gmailConversationDisplay: "Ouverture des conversations",
+    gmailDisplayInline: "Dans la liste",
+    gmailDisplaySplit: "Volet séparé",
+    gmailReadingWidth: "Largeur de lecture",
+    gmailReadingFocused: "Concentrée",
+    gmailReadingNormal: "Normale",
+    gmailReadingWide: "Large",
+    gmailMessageSpacing: "Espacement des messages",
+    gmailSpacingCompact: "Compact",
+    gmailSpacingComfortable: "Confortable",
+    gmailSpacingSpacious: "Aéré",
+    gmailReadingPane: "Volet de lecture Gmail",
+    gmailReadingPaneEmptyTitle: "Sélectionne un message",
+    gmailReadingPaneEmptyHint: "Choisis une conversation à gauche pour la lire sans quitter le tableau de bord.",
+    gmailNoSubject: "(Sans objet)",
+    gmailExpandMessage: "Développer cet ancien message",
+    gmailCollapseMessage: "Réduire cet ancien message",
     gmailWidgetTitle: "Gmail",
     gmailRefresh: "Actualiser Gmail",
     gmailExpandAccount: "Déplier ce compte",
@@ -688,6 +882,17 @@ const I18N = {
     allTabsAssignedTitle: "Everything is organized.",
     allTabsAssignedSubtitle: "Every open tab is already assigned to a session.",
     unassignedTabsClosed: "All unassigned tabs were closed.",
+    unassignedTabsClosedPartial: "Closed {count} unassigned tab(s)",
+    unassignedDuplicatesClosed: "Closed duplicates, kept one copy each",
+    unassignedDuplicatesClosedPartial: "Closed the available duplicates",
+    unassignedUndoRemoval: "Undo close",
+    unassignedUndoRemovalTitle: "Restore the last closed tabs · {count} available",
+    unassignedUndoRemovalEmpty: "No unassigned-tab closure to undo",
+    unassignedRemovalRestored: "Restored {count} tab(s)",
+    unassignedRemovalRestorePartial: "Restored {restored} tab(s) · {failed} failed",
+    unassignedRemovalRestoreFailed: "Could not restore the closed tabs",
+    unassignedRemovalAlreadyRestored: "Those tabs are already open",
+    unassignedRemovalCloseFailed: "Could not close the selected tabs",
 
     justNow: "just now",
     minAgo: "{count} min ago",
@@ -969,11 +1174,18 @@ const I18N = {
     settingsKeyboardTitle: "Keyboard shortcuts",
     settingsKeyboardHint: "Select a command, then press a combination. The popup shortcut is managed by the browser.",
     settingsLanguageTitle: "Language",
+    settingsAppearanceTitle: "Appearance",
+    settingsAppearanceHint: "Choose the extension color theme. Dark keeps the current appearance.",
+    settingsThemeLabel: "Color theme",
+    settingsThemeDark: "Dark",
+    settingsThemeLight: "Light",
     gmailOptionalIntegration: "Optional integration",
     gmailSettingsTitle: "Gmail notifier",
     gmailSettingsHint: "Connect one or more accounts to read messages, track unread mail, and take action without leaving Tab Out.",
     gmailPrivacyTitle: "Private by design",
     gmailPrivacyHint: "Mail and OAuth tokens stay in this browser profile and are sent only to Google.",
+    gmailMaskAccountsTitle: "Mask email account addresses",
+    gmailMaskAccountsHint: "Cover connected addresses with a black privacy bar in the dashboard, Settings, and extension popup.",
     gmailSetupHelpOpen: "Show the Gmail setup procedure",
     gmailSharedClientTitle: "Shared OAuth client",
     gmailSharedClientHint: "Use one Google Desktop OAuth client for any number of Gmail accounts.",
@@ -1220,6 +1432,182 @@ const I18N = {
     settingsModuleHidden: "Enable “{module}” in Settings to use this command.",
     settingsExternalChange: "Settings changed in another Tab Out page.",
     settingsUnsaved: "Unsaved changes",
+    moduleTodo: "TODO list",
+    todoWidgetTitle: "TODO list",
+    todoWidgetHint: "Keep the next actions visible and local.",
+    todoAddTask: "Add task",
+    todoUndo: "Undo",
+    todoTaskTitleLabel: "Task title",
+    todoTaskTitlePlaceholder: "What needs to be done?",
+    todoMoreDetails: "More details",
+    todoNotesLabel: "Notes",
+    todoNotesPlaceholder: "Add a comment or useful contextâ€¦",
+    todoTaskAppearanceTitle: "Task appearance",
+    todoTaskAppearanceHint: "Add an optional visual marker without changing deadline priority.",
+    todoTaskColorLabel: "Color",
+    todoTaskColorNone: "No color",
+    todoTaskColorCustom: "Custom color",
+    todoTaskColorRed: "Red",
+    todoTaskColorOrange: "Orange",
+    todoTaskColorYellow: "Yellow",
+    todoTaskColorGreen: "Green",
+    todoTaskColorBlue: "Blue",
+    todoTaskColorPurple: "Purple",
+    todoTaskColorPink: "Pink",
+    todoTaskColorSlate: "Slate gray",
+    todoTaskIconLabel: "Icon",
+    todoTaskIconNone: "No icon",
+    todoTaskIconWork: "Work",
+    todoTaskIconPersonal: "Personal",
+    todoTaskIconEmail: "Email",
+    todoTaskIconCall: "Call",
+    todoTaskIconShopping: "Shopping",
+    todoTaskIconWarning: "Warning",
+    todoTaskIconStar: "Star",
+    todoDeadlineDateLabel: "Deadline date",
+    todoDeadlineTimeLabel: "Optional time",
+    todoChecklistLabel: "Checklist",
+    todoChecklistPlaceholder: "Add a stepâ€¦",
+    todoAddChecklistItem: "Add",
+    todoChecklistItemLabel: "Checklist item",
+    todoRemoveChecklistItem: "Remove this checklist item",
+    todoSaveTask: "Save task",
+    todoSaveChanges: "Save changes",
+    todoEmptyTitle: "Nothing to do yet.",
+    todoEmptyHint: "Add a task and keep the next step within reach.",
+    todoTaskCount: "{count} task",
+    todoTasksCount: "{count} tasks",
+    todoDeadlineOverdue: "Overdue",
+    todoDeadlineToday: "Due today",
+    todoDeadlineSoon: "Due soon",
+    todoDeadlineFuture: "Future",
+    todoToggleComplete: "Mark task as completed",
+    todoEditTask: "Edit task",
+    todoReorderTask: "Drag to reorder. Use the Up and Down arrow keys with the keyboard.",
+    todoExpandTask: "Expand task content",
+    todoCollapseTask: "Collapse task content",
+    todoArchiveTask: "Archive task",
+    todoRestoreTask: "Restore task",
+    todoDeleteTask: "Delete task",
+    todoCreatedDate: "Created {date}",
+    todoCompletedDate: "Done {date}",
+    todoTitleRequired: "A task title is required.",
+    todoSaveFailed: "Could not save the TODO change.",
+    todoTaskAdded: "Task added.",
+    todoTaskUpdated: "Task updated.",
+    todoTaskCompleted: "Task completed.",
+    todoTaskReopened: "Task reopened.",
+    todoTaskArchived: "Task archived.",
+    todoTaskRestored: "Task restored.",
+    todoTaskDeleted: "Task deleted.",
+    todoTasksReordered: "Task order saved.",
+    todoNothingToUndo: "There is no TODO change to undo.",
+    todoUndoSuccess: "TODO change undone.",
+    todoUndoConflict: "That change can no longer be undone after an external update.",
+    todoUndoFailed: "Could not undo the TODO change.",
+    todoUndoAdd: "task addition",
+    todoUndoEdit: "task edit",
+    todoUndoChecklist: "checklist change",
+    todoUndoComplete: "task completion",
+    todoUndoReopen: "task reopening",
+    todoUndoArchive: "task archive",
+    todoUndoRestore: "task restoration",
+    todoUndoDelete: "task deletion",
+    todoUndoReorder: "task reordering",
+    todoUndoChange: "latest change",
+    todoOptionalWidget: "Optional local widget",
+    todoSettingsTitle: "TODO list",
+    todoSettingsHint: "Configure what happens when tasks are completed and how deadlines communicate urgency.",
+    todoLocalOnlyTitle: "Stored locally",
+    todoLocalOnlyHint: "Tasks and undo history stay in this browser profile.",
+    todoEmailIntegrationTitle: "Turn emails into tasks",
+    todoEmailIntegrationHint: "Add a quick action to Gmail conversations for creating a linked task. Existing linked tasks remain available when this is disabled.",
+    todoEmailCompletionActionLabel: "When a linked email task is completed",
+    todoEmailCompletionKeep: "Keep the email unchanged",
+    todoEmailCompletionMarkRead: "Mark the email as read",
+    todoEmailCompletionArchive: "Archive the email",
+    todoEmailCompletionHint: "This applies only when completing the task. Reopening it does not reverse the Gmail action.",
+    todoAddEmailTask: "Add this email to TODO",
+    todoViewEmailTask: "View linked task",
+    todoEmailTaskComposerTitle: "Create a task from this email",
+    todoEmailTaskTitleLabel: "Task title",
+    todoEmailTaskCommentLabel: "Optional comment",
+    todoEmailTaskCommentPlaceholder: "Add context or the next action…",
+    todoEmailTaskDeadlineLabel: "Optional deadline",
+    todoEmailTaskDeadlineTimeLabel: "Optional time",
+    todoEmailTaskAdd: "Add to TODO",
+    todoEmailTaskAdded: "Email added to the TODO list.",
+    todoEmailTaskAlreadyExists: "This email is already linked to a task.",
+    todoEmailTaskAddFailed: "Could not create the linked email task.",
+    todoEmailTaskView: "View task",
+    todoEmailTaskOpen: "Open email",
+    todoEmailTaskShow: "Show in widget",
+    todoEmailTaskOpenExternal: "Open in Gmail ↗",
+    todoEmailTaskSourceLabel: "Linked Gmail conversation",
+    todoEmailTaskUnavailable: "This Gmail conversation could not be opened.",
+    todoEmailTaskWidgetHidden: "The task exists, but the TODO widget is hidden from the layout.",
+    todoEmailTaskShowWidgetHidden: "The Gmail widget is hidden from the layout. Enable it again in Settings → Layout.",
+    todoEmailTaskShowAccountHidden: "This Gmail account is hidden. Show it again in Settings → General.",
+    todoEmailTaskShowDisconnected: "This Gmail account is no longer connected.",
+    todoEmailTaskShowReconnect: "Reconnect this Gmail account before displaying the conversation.",
+    todoEmailTaskShowFailed: "This conversation could not be displayed in the Gmail widget.",
+    todoEmailActionFailed: "The task was completed, but the Gmail action could not be applied.",
+    todoCompletionActionLabel: "When a task is completed",
+    todoCompletionArchive: "Archive automatically",
+    todoCompletionKeep: "Keep completed until manually archived",
+    todoCompletionDelete: "Delete automatically",
+    todoShowFullTitlesTitle: "Show complete task titles",
+    todoShowFullTitlesHint: "Allow long titles to wrap onto multiple lines instead of shortening them.",
+    todoDeadlineColorsTitle: "Deadline priority colors",
+    todoDeadlineColorsHint: "Show overdue, today, soon, and future deadlines with distinct accents.",
+    todoDueSoonThresholdTitle: "Due soon threshold",
+    todoDueSoonThresholdHint: "Deadlines within this many calendar days use the due-soon priority.",
+    todoDueSoonDaysValue: "{count} days",
+    todoLayoutHint: "Show, move, resize, or hide this widget from the Layout menu.",
+    todoResetColors: "Reset colors",
+    gmailDisplayOptions: "Gmail readability",
+    gmailDisplayPreset: "Preset",
+    gmailPresetScan: "Scan",
+    gmailPresetBalanced: "Balanced",
+    gmailPresetReading: "Reading",
+    gmailPresetScanHint: "Compact rows, short snippets, and strongly emphasized unread mail.",
+    gmailPresetBalancedHint: "Clearer hierarchy, two-line snippets, and an adaptive reading pane.",
+    gmailPresetReadingHint: "Larger text, generous spacing, and a focused reading width.",
+    gmailPresetCustomHint: "A custom combination of Gmail display options.",
+    gmailResetDisplay: "Reset to Balanced",
+    gmailListDensity: "List density",
+    gmailDensityCompact: "Compact",
+    gmailDensityComfortable: "Comfortable",
+    gmailDensitySpacious: "Spacious",
+    gmailTextSize: "Text size",
+    gmailTextSmall: "Small",
+    gmailTextMedium: "Medium",
+    gmailTextLarge: "Large",
+    gmailSnippetLines: "Snippet lines",
+    gmailSnippetHidden: "Hidden",
+    gmailSnippetOne: "1 line",
+    gmailSnippetTwo: "2 lines",
+    gmailSnippetThree: "3 lines",
+    gmailUnreadEmphasis: "Unread emphasis",
+    gmailUnreadSubtle: "Subtle",
+    gmailUnreadStrong: "Strong",
+    gmailConversationDisplay: "Conversation display",
+    gmailDisplayInline: "Inline",
+    gmailDisplaySplit: "Split pane",
+    gmailReadingWidth: "Reading width",
+    gmailReadingFocused: "Focused",
+    gmailReadingNormal: "Normal",
+    gmailReadingWide: "Wide",
+    gmailMessageSpacing: "Message spacing",
+    gmailSpacingCompact: "Compact",
+    gmailSpacingComfortable: "Comfortable",
+    gmailSpacingSpacious: "Spacious",
+    gmailReadingPane: "Gmail reading pane",
+    gmailReadingPaneEmptyTitle: "Select an email",
+    gmailReadingPaneEmptyHint: "Choose a conversation on the left to read it without leaving the dashboard.",
+    gmailNoSubject: "(No subject)",
+    gmailExpandMessage: "Expand this earlier message",
+    gmailCollapseMessage: "Collapse this earlier message",
     gmailWidgetTitle: "Gmail",
     gmailRefresh: "Refresh Gmail",
     gmailExpandAccount: "Expand this account",
@@ -1352,6 +1740,12 @@ function plural(count, singularKey, pluralKey) {
 // All open tabs — populated by fetchOpenTabs()
 let openTabs = [];
 let unassignedOpenTabs = [];
+const UNASSIGNED_REMOVAL_HISTORY_KEY =
+  "unassignedTabRemovalHistory";
+const UNASSIGNED_REMOVAL_HISTORY_VERSION = 1;
+const MAX_UNASSIGNED_REMOVAL_ENTRIES = 20;
+let unassignedRemovalHistory = [];
+let unassignedRemovalUndoBusy = false;
 
 async function getIncludeSuspendedTabsPreference() {
   try {
@@ -1392,6 +1786,453 @@ async function queryTabsWithMetadata(query = {}) {
   return tabs.map((tab) =>
     metadataApi.normalizeBrowserTab(tab, { includeSuspendedTabs })
   );
+}
+
+function createUnassignedRemovalId() {
+  const randomPart = globalThis.crypto?.randomUUID?.() ||
+    Math.random().toString(16).slice(2);
+  return `unassigned-removal-${Date.now()}-${randomPart}`;
+}
+
+function normalizeUnassignedRemovalTab(value) {
+  const url = String(value?.url || "").trim();
+
+  if (!url) {
+    return null;
+  }
+
+  return {
+    sourceTabId: Number.isInteger(value?.sourceTabId)
+      ? value.sourceTabId
+      : null,
+    url: url.slice(0, 16384),
+    title: String(value?.title || url).slice(0, 1024),
+    windowId: Number.isInteger(value?.windowId)
+      ? value.windowId
+      : null,
+    index: Number.isInteger(value?.index) && value.index >= 0
+      ? value.index
+      : null,
+    pinned: Boolean(value?.pinned)
+  };
+}
+
+function normalizeUnassignedRemovalEntry(value) {
+  const tabs = (Array.isArray(value?.tabs) ? value.tabs : [])
+    .map(normalizeUnassignedRemovalTab)
+    .filter(Boolean);
+
+  if (tabs.length < 1) {
+    return null;
+  }
+
+  const fallbackCounts = new Map();
+  tabs.forEach((tab) => {
+    const url = normalizeOpenTabUrl(tab.url);
+    fallbackCounts.set(url, (fallbackCounts.get(url) || 0) + 1);
+  });
+  const targetCounts = new Map();
+  const storedCounts = Array.isArray(value?.targetUrlCounts)
+    ? value.targetUrlCounts
+    : [];
+
+  storedCounts.forEach((item) => {
+    const url = normalizeOpenTabUrl(item?.url);
+    const count = Number.parseInt(item?.count, 10);
+
+    if (url && Number.isFinite(count) && count > 0) {
+      targetCounts.set(url, Math.min(count, 100000));
+    }
+  });
+  fallbackCounts.forEach((count, url) => {
+    if (!targetCounts.has(url)) {
+      targetCounts.set(url, count);
+    }
+  });
+
+  return {
+    id: String(value?.id || createUnassignedRemovalId()).slice(0, 200),
+    createdAt: Number.isFinite(Date.parse(value?.createdAt))
+      ? new Date(value.createdAt).toISOString()
+      : new Date().toISOString(),
+    kind: ["single", "domain", "duplicates", "all"].includes(value?.kind)
+      ? value.kind
+      : "single",
+    tabs,
+    targetUrlCounts: Array.from(targetCounts, ([url, count]) => ({
+      url,
+      count
+    }))
+  };
+}
+
+function normalizeUnassignedRemovalHistory(value) {
+  const entries = Array.isArray(value)
+    ? value
+    : Array.isArray(value?.entries)
+      ? value.entries
+      : [];
+
+  return entries
+    .map(normalizeUnassignedRemovalEntry)
+    .filter(Boolean)
+    .slice(-MAX_UNASSIGNED_REMOVAL_ENTRIES);
+}
+
+function updateUnassignedRemovalUndoControl() {
+  const button = document.querySelector(
+    '[data-action="undo-unassigned-removal"]'
+  );
+
+  if (!button) {
+    return;
+  }
+
+  const count = unassignedRemovalHistory.length;
+  const title = count > 0
+    ? t("unassignedUndoRemovalTitle", { count })
+    : t("unassignedUndoRemovalEmpty");
+  const countBadge = button.querySelector(".open-tabs-undo-count");
+
+  button.disabled = unassignedRemovalUndoBusy || count < 1;
+  button.title = title;
+  button.setAttribute("aria-label", title);
+
+  if (countBadge) {
+    countBadge.textContent = String(count);
+    countBadge.hidden = count <= 1;
+  }
+}
+
+async function loadUnassignedRemovalHistory({ required = false } = {}) {
+  try {
+    const stored = await chrome.storage.local.get(
+      UNASSIGNED_REMOVAL_HISTORY_KEY
+    );
+    unassignedRemovalHistory = normalizeUnassignedRemovalHistory(
+      stored[UNASSIGNED_REMOVAL_HISTORY_KEY]
+    );
+  } catch (error) {
+    console.warn(
+      "[tab-out] Could not load unassigned removal history:",
+      error
+    );
+
+    if (required) {
+      throw error;
+    }
+  }
+
+  updateUnassignedRemovalUndoControl();
+  return unassignedRemovalHistory;
+}
+
+async function writeUnassignedRemovalHistory(entries) {
+  const previousHistory = unassignedRemovalHistory;
+  const nextHistory = normalizeUnassignedRemovalHistory(entries);
+
+  try {
+    await chrome.storage.local.set({
+      [UNASSIGNED_REMOVAL_HISTORY_KEY]: {
+        version: UNASSIGNED_REMOVAL_HISTORY_VERSION,
+        entries: nextHistory
+      }
+    });
+    unassignedRemovalHistory = nextHistory;
+  } catch (error) {
+    unassignedRemovalHistory = previousHistory;
+    updateUnassignedRemovalUndoControl();
+    throw error;
+  }
+
+  updateUnassignedRemovalUndoControl();
+  return unassignedRemovalHistory;
+}
+
+async function appendUnassignedRemovalEntry(entry) {
+  const history = await loadUnassignedRemovalHistory({
+    required: true
+  });
+  await writeUnassignedRemovalHistory([...history, entry]);
+  return entry;
+}
+
+async function replaceUnassignedRemovalEntry(entry) {
+  const history = await loadUnassignedRemovalHistory({
+    required: true
+  });
+  const index = history.findIndex((item) => item.id === entry.id);
+
+  if (index < 0) {
+    return false;
+  }
+
+  history[index] = entry;
+  await writeUnassignedRemovalHistory(history);
+  return true;
+}
+
+async function removeUnassignedRemovalEntry(entryId) {
+  const history = await loadUnassignedRemovalHistory({
+    required: true
+  });
+  const nextHistory = history.filter((entry) => entry.id !== entryId);
+
+  if (nextHistory.length === history.length) {
+    return false;
+  }
+
+  await writeUnassignedRemovalHistory(nextHistory);
+  return true;
+}
+
+function createUnassignedRemovalEntry(kind, selectedTabs, allTabs) {
+  const selected = selectedTabs
+    .map((tab) => normalizeUnassignedRemovalTab({
+      sourceTabId: tab.id,
+      url: tab.pendingUrl || tab.url,
+      title: tab.title,
+      windowId: tab.windowId,
+      index: tab.index,
+      pinned: tab.pinned
+    }))
+    .filter(Boolean);
+  const selectedUrls = new Set(
+    selected.map((tab) => normalizeOpenTabUrl(tab.url))
+  );
+  const targetCounts = new Map();
+
+  allTabs.forEach((tab) => {
+    const url = normalizeOpenTabUrl(tab.pendingUrl || tab.url);
+
+    if (selectedUrls.has(url)) {
+      targetCounts.set(url, (targetCounts.get(url) || 0) + 1);
+    }
+  });
+
+  return normalizeUnassignedRemovalEntry({
+    id: createUnassignedRemovalId(),
+    createdAt: new Date().toISOString(),
+    kind,
+    tabs: selected,
+    targetUrlCounts: Array.from(targetCounts, ([url, count]) => ({
+      url,
+      count
+    }))
+  });
+}
+
+async function closeUnassignedTabsWithUndo(tabIds, kind) {
+  const requestedIds = new Set(
+    (tabIds || []).filter(Number.isInteger)
+  );
+
+  if (requestedIds.size < 1) {
+    return null;
+  }
+
+  const allTabs = await queryTabsWithMetadata({});
+  const selectedTabs = allTabs.filter((tab) =>
+    requestedIds.has(tab.id)
+  );
+  const entry = createUnassignedRemovalEntry(
+    kind,
+    selectedTabs,
+    allTabs
+  );
+
+  if (!entry) {
+    return null;
+  }
+
+  await appendUnassignedRemovalEntry(entry);
+  let removalError = null;
+
+  try {
+    await chrome.tabs.remove(
+      selectedTabs.map((tab) => tab.id)
+    );
+  } catch (error) {
+    removalError = error;
+  }
+
+  let removedTabs = entry.tabs;
+
+  try {
+    const remainingTabs = await chrome.tabs.query({});
+    const remainingIds = new Set(
+      remainingTabs.map((tab) => tab.id)
+    );
+    removedTabs = entry.tabs.filter(
+      (tab) => !remainingIds.has(tab.sourceTabId)
+    );
+  } catch (error) {
+    console.warn(
+      "[tab-out] Could not reconcile removed unassigned tabs:",
+      error
+    );
+  }
+
+  if (removedTabs.length < 1) {
+    await removeUnassignedRemovalEntry(entry.id);
+
+    if (removalError) {
+      throw removalError;
+    }
+
+    return null;
+  }
+
+  if (removedTabs.length !== entry.tabs.length) {
+    entry.tabs = removedTabs;
+    await replaceUnassignedRemovalEntry(entry);
+  }
+
+  if (removalError) {
+    console.warn(
+      "[tab-out] Some unassigned tabs could not be closed:",
+      removalError
+    );
+  }
+
+  await fetchOpenTabs();
+  return {
+    entry,
+    closedTabs: removedTabs,
+    error: removalError
+  };
+}
+
+function countTabsByNormalizedUrl(tabs) {
+  const counts = new Map();
+
+  (tabs || []).forEach((tab) => {
+    const url = normalizeOpenTabUrl(tab.pendingUrl || tab.url);
+
+    if (url) {
+      counts.set(url, (counts.get(url) || 0) + 1);
+    }
+  });
+
+  return counts;
+}
+
+async function restoreLatestUnassignedRemoval() {
+  const history = await loadUnassignedRemovalHistory({
+    required: true
+  });
+  const entry = history[history.length - 1];
+
+  if (!entry) {
+    return {
+      restored: 0,
+      failed: 0,
+      alreadyPresent: 0,
+      empty: true
+    };
+  }
+
+  const currentTabs = await queryTabsWithMetadata({});
+  const currentCounts = countTabsByNormalizedUrl(currentTabs);
+  const targetCounts = new Map(
+    entry.targetUrlCounts.map((item) => [
+      normalizeOpenTabUrl(item.url),
+      item.count
+    ])
+  );
+  const descriptorsByUrl = new Map();
+
+  entry.tabs.forEach((tab) => {
+    const url = normalizeOpenTabUrl(tab.url);
+
+    if (!descriptorsByUrl.has(url)) {
+      descriptorsByUrl.set(url, []);
+    }
+
+    descriptorsByUrl.get(url).push(tab);
+  });
+
+  const tabsToRestore = [];
+  let alreadyPresent = 0;
+
+  descriptorsByUrl.forEach((descriptors, url) => {
+    const targetCount = targetCounts.get(url) || descriptors.length;
+    const currentCount = currentCounts.get(url) || 0;
+    const missingCount = Math.max(
+      0,
+      Math.min(descriptors.length, targetCount - currentCount)
+    );
+
+    tabsToRestore.push(...descriptors.slice(0, missingCount));
+    alreadyPresent += descriptors.length - missingCount;
+  });
+
+  tabsToRestore.sort((first, second) => {
+    const firstWindow = first.windowId ?? Number.MAX_SAFE_INTEGER;
+    const secondWindow = second.windowId ?? Number.MAX_SAFE_INTEGER;
+
+    if (firstWindow !== secondWindow) {
+      return firstWindow - secondWindow;
+    }
+
+    return (first.index ?? Number.MAX_SAFE_INTEGER) -
+      (second.index ?? Number.MAX_SAFE_INTEGER);
+  });
+
+  const [windows, currentWindow] = await Promise.all([
+    chrome.windows.getAll({ windowTypes: ["normal"] }),
+    chrome.windows.getCurrent()
+  ]);
+  const availableWindowIds = new Set(
+    windows.map((window) => window.id)
+  );
+  let restored = 0;
+  let failed = 0;
+  const failedTabs = [];
+
+  for (const tab of tabsToRestore) {
+    const hasOriginalWindow = availableWindowIds.has(tab.windowId);
+    const createProperties = {
+      url: tab.url,
+      active: false,
+      pinned: tab.pinned,
+      windowId: hasOriginalWindow
+        ? tab.windowId
+        : currentWindow.id
+    };
+
+    if (hasOriginalWindow && Number.isInteger(tab.index)) {
+      createProperties.index = tab.index;
+    }
+
+    try {
+      await chrome.tabs.create(createProperties);
+      restored += 1;
+    } catch (error) {
+      failed += 1;
+      failedTabs.push(tab);
+      console.warn(
+        "[tab-out] Could not restore an unassigned tab:",
+        tab.url,
+        error
+      );
+    }
+  }
+
+  if (failed < 1) {
+    await removeUnassignedRemovalEntry(entry.id);
+  } else {
+    entry.tabs = failedTabs;
+    await replaceUnassignedRemovalEntry(entry);
+  }
+
+  await fetchOpenTabs();
+  return {
+    restored,
+    failed,
+    alreadyPresent,
+    empty: false
+  };
 }
 
 /**
@@ -2049,7 +2890,23 @@ function checkAndShowEmptyState() {
   `;
 
   const countEl = document.getElementById('openTabsSectionCount');
-  if (countEl) countEl.textContent = `0 ${t("domains")}`;
+  const countLabel = document.getElementById("openTabsFilteredCount");
+
+  if (countLabel) {
+    countLabel.textContent = `0 ${t("domains")}`;
+  } else if (countEl) {
+    countEl.innerHTML = renderOpenTabsSearchControls(0);
+  }
+
+  const closeAllButton = countEl?.querySelector(
+    '[data-action="close-all-open-tabs"]'
+  );
+
+  if (closeAllButton) {
+    closeAllButton.disabled = true;
+  }
+
+  updateUnassignedRemovalUndoControl();
 }
 
 /**
@@ -2334,6 +3191,7 @@ function smartTitle(title, url) {
 const ICONS = {
   tabs:    `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8.25V18a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 18V8.25m-18 0V6a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 6v2.25m-18 0h18" /></svg>`,
   close:   `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`,
+  undo:    `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 14 4 9m0 0 5-5M4 9h10a6 6 0 0 1 0 12h-1" /></svg>`,
   archive: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg>`,
   focus:   `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" /></svg>`,
 };
@@ -2492,9 +3350,19 @@ function getOpenTabsCountLabel(filteredGroups, allGroups) {
 function renderOpenTabsSearchControls(unassignedTabCount) {
   const searchValue = escapeAttr(openTabsFilterQuery);
   const activeClass = openTabsSearchVisible ? " is-visible" : "";
+  const undoCount = unassignedRemovalHistory.length;
+  const undoDisabled = unassignedRemovalUndoBusy || undoCount < 1;
+  const undoTitle = undoCount > 0
+    ? t("unassignedUndoRemovalTitle", { count: undoCount })
+    : t("unassignedUndoRemovalEmpty");
 
   return `
     <span id="openTabsFilteredCount" class="open-tabs-count-label"></span>
+    <button class="open-tabs-undo-btn" data-action="undo-unassigned-removal" title="${escapeAttr(undoTitle)}" aria-label="${escapeAttr(undoTitle)}" ${undoDisabled ? "disabled" : ""}>
+      ${ICONS.undo}
+      <span class="open-tabs-undo-label">${t("unassignedUndoRemoval")}</span>
+      <span class="open-tabs-undo-count"${undoCount > 1 ? "" : " hidden"}>${undoCount}</span>
+    </button>
     <button class="open-tabs-search-btn" data-action="toggle-open-tabs-search" title="${escapeAttr(t("searchTabs"))}" aria-label="${escapeAttr(t("searchTabs"))}" aria-expanded="${openTabsSearchVisible ? "true" : "false"}">
       <svg class="open-tabs-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z" />
@@ -2627,15 +3495,16 @@ function renderDomainCard(group) {
     </div>`;
   }).join('');
 
-  let actionsHtml = `
-    <button class="action-btn close-tabs" data-action="close-domain-tabs" data-domain-id="${stableId}">
+  const closeAllHtml = `
+    <button class="action-btn close-tabs domain-close-all" data-action="close-domain-tabs" data-domain-id="${stableId}">
       ${ICONS.close}
       ${t("closeAllDomainTabs", { count: tabCount })}
     </button>`;
+  let actionsHtml = "";
 
   if (hasDupes) {
     const dupeUrlsEncoded = dupeUrls.map(([url]) => encodeURIComponent(url)).join(',');
-    actionsHtml += `
+    actionsHtml = `
       <button class="action-btn" data-action="dedup-keep-one" data-dupe-urls="${dupeUrlsEncoded}">
         ${totalExtras === 1 ? t("closeDuplicate", { count: totalExtras }) : t("closeDuplicates", { count: totalExtras })}
       </button>`;
@@ -2645,6 +3514,7 @@ function renderDomainCard(group) {
     <div class="mission-card domain-card ${hasDupes ? 'has-amber-bar' : 'has-neutral-bar'}" data-domain-id="${stableId}">
       <div class="status-bar"></div>
       <div class="mission-content">
+        ${closeAllHtml}
         <div class="mission-top">
           <span class="mission-name">${isLanding ? t("homepages") : (group.label || friendlyDomain(group.domain))}</span>
           ${tabBadge}
@@ -2652,7 +3522,7 @@ function renderDomainCard(group) {
         </div>
         <div class="mission-pages">${pageChips}</div>
         ${renderTabDropdown(hiddenTabs, `${stableId}-dropdown`)}
-        <div class="actions">${actionsHtml}</div>
+        ${actionsHtml ? `<div class="actions">${actionsHtml}</div>` : ""}
       </div>
       <div class="mission-meta">
         <div class="mission-page-count">${tabCount}</div>
@@ -2885,6 +3755,7 @@ async function renderStaticDashboard() {
 
   // --- Fetch tabs ---
   await fetchOpenTabs();
+  await loadUnassignedRemovalHistory();
   const realTabs = getRealTabs();
   let sessions = [];
 
@@ -5479,7 +6350,7 @@ async function renderDashboard() {
      openButton.dataset.action = "view-saved-session";
      openButton.dataset.sessionId = session.id;
 
-     if (session.groupTemplate) {
+     if (session.groupTemplate && session.groupLink) {
        const colorDot = document.createElement("span");
        colorDot.className = "chrome-group-color-dot";
        colorDot.style.setProperty(
@@ -7064,6 +7935,16 @@ if (chrome?.storage?.onChanged) {
     if (areaName === "local" && changes.savedSessions) {
       scheduleSavedSessionsRefresh();
     }
+
+    if (
+      areaName === "local" &&
+      changes[UNASSIGNED_REMOVAL_HISTORY_KEY]
+    ) {
+      unassignedRemovalHistory = normalizeUnassignedRemovalHistory(
+        changes[UNASSIGNED_REMOVAL_HISTORY_KEY].newValue
+      );
+      updateUnassignedRemovalUndoControl();
+    }
   });
 }
 
@@ -8090,6 +8971,51 @@ document.addEventListener('click', async (e) => {
 
   const card = actionEl.closest('.mission-card');
 
+  if (action === "undo-unassigned-removal") {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (unassignedRemovalUndoBusy) {
+      return;
+    }
+
+    unassignedRemovalUndoBusy = true;
+    updateUnassignedRemovalUndoControl();
+
+    try {
+      const result = await restoreLatestUnassignedRemoval();
+      await renderDashboard();
+
+      if (result.empty) {
+        showToast(t("unassignedUndoRemovalEmpty"));
+      } else if (result.failed > 0 && result.restored > 0) {
+        showToast(t("unassignedRemovalRestorePartial", {
+          restored: result.restored,
+          failed: result.failed
+        }));
+      } else if (result.failed > 0) {
+        showToast(t("unassignedRemovalRestoreFailed"));
+      } else if (result.restored > 0) {
+        showToast(t("unassignedRemovalRestored", {
+          count: result.restored
+        }));
+      } else {
+        showToast(t("unassignedRemovalAlreadyRestored"));
+      }
+    } catch (error) {
+      console.warn(
+        "[tab-out] Failed to undo unassigned tab removal:",
+        error
+      );
+      showToast(t("unassignedRemovalRestoreFailed"));
+    } finally {
+      unassignedRemovalUndoBusy = false;
+      updateUnassignedRemovalUndoControl();
+    }
+
+    return;
+  }
+
   // ---- Expand overflow chips ("+N more") ----
   if (action === 'expand-chips') {
     const overflowContainer = actionEl.parentElement.querySelector('.page-chips-overflow');
@@ -8116,19 +9042,36 @@ document.addEventListener('click', async (e) => {
   // ---- Close a single tab ----
   if (action === 'close-single-tab') {
     e.stopPropagation(); // don't trigger parent chip's focus-tab
-    const tabUrl = actionEl.dataset.tabUrl;
-    if (!tabUrl) return;
+    const chip = actionEl.closest('.page-chip');
+    const tabId = Number.parseInt(chip?.dataset.tabId, 10);
 
-    // Close the tab in Chrome directly
-    const allTabs = await queryTabsWithMetadata({});
-    const match   = allTabs.find(t => t.url === tabUrl);
-    if (match) await chrome.tabs.remove(match.id);
-    await fetchOpenTabs();
+    if (!Number.isInteger(tabId)) {
+      return;
+    }
+
+    let removal;
+
+    try {
+      removal = await closeUnassignedTabsWithUndo(
+        [tabId],
+        "single"
+      );
+    } catch (error) {
+      console.warn(
+        "[tab-out] Failed to close an unassigned tab:",
+        error
+      );
+      showToast(t("unassignedRemovalCloseFailed"));
+      return;
+    }
+
+    if (!removal) {
+      return;
+    }
 
     playCloseSound();
 
     // Animate the chip row out
-    const chip = actionEl.closest('.page-chip');
     if (chip) {
       const rect = chip.getBoundingClientRect();
       shootConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -8299,20 +9242,44 @@ document.addEventListener('click', async (e) => {
     });
     if (!group) return;
 
-    const urls      = group.tabs.map(t => t.url);
-    await closeTabsExact(urls);
+    let removal;
 
-    if (card) {
-      playCloseSound();
-      animateCardOut(card);
+    try {
+      removal = await closeUnassignedTabsWithUndo(
+        group.tabs.map((tab) => tab.id),
+        "domain"
+      );
+    } catch (error) {
+      console.warn(
+        "[tab-out] Failed to close an unassigned domain:",
+        error
+      );
+      showToast(t("unassignedRemovalCloseFailed"));
+      return;
     }
 
-    // Remove from in-memory groups
-    const idx = domainGroups.indexOf(group);
-    if (idx !== -1) domainGroups.splice(idx, 1);
+    if (!removal) {
+      return;
+    }
+
+    const closedCount = removal.closedTabs.length;
+    const fullyClosed = closedCount === group.tabs.length;
+
+    if (card && fullyClosed) {
+      playCloseSound();
+      animateCardOut(card);
+    } else {
+      playCloseSound();
+      scheduleDashboardRefresh();
+    }
+
+    if (fullyClosed) {
+      const idx = domainGroups.indexOf(group);
+      if (idx !== -1) domainGroups.splice(idx, 1);
+    }
 
     const groupLabel = group.domain === '__landing-pages__' ? t('homepages') : (group.label || friendlyDomain(group.domain));
-    showToast(t(urls.length === 1 ? "closedTabsFrom" : "closedTabsFromPlural", { count: urls.length, name: groupLabel }));
+    showToast(t(closedCount === 1 ? "closedTabsFrom" : "closedTabsFromPlural", { count: closedCount, name: groupLabel }));
 
     const statTabs = document.getElementById('statTabs');
     if (statTabs) statTabs.textContent = openTabs.length;
@@ -8325,8 +9292,51 @@ document.addEventListener('click', async (e) => {
     const urls = urlsEncoded.split(',').map(u => decodeURIComponent(u)).filter(Boolean);
     if (urls.length === 0) return;
 
-    await closeDuplicateTabs(urls, true);
+    const tabsToClose = [];
+
+    urls.forEach((url) => {
+      const matchingTabs = unassignedOpenTabs.filter(
+        (tab) => tab.url === url
+      );
+      const keep = matchingTabs.find((tab) => tab.active) ||
+        matchingTabs[0];
+
+      matchingTabs.forEach((tab) => {
+        if (tab.id !== keep?.id) {
+          tabsToClose.push(tab.id);
+        }
+      });
+    });
+
+    let removal;
+
+    try {
+      removal = await closeUnassignedTabsWithUndo(
+        tabsToClose,
+        "duplicates"
+      );
+    } catch (error) {
+      console.warn(
+        "[tab-out] Failed to close unassigned duplicates:",
+        error
+      );
+      showToast(t("unassignedRemovalCloseFailed"));
+      return;
+    }
+
+    if (!removal) {
+      return;
+    }
+
     playCloseSound();
+    const fullyDeduplicated =
+      removal.closedTabs.length === tabsToClose.length;
+
+    if (!fullyDeduplicated) {
+      scheduleDashboardRefresh();
+      showToast(t("unassignedDuplicatesClosedPartial"));
+      return;
+    }
 
     // Hide the dedup button
     actionEl.style.transition = 'opacity 0.2s';
@@ -8351,32 +9361,62 @@ document.addEventListener('click', async (e) => {
       card.classList.add('has-neutral-bar');
     }
 
-    showToast('Closed duplicates, kept one copy each');
+    showToast(t("unassignedDuplicatesClosed"));
     return;
   }
 
   // ---- Close ALL open tabs ----
   if (action === 'close-all-open-tabs') {
-    const allUrls = unassignedOpenTabs
-      .filter(t => t.url)
-      .map(t => t.url);
+    const allTabIds = unassignedOpenTabs
+      .map((tab) => tab.id)
+      .filter(Number.isInteger);
 
-    if (!allUrls.length) {
+    if (!allTabIds.length) {
       return;
     }
 
-    await closeTabsExact(allUrls);
-    playCloseSound();
+    let removal;
 
-    document.querySelectorAll('#openTabsMissions .mission-card').forEach(c => {
-      shootConfetti(
-        c.getBoundingClientRect().left + c.offsetWidth / 2,
-        c.getBoundingClientRect().top  + c.offsetHeight / 2
+    try {
+      removal = await closeUnassignedTabsWithUndo(
+        allTabIds,
+        "all"
       );
-      animateCardOut(c);
-    });
+    } catch (error) {
+      console.warn(
+        "[tab-out] Failed to close all unassigned tabs:",
+        error
+      );
+      showToast(t("unassignedRemovalCloseFailed"));
+      return;
+    }
 
-    showToast(t("unassignedTabsClosed"));
+    if (!removal) {
+      return;
+    }
+
+    playCloseSound();
+    const fullyClosed =
+      removal.closedTabs.length === allTabIds.length;
+
+    if (fullyClosed) {
+      document.querySelectorAll('#openTabsMissions .mission-card').forEach(c => {
+        shootConfetti(
+          c.getBoundingClientRect().left + c.offsetWidth / 2,
+          c.getBoundingClientRect().top  + c.offsetHeight / 2
+        );
+        animateCardOut(c);
+      });
+    } else {
+      scheduleDashboardRefresh();
+    }
+
+    showToast(t(
+      fullyClosed
+        ? "unassignedTabsClosed"
+        : "unassignedTabsClosedPartial",
+      { count: removal.closedTabs.length }
+    ));
     return;
   }
 });
@@ -8789,6 +9829,7 @@ async function setupLanguageSwitcher() {
     await renderDashboard();
     await renderSavedSessions();
     await loadWeather({ force: false });
+    await globalThis.TabOutTodoWidget?.refresh?.();
   });
 }
 
@@ -8798,13 +9839,14 @@ document.addEventListener("DOMContentLoaded", setupLanguageSwitcher);
    BACKUP / IMPORT — discreet local data safety net
    ---------------------------------------------------------------- */
 
-const TAB_OUT_BACKUP_VERSION = 3;
+const TAB_OUT_BACKUP_VERSION = 4;
 const TAB_OUT_CHROME_STORAGE_BACKUP_KEYS = [
   "savedSessions",
   "tabOutSessionSchemaVersion",
   "tabOutLanguage",
   "tabOutDashboardSettings",
-  "deferred"
+  "deferred",
+  "tabOutTodoStateV1"
 ];
 const TAB_OUT_LEGACY_BACKUP_KEYS = [
   "tabOutProtectedGroups"
@@ -8951,7 +9993,20 @@ async function importTabOutDataFromFile(file) {
       }
     });
 
-    await chrome.storage.local.remove(acceptedChromeKeys);
+    if (
+      chromeStorageData.tabOutTodoStateV1 &&
+      globalThis.TabOutTodoService?.normalizeState
+    ) {
+      chromeStorageData.tabOutTodoStateV1 =
+        globalThis.TabOutTodoService.normalizeState(
+          chromeStorageData.tabOutTodoStateV1
+        );
+    }
+
+    await chrome.storage.local.remove([
+      ...acceptedChromeKeys,
+      "tabOutTodoUndoV1"
+    ]);
 
     if (Object.keys(chromeStorageData).length) {
       await chrome.storage.local.set(chromeStorageData);
@@ -8977,6 +10032,7 @@ async function importTabOutDataFromFile(file) {
 
     await renderDashboard();
     await renderSavedSessions();
+    await globalThis.TabOutTodoWidget?.refresh?.();
 
     showToast(t("importSuccess"));
   } catch (error) {

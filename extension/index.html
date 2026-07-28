@@ -219,6 +219,22 @@
             </label>
           </div>
 
+          <div class="settings-block">
+            <div class="settings-block-heading">
+              <div>
+                <h3 data-i18n="settingsAppearanceTitle">Appearance</h3>
+                <p data-i18n="settingsAppearanceHint">Choose the extension color theme. Dark keeps the current appearance.</p>
+              </div>
+            </div>
+            <label class="settings-select-field">
+              <span data-i18n="settingsThemeLabel">Color theme</span>
+              <select id="settingsThemeSelect">
+                <option value="dark" data-i18n="settingsThemeDark">Dark</option>
+                <option value="light" data-i18n="settingsThemeLight">Light</option>
+              </select>
+            </label>
+          </div>
+
           <div class="settings-block settings-toggle-block">
             <div>
               <h3 id="settingsSuspendedTabsTitle" data-i18n="settingsSuspendedTabsTitle">Suspended tabs</h3>
@@ -315,6 +331,131 @@
             </label>
           </div>
 
+          <div class="settings-block settings-todo-block" id="settingsTodoBlock">
+            <div class="settings-block-heading">
+              <div>
+                <span class="settings-integration-eyebrow" data-i18n="todoOptionalWidget">Optional local widget</span>
+                <h3 data-i18n="todoSettingsTitle">TODO list</h3>
+                <p data-i18n="todoSettingsHint">Configure what happens when tasks are completed and how deadlines communicate urgency.</p>
+              </div>
+            </div>
+
+            <div class="settings-todo-notice">
+              <strong data-i18n="todoLocalOnlyTitle">Stored locally</strong>
+              <span data-i18n="todoLocalOnlyHint">Tasks and undo history stay in this browser profile.</span>
+            </div>
+
+            <div class="settings-todo-toggle-row">
+              <div>
+                <strong id="settingsTodoEmailIntegrationTitle" data-i18n="todoEmailIntegrationTitle">Add Gmail conversations to TODO</strong>
+                <span data-i18n="todoEmailIntegrationHint">Show a quick task action on emails. Existing linked tasks remain available when disabled.</span>
+              </div>
+              <label class="settings-switch">
+                <input
+                  id="settingsTodoEmailIntegrationEnabled"
+                  type="checkbox"
+                  data-settings-todo="emailTaskIntegrationEnabled"
+                  aria-labelledby="settingsTodoEmailIntegrationTitle"
+                >
+                <span class="settings-switch-track"></span>
+              </label>
+            </div>
+
+            <label class="settings-select-field">
+              <span data-i18n="todoEmailCompletionActionLabel">When an email task is completed</span>
+              <select id="settingsTodoEmailCompletionAction" data-settings-todo="emailCompletionAction">
+                <option value="keep" data-i18n="todoEmailCompletionKeep">Keep the email unchanged</option>
+                <option value="markRead" data-i18n="todoEmailCompletionMarkRead">Mark the email as read</option>
+                <option value="archive" data-i18n="todoEmailCompletionArchive">Archive the email</option>
+              </select>
+              <small data-i18n="todoEmailCompletionHint">This applies only when completing a task. Reopening it does not reverse the Gmail action.</small>
+            </label>
+
+            <label class="settings-select-field">
+              <span data-i18n="todoCompletionActionLabel">When a task is completed</span>
+              <select id="settingsTodoCompletionAction" data-settings-todo="completionAction">
+                <option value="archive" data-i18n="todoCompletionArchive">Archive automatically</option>
+                <option value="keepCompleted" data-i18n="todoCompletionKeep">Keep completed until manually archived</option>
+                <option value="delete" data-i18n="todoCompletionDelete">Delete automatically</option>
+              </select>
+            </label>
+
+            <div class="settings-todo-toggle-row">
+              <div>
+                <strong id="settingsTodoShowFullTitlesTitle" data-i18n="todoShowFullTitlesTitle">Show complete task titles</strong>
+                <span data-i18n="todoShowFullTitlesHint">Allow long titles to wrap onto multiple lines instead of shortening them.</span>
+              </div>
+              <label class="settings-switch">
+                <input
+                  id="settingsTodoShowFullTitles"
+                  type="checkbox"
+                  data-settings-todo="showFullTitles"
+                  aria-labelledby="settingsTodoShowFullTitlesTitle"
+                >
+                <span class="settings-switch-track"></span>
+              </label>
+            </div>
+
+            <div class="settings-todo-toggle-row">
+              <div>
+                <strong id="settingsTodoDeadlineColorsTitle" data-i18n="todoDeadlineColorsTitle">Deadline priority colors</strong>
+                <span data-i18n="todoDeadlineColorsHint">Show overdue, today, soon, and future deadlines with distinct accents.</span>
+              </div>
+              <label class="settings-switch">
+                <input
+                  id="settingsTodoDeadlineColorsEnabled"
+                  type="checkbox"
+                  data-settings-todo="deadlineColorsEnabled"
+                  aria-labelledby="settingsTodoDeadlineColorsTitle"
+                >
+                <span class="settings-switch-track"></span>
+              </label>
+            </div>
+
+            <label class="settings-todo-range-field" for="settingsTodoDueSoonDays">
+              <span>
+                <strong data-i18n="todoDueSoonThresholdTitle">Due soon threshold</strong>
+                <small data-i18n="todoDueSoonThresholdHint">Deadlines within this many calendar days use the due-soon priority.</small>
+              </span>
+              <span class="settings-todo-range-control">
+                <input
+                  id="settingsTodoDueSoonDays"
+                  type="range"
+                  min="1"
+                  max="30"
+                  step="1"
+                  value="3"
+                  data-settings-todo="dueSoonDays"
+                >
+                <output id="settingsTodoDueSoonDaysOutput" for="settingsTodoDueSoonDays">3 days</output>
+              </span>
+            </label>
+
+            <div class="settings-todo-colors">
+              <label>
+                <span data-i18n="todoDeadlineOverdue">Overdue</span>
+                <input type="color" value="#dc2626" data-settings-todo-color="overdue">
+              </label>
+              <label>
+                <span data-i18n="todoDeadlineToday">Due today</span>
+                <input type="color" value="#f97316" data-settings-todo-color="today">
+              </label>
+              <label>
+                <span data-i18n="todoDeadlineSoon">Due soon</span>
+                <input type="color" value="#d97706" data-settings-todo-color="soon">
+              </label>
+              <label>
+                <span data-i18n="todoDeadlineFuture">Future</span>
+                <input type="color" value="#2563eb" data-settings-todo-color="future">
+              </label>
+            </div>
+
+            <div class="settings-todo-actions">
+              <span data-i18n="todoLayoutHint">Show, move, resize, or hide this widget from the Layout menu.</span>
+              <button type="button" class="settings-text-btn" data-action="reset-todo-colors" data-i18n="todoResetColors">Reset colors</button>
+            </div>
+          </div>
+
           <div class="settings-block settings-reset-block">
             <div>
               <h3 data-i18n="settingsResetTitle">Reset dashboard</h3>
@@ -346,6 +487,21 @@
             <div class="settings-integration-notice">
               <strong data-i18n="gmailPrivacyTitle">Private by design</strong>
               <span data-i18n="gmailPrivacyHint">Mail and OAuth tokens stay in this browser profile and are sent only to Google.</span>
+            </div>
+
+            <div class="settings-gmail-privacy-toggle">
+              <div>
+                <strong id="settingsGmailMaskAccountsTitle" data-i18n="gmailMaskAccountsTitle">Mask email account addresses</strong>
+                <span data-i18n="gmailMaskAccountsHint">Cover connected account addresses with a black privacy bar in the dashboard, Settings, and popup.</span>
+              </div>
+              <label class="settings-switch">
+                <input
+                  id="settingsGmailMaskAccounts"
+                  type="checkbox"
+                  aria-labelledby="settingsGmailMaskAccountsTitle"
+                >
+                <span class="settings-switch-track"></span>
+              </label>
             </div>
 
             <div class="settings-gmail-service-notice" id="settingsGmailAuthNotice" hidden>
@@ -1002,6 +1158,141 @@
     <div class="gmail-account-cards" id="gmailAccountCards"></div>
   </section>
 
+  <section class="todo-widget" id="todoWidget" aria-labelledby="todoWidgetTitle">
+    <div class="todo-widget-header">
+      <div class="todo-widget-heading">
+        <span class="todo-widget-mark" aria-hidden="true">✓</span>
+        <div>
+          <div class="todo-widget-title-row">
+            <h2 id="todoWidgetTitle" data-i18n="todoWidgetTitle">TODO list</h2>
+            <span class="todo-widget-count" id="todoWidgetCount"></span>
+          </div>
+          <p data-i18n="todoWidgetHint">Keep the next actions visible and local.</p>
+        </div>
+      </div>
+
+      <div class="todo-widget-actions">
+        <button
+          type="button"
+          class="todo-icon-btn"
+          id="todoUndoBtn"
+          data-todo-action="undo"
+          data-i18n-title="todoUndo"
+          data-i18n-aria-label="todoUndo"
+          disabled
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25 4.5 9.75 9 5.25m-4.5 4.5h10.125a5.625 5.625 0 0 1 0 11.25H12" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="todo-add-btn"
+          id="todoAddBtn"
+          data-todo-action="open-add"
+        >
+          <span aria-hidden="true">+</span>
+          <span data-i18n="todoAddTask">Add task</span>
+        </button>
+      </div>
+    </div>
+
+    <form class="todo-composer" id="todoComposer" hidden novalidate>
+      <label class="todo-field todo-title-field">
+        <span data-i18n="todoTaskTitleLabel">Task title</span>
+        <input
+          type="text"
+          id="todoTitleInput"
+          maxlength="200"
+          autocomplete="off"
+          data-i18n-placeholder="todoTaskTitlePlaceholder"
+        >
+      </label>
+
+      <button
+        type="button"
+        class="todo-details-toggle"
+        id="todoDetailsToggle"
+        data-todo-action="toggle-add-details"
+        aria-expanded="false"
+      >
+        <span data-i18n="todoMoreDetails">More details</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6.75 9 5.25 5.25L17.25 9" />
+        </svg>
+      </button>
+
+      <div class="todo-composer-details" id="todoComposerDetails" hidden>
+        <label class="todo-field">
+          <span data-i18n="todoNotesLabel">Notes</span>
+          <textarea
+            id="todoNotesInput"
+            maxlength="10000"
+            rows="3"
+            data-i18n-placeholder="todoNotesPlaceholder"
+          ></textarea>
+        </label>
+
+        <div class="todo-deadline-fields">
+          <label class="todo-field">
+            <span data-i18n="todoDeadlineDateLabel">Deadline date</span>
+            <input type="date" id="todoDeadlineDateInput">
+          </label>
+          <label class="todo-field">
+            <span data-i18n="todoDeadlineTimeLabel">Optional time</span>
+            <input type="time" id="todoDeadlineTimeInput">
+          </label>
+        </div>
+
+        <div class="todo-checklist-editor">
+          <span class="todo-checklist-label" data-i18n="todoChecklistLabel">Checklist</span>
+          <div id="todoComposerChecklist"></div>
+          <div class="todo-checklist-add-row">
+            <input
+              type="text"
+              id="todoChecklistInput"
+              maxlength="300"
+              autocomplete="off"
+              data-i18n-placeholder="todoChecklistPlaceholder"
+            >
+            <button type="button" data-todo-action="add-composer-checklist" data-i18n="todoAddChecklistItem">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="todo-composer-error" id="todoComposerError" role="alert" hidden></div>
+      <div class="todo-composer-actions">
+        <button type="button" class="todo-secondary-btn" data-todo-action="cancel-add" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="todo-primary-btn" data-i18n="todoSaveTask">Save task</button>
+      </div>
+    </form>
+
+    <div class="todo-list" id="todoList"></div>
+    <div class="todo-empty" id="todoEmpty">
+      <strong data-i18n="todoEmptyTitle">Nothing to do yet.</strong>
+      <span data-i18n="todoEmptyHint">Add a task and keep the next step within reach.</span>
+    </div>
+
+    <div class="todo-archive" id="todoArchive" hidden>
+      <button
+        type="button"
+        class="todo-archive-toggle"
+        id="todoArchiveToggle"
+        data-todo-action="toggle-archive"
+        aria-expanded="false"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m6.75 9 5.25 5.25L17.25 9" />
+        </svg>
+        <span data-i18n="archive">Archive</span>
+        <span id="todoArchiveCount"></span>
+      </button>
+      <div class="todo-archive-body" id="todoArchiveBody" hidden>
+        <div class="todo-archive-list" id="todoArchiveList"></div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <div class="footer-stats" id="footerStats">
       <div class="stat">
@@ -1055,13 +1346,15 @@
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
 <!-- If the file doesn't exist, that's fine — app.js uses sensible defaults. -->
 <script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
-<script src="dashboard-settings.js"></script>
-<script src="tab-metadata.js"></script>
-<script src="gmail-config.js"></script>
+  <script src="dashboard-settings.js"></script>
+  <script src="tab-metadata.js"></script>
+  <script src="gmail-config.js"></script>
+  <script src="todo-service.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
-<script src="app.js"></script>
-<script src="gmail-widget.js"></script>
+  <script src="app.js"></script>
+  <script src="todo-widget.js"></script>
+  <script src="gmail-widget.js"></script>
 <script src="settings-ui.js"></script>
 </body>
 </html>
