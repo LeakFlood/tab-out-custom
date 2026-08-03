@@ -1,5 +1,8 @@
+try {
+  importScripts("gmail-oauth-client.js");
+} catch {}
+
 importScripts(
-  "gmail-oauth-client.js",
   "gmail-config.js",
   "dashboard-settings.js",
   "tab-metadata.js",

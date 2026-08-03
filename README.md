@@ -117,7 +117,7 @@ Weather data is fetched through Open-Meteo. Reverse geocoding is handled through
 
 ### Optional Gmail notifier
 
-The Gmail module is disabled and hidden by default. Add one or more accounts from **Settings > General > Gmail notifier** to reveal it automatically.
+The Gmail module is disabled and hidden by default. Add one or more accounts from **Settings > General > Gmail notifier** to reveal it automatically. Enter OAuth credentials there; no source-code edit is required.
 
 The module provides:
 
@@ -297,6 +297,8 @@ The Gmail integration requires a public Google **Desktop app** OAuth client:
 
 One shared client can connect multiple Gmail accounts. Accounts can also use separate dedicated clients, and both approaches can be mixed. The information button beside **Gmail notifier** contains the complete Google Cloud procedure and direct links.
 
+For local development only, you may instead copy extension/gmail-oauth-client.example.js to extension/gmail-oauth-client.js, fill in the two values, and reload the unpacked extension. The destination file is ignored by Git and loaded only when present. Never commit, share, or include that local file in a distributed package.
+
 Desktop and other installed applications cannot keep a client secret confidential. Do not reuse this credential for a server-side application, and expect both values to be extractable from an installed extension. OAuth clients and tokens are stored only in trusted extension storage and are excluded from Tab Out backups.
 
 The extension opens Google authorization in a focused tab and observes the redirect to a randomized `127.0.0.1` loopback URL. PKCE protects the one-time authorization code; no process listens on that address.
@@ -307,6 +309,7 @@ The repository should ignore:
 
 ```text
 extension/config.local.js
+extension/gmail-oauth-client.js
 ```
 
 ## Permissions
