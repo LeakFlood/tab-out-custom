@@ -13,8 +13,10 @@ function scheduleDashboardRefresh() {
 
   tabRefreshTimer = setTimeout(async () => {
     if (
+      savedSessionRowDragState?.dragging ||
       openTabAssignmentDragState?.dragging ||
-      savedSessionTabDragState?.dragging
+      savedSessionTabDragState?.dragging ||
+      savedLaterDragState?.dragging
     ) {
       scheduleDashboardRefresh();
       return;
@@ -43,8 +45,10 @@ function scheduleSavedSessionsRefresh() {
     }
 
     if (
+      savedSessionRowDragState?.dragging ||
       openTabAssignmentDragState?.dragging ||
-      savedSessionTabDragState?.dragging
+      savedSessionTabDragState?.dragging ||
+      savedLaterDragState?.dragging
     ) {
       scheduleSavedSessionsRefresh();
       return;
@@ -55,7 +59,13 @@ function scheduleSavedSessionsRefresh() {
 }
 
 globalThis.TabOutBrowserEvents.subscribe("storage-changed", (changes, areaName) => {
-  if (areaName === "local" && changes.savedSessions) {
+  if (
+    areaName === "local" &&
+    (
+      changes.savedSessions ||
+      changes[SAVED_SESSION_ROWS_STORAGE_KEY]
+    )
+  ) {
     scheduleSavedSessionsRefresh();
   }
 
@@ -108,6 +118,42 @@ globalThis.TabOutBrowserEvents.subscribe(
    ---------------------------------------------------------------- */
 
 document.addEventListener("pointerdown", (e) => {
+  const savedLaterSource = e.target.closest?.(
+    '[data-saved-later-draggable="true"]'
+  );
+
+  if (
+    savedLaterSource &&
+    e.button === 0 &&
+    e.isPrimary !== false &&
+    !e.target.closest?.("[data-action]") &&
+    !savedSessionRowDragState &&
+    !openTabAssignmentDragState &&
+    !savedSessionDragState &&
+    !savedSessionTabDragState &&
+    !savedLaterDragState &&
+    !provisionalSessionState &&
+    !inlineSessionRenameState
+  ) {
+    savedLaterDragState = {
+      sourceElement: savedLaterSource,
+      deferredId: savedLaterSource.dataset.deferredId,
+      url: savedLaterSource.dataset.deferredUrl,
+      title:
+        savedLaterSource.dataset.deferredTitle ||
+        savedLaterSource.dataset.deferredUrl,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      dragging: false,
+      ghost: null,
+      target: null
+    };
+    return;
+  }
+
   const sessionTabDragHandle = e.target.closest?.(
     '[data-session-tab-drag-handle="true"]'
   );
@@ -117,8 +163,10 @@ document.addEventListener("pointerdown", (e) => {
     isDashboardBehaviorEnabled("dragSessionTabs") &&
     e.button === 0 &&
     e.isPrimary !== false &&
+    !savedSessionRowDragState &&
     !openTabAssignmentDragState &&
     !savedSessionDragState &&
+    !savedLaterDragState &&
     !provisionalSessionState &&
     !inlineSessionRenameState
   ) {
@@ -159,6 +207,9 @@ document.addEventListener("pointerdown", (e) => {
     isDashboardBehaviorEnabled("dragUnassignedTabs") &&
     e.button === 0 &&
     e.isPrimary !== false &&
+    !savedSessionRowDragState &&
+    !savedSessionTabDragState &&
+    !savedLaterDragState &&
     !provisionalSessionState &&
     !inlineSessionRenameState &&
     !e.target.closest(".chip-actions")
@@ -182,13 +233,56 @@ document.addEventListener("pointerdown", (e) => {
     }
   }
 
+  const sessionRowDragHandle = e.target.closest?.(
+    '[data-session-row-drag-handle="true"]'
+  );
+
+  if (
+    sessionRowDragHandle &&
+    isDashboardBehaviorEnabled("reorderSessions") &&
+    e.button === 0 &&
+    e.isPrimary !== false &&
+    !savedSessionRowDragState &&
+    !openTabAssignmentDragState &&
+    !savedSessionDragState &&
+    !savedSessionTabDragState &&
+    !savedLaterDragState &&
+    !provisionalSessionState &&
+    !inlineSessionRenameState &&
+    savedSessionsViewMode === "sessions"
+  ) {
+    const row = sessionRowDragHandle.closest(".saved-session-row");
+    const list = row?.closest("#savedSessionsList");
+
+    if (row && list) {
+      savedSessionRowDragState = {
+        row,
+        handle: sessionRowDragHandle,
+        list,
+        rowId: row.dataset.sessionRowId,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        offsetX: 0,
+        offsetY: 0,
+        dragging: false,
+        initialRows: getSavedSessionDomLayout(list),
+        placeholder: null,
+        ghost: null
+      };
+      return;
+    }
+  }
+
   const card = e.target.closest('.saved-session-card[data-session-draggable="true"]');
 
   if (
     !card ||
     !isDashboardBehaviorEnabled("reorderSessions") ||
+    savedSessionRowDragState ||
     openTabAssignmentDragState ||
     savedSessionTabDragState ||
+    savedLaterDragState ||
     provisionalSessionState ||
     inlineSessionRenameState ||
     savedSessionsViewMode !== "sessions"
@@ -224,9 +318,11 @@ document.addEventListener("pointerdown", (e) => {
     offsetX: 0,
     offsetY: 0,
     dragging: false,
-    initialOrder: getSavedSessionDomOrder(list),
+    initialRows: getSavedSessionDomLayout(list),
     placeholder: null,
-    ghost: null
+    ghost: null,
+    sourceRow: null,
+    newRowTarget: null
   };
 
   // Do not capture the pointer on simple click.
@@ -236,6 +332,54 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointermove", (e) => {
+  const rowState = savedSessionRowDragState;
+
+  if (rowState?.pointerId === e.pointerId) {
+    const distanceX = Math.abs(e.clientX - rowState.startX);
+    const distanceY = Math.abs(e.clientY - rowState.startY);
+
+    if (!rowState.dragging) {
+      if (
+        Math.max(distanceX, distanceY) <
+        SAVED_SESSION_ROW_DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      startSavedSessionRowPointerDrag(e, rowState);
+      return;
+    }
+
+    e.preventDefault();
+    updateSavedSessionRowPointerDrag(e);
+    return;
+  }
+
+  const savedLaterState = savedLaterDragState;
+
+  if (savedLaterState?.pointerId === e.pointerId) {
+    const distanceX = Math.abs(e.clientX - savedLaterState.startX);
+    const distanceY = Math.abs(e.clientY - savedLaterState.startY);
+
+    if (!savedLaterState.dragging) {
+      if (
+        Math.max(distanceX, distanceY) <
+        SAVED_LATER_DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      startSavedLaterPointerDrag(e, savedLaterState);
+      return;
+    }
+
+    e.preventDefault();
+    updateSavedLaterPointerDrag(e);
+    return;
+  }
+
   const savedTabState = savedSessionTabDragState;
 
   if (savedTabState?.pointerId === e.pointerId) {
@@ -305,6 +449,16 @@ document.addEventListener("pointermove", (e) => {
 });
 
 document.addEventListener("pointerup", async (e) => {
+  if (savedSessionRowDragState?.pointerId === e.pointerId) {
+    await finishSavedSessionRowPointerDrag(e);
+    return;
+  }
+
+  if (savedLaterDragState?.pointerId === e.pointerId) {
+    await finishSavedLaterPointerDrag(e);
+    return;
+  }
+
   if (savedSessionTabDragState?.pointerId === e.pointerId) {
     await finishSavedSessionTabPointerDrag(e);
     return;
@@ -323,6 +477,16 @@ document.addEventListener("pointerup", async (e) => {
 });
 
 document.addEventListener("pointercancel", async (e) => {
+  if (savedSessionRowDragState?.pointerId === e.pointerId) {
+    await finishSavedSessionRowPointerDrag(e, { cancelled: true });
+    return;
+  }
+
+  if (savedLaterDragState?.pointerId === e.pointerId) {
+    await finishSavedLaterPointerDrag(e, { cancelled: true });
+    return;
+  }
+
   if (savedSessionTabDragState?.pointerId === e.pointerId) {
     await finishSavedSessionTabPointerDrag(e, { cancelled: true });
     return;
@@ -368,7 +532,8 @@ document.addEventListener("input", (event) => {
 document.addEventListener("dragstart", (e) => {
   if (
     e.target.closest?.('[data-open-tab-draggable="true"]') ||
-    e.target.closest?.('[data-session-tab-drag-handle="true"]')
+    e.target.closest?.('[data-session-tab-drag-handle="true"]') ||
+    e.target.closest?.('[data-saved-later-draggable="true"]')
   ) {
     e.preventDefault();
   }
@@ -433,6 +598,29 @@ document.addEventListener("keydown", (event) => {
   const groupImportModal = document.getElementById("groupImportModal");
   const sessionModal = document.getElementById("sessionModal");
 
+  if (target?.matches("[data-session-row-title-input]")) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      void saveSavedSessionRowEditor(
+        target.closest("[data-session-row-editor]")
+          ?.dataset.sessionRowEditor
+      );
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSavedSessionRowEditor();
+    }
+
+    return;
+  }
+
+  if (event.key === "Escape" && getOpenSavedSessionRowEditor()) {
+    event.preventDefault();
+    closeSavedSessionRowEditor();
+    return;
+  }
+
   if (target?.classList.contains("session-inline-name-input")) {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -478,6 +666,18 @@ document.addEventListener("keydown", (event) => {
       return;
     }
 
+    if (
+      event.key === "Enter" &&
+      !event.isComposing &&
+      !event.repeat &&
+      target?.id === "sessionNameInput"
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      void saveSessionFromModal();
+      return;
+    }
+
     if (event.key === "Tab") {
       trapSessionEditorFocus(event);
     }
@@ -516,6 +716,26 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener('click', async (e) => {
+  const savedLaterLink = e.target.closest?.(
+    "[data-saved-later-link-id]"
+  );
+
+  if (
+    savedLaterLink &&
+    consumeSuppressedSavedLaterLinkClick(savedLaterLink)
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+
+  if (
+    !e.target.closest?.(".saved-session-row-editor") &&
+    !e.target.closest?.('[data-action="customize-session-row"]')
+  ) {
+    closeSavedSessionRowEditor();
+  }
+
   // Walk up the DOM to find the nearest element with data-action
   const actionEl = e.target.closest('[data-action]');
 
@@ -673,6 +893,54 @@ document.addEventListener('click', async (e) => {
     }
 
     // ---- Saved sessions ----
+    if (action === "customize-session-row") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (
+        consumeSuppressedSessionRowCustomize(
+          actionEl.dataset.sessionRowId
+        )
+      ) {
+        return;
+      }
+
+      toggleSavedSessionRowEditor(actionEl.dataset.sessionRowId);
+      return;
+    }
+
+    if (action === "close-session-row-editor") {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSavedSessionRowEditor();
+      return;
+    }
+
+    if (action === "select-session-row-color") {
+      e.preventDefault();
+      e.stopPropagation();
+      selectSavedSessionRowEditorColor(
+        actionEl.dataset.sessionRowColor
+      );
+      return;
+    }
+
+    if (action === "reset-session-row-editor") {
+      e.preventDefault();
+      e.stopPropagation();
+      resetSavedSessionRowEditor();
+      return;
+    }
+
+    if (action === "save-session-row-editor") {
+      e.preventDefault();
+      e.stopPropagation();
+      await saveSavedSessionRowEditor(
+        actionEl.dataset.sessionRowId
+      );
+      return;
+    }
+
     if (action === "rename-session-inline") {
       e.preventDefault();
       e.stopPropagation();

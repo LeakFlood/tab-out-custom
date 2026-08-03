@@ -898,6 +898,15 @@
   padding: 12px;
 }
 
+.gmail-account-cards.is-reordering {
+  user-select: none;
+}
+
+.gmail-account-cards.is-reordering,
+.gmail-account-cards.is-reordering * {
+  cursor: grabbing !important;
+}
+
 .gmail-account-card {
   overflow: hidden;
   border: 1px solid var(--border-soft);
@@ -934,6 +943,42 @@
   border-radius: 8px;
   outline: none;
   cursor: pointer;
+}
+
+.gmail-account-identity.is-reorderable {
+  position: relative;
+  padding-left: 16px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.gmail-account-identity.is-reorderable::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1px;
+  width: 8px;
+  height: 18px;
+  color: var(--muted);
+  background-image:
+    radial-gradient(circle, currentColor 1.2px, transparent 1.4px);
+  background-position: center;
+  background-size: 4px 5px;
+  opacity: 0.5;
+  transform: translateY(-50%);
+  transition: opacity 140ms ease, color 140ms ease;
+}
+
+.gmail-account-header:hover
+  .gmail-account-identity.is-reorderable::before,
+.gmail-account-identity.is-reorderable:focus-visible::before {
+  color: var(--muted-2);
+  opacity: 1;
+}
+
+.gmail-account-identity.is-reorderable:active {
+  cursor: grabbing;
 }
 
 .gmail-account-identity:focus-visible {
@@ -998,6 +1043,39 @@
 .gmail-account-quick-actions .gmail-account-action {
   padding-inline: 12px;
   white-space: nowrap;
+}
+
+.gmail-account-placeholder {
+  min-height: 54px;
+  border: 1px dashed rgba(129, 201, 149, 0.42);
+  background: rgba(129, 201, 149, 0.065);
+  box-shadow: inset 0 0 0 1px rgba(129, 201, 149, 0.04);
+}
+
+.gmail-account-drag-ghost {
+  position: fixed !important;
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.96;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.gmail-account-drag-ghost .gmail-account-header {
+  height: 100%;
+  border-bottom-color: transparent;
+}
+
+.gmail-account-drag-ghost .gmail-account-actions {
+  opacity: 0.25;
+}
+
+.gmail-account-card.is-drag-source {
+  display: none;
 }
 
 .gmail-account-action,
@@ -1334,6 +1412,30 @@
   color: #d5d5d5;
   font-size: 11px;
   font-weight: 650;
+}
+
+.gmail-subject-tooltip {
+  position: fixed;
+  z-index: 100000;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 16px));
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  background: rgba(22, 22, 23, 0.97);
+  color: #f5f5f5;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  white-space: normal;
+  backdrop-filter: blur(10px);
+}
+
+.gmail-subject-tooltip[hidden] {
+  display: none;
 }
 
 .gmail-thread-snippet {

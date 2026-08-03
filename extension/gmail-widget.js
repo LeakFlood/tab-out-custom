@@ -25,6 +25,7 @@
     loading: false
   };
   const threadResults = new Map();
+  const automaticCacheMissRefreshAttempts = new Set();
   const previews = new Map();
   const expandedThreads = new Set();
   const expandedMessageIds = new Set();
@@ -37,6 +38,13 @@
   let splitPaneAvailable = false;
   let widgetResizeObserver = null;
   let activeTodoComposer = null;
+  let pendingAccountOrder = false;
+  let accountDragState = null;
+  let suppressedAccountExpansionId = "";
+  let gmailSubjectTooltipTarget = null;
+  let gmailRelativeTimeTimer = null;
+  const ACCOUNT_DRAG_THRESHOLD = 7;
+  const GMAIL_RELATIVE_TIME_INTERVAL_MS = 60 * 1000;
 
   function sendGmailMessage(message) {
     return new Promise((resolve) => {
@@ -114,6 +122,131 @@
 
   function getWidget() {
     return document.getElementById("gmailWidget");
+  }
+
+  function getGmailSubjectTooltip() {
+    let tooltip = document.getElementById("gmailSubjectTooltip");
+
+    if (tooltip) {
+      return tooltip;
+    }
+
+    tooltip = document.createElement("div");
+    tooltip.id = "gmailSubjectTooltip";
+    tooltip.className = "gmail-subject-tooltip";
+    tooltip.setAttribute("role", "tooltip");
+    tooltip.hidden = true;
+    document.body.appendChild(tooltip);
+    return tooltip;
+  }
+
+  function isGmailSubjectTruncated(element) {
+    return Boolean(
+      element &&
+      element.clientWidth > 0 &&
+      (
+        element.scrollWidth > element.clientWidth + 1 ||
+        element.scrollHeight > element.clientHeight + 1
+      )
+    );
+  }
+
+  function positionGmailSubjectTooltip(tooltip, target) {
+    const targetRect = target.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportPadding = 8;
+    const gap = 6;
+    const centeredLeft =
+      targetRect.left +
+      targetRect.width / 2 -
+      tooltipRect.width / 2;
+    const maximumLeft =
+      window.innerWidth - tooltipRect.width - viewportPadding;
+    const left = Math.min(
+      Math.max(viewportPadding, centeredLeft),
+      Math.max(viewportPadding, maximumLeft)
+    );
+    const preferredTop = targetRect.top - tooltipRect.height - gap;
+    const top = preferredTop >= viewportPadding
+      ? preferredTop
+      : Math.min(
+          window.innerHeight - tooltipRect.height - viewportPadding,
+          targetRect.bottom + gap
+        );
+
+    tooltip.style.left = `${Math.round(left)}px`;
+    tooltip.style.top = `${Math.max(
+      viewportPadding,
+      Math.round(top)
+    )}px`;
+  }
+
+  function hideGmailSubjectTooltip() {
+    const tooltip = document.getElementById("gmailSubjectTooltip");
+
+    if (gmailSubjectTooltipTarget) {
+      gmailSubjectTooltipTarget.removeAttribute("aria-describedby");
+      gmailSubjectTooltipTarget = null;
+    }
+
+    if (!tooltip) {
+      return;
+    }
+
+    tooltip.hidden = true;
+    tooltip.textContent = "";
+  }
+
+  function showGmailSubjectTooltip(target) {
+    const subject = String(target?.textContent || "").trim();
+
+    if (!subject || !isGmailSubjectTruncated(target)) {
+      hideGmailSubjectTooltip();
+      return;
+    }
+
+    const tooltip = getGmailSubjectTooltip();
+
+    if (
+      gmailSubjectTooltipTarget &&
+      gmailSubjectTooltipTarget !== target
+    ) {
+      gmailSubjectTooltipTarget.removeAttribute("aria-describedby");
+    }
+
+    gmailSubjectTooltipTarget = target;
+    target.setAttribute("aria-describedby", tooltip.id);
+    tooltip.textContent = subject;
+    tooltip.hidden = false;
+    positionGmailSubjectTooltip(tooltip, target);
+  }
+
+  function handleGmailSubjectPointerOver(event) {
+    const target = event.target.closest?.(
+      ".gmail-subject-tooltip-target"
+    );
+
+    if (
+      !target ||
+      !getWidget()?.contains(target) ||
+      target.contains(event.relatedTarget)
+    ) {
+      return;
+    }
+
+    showGmailSubjectTooltip(target);
+  }
+
+  function handleGmailSubjectPointerOut(event) {
+    if (
+      !gmailSubjectTooltipTarget ||
+      !gmailSubjectTooltipTarget.contains(event.target) ||
+      gmailSubjectTooltipTarget.contains(event.relatedTarget)
+    ) {
+      return;
+    }
+
+    hideGmailSubjectTooltip();
   }
 
   function getGmailViewSettings() {
@@ -283,6 +416,54 @@
     return minutes < 1
       ? t("gmailLastUpdatedNow")
       : t("gmailLastUpdatedMinutes", { count: minutes });
+  }
+
+  function getAccountThreadRefreshAt(accountId) {
+    return Number(
+      threadResults.get(String(accountId || ""))?.fetchedAt
+    ) || 0;
+  }
+
+  function updateGmailRelativeTimeLabels() {
+    const updated = document.getElementById("gmailWidgetUpdated");
+
+    if (updated) {
+      const timestamp = Number(
+        updated.dataset.gmailLastUpdatedAt
+      ) || 0;
+      updated.textContent = timestamp
+        ? formatLastUpdated(timestamp)
+        : "";
+    }
+
+    document.querySelectorAll(
+      "[data-gmail-account-relative-time]"
+    ).forEach((element) => {
+      const unreadCount = Number(
+        element.dataset.gmailUnreadCount
+      ) || 0;
+      const timestamp = Number(
+        element.dataset.gmailLastUpdatedAt
+      ) || 0;
+
+      element.textContent = [
+        t("gmailUnreadCount", { count: unreadCount }),
+        formatLastUpdated(timestamp)
+      ].join(" · ");
+    });
+  }
+
+  function scheduleGmailRelativeTimeUpdate() {
+    window.clearTimeout(gmailRelativeTimeTimer);
+    const delay =
+      GMAIL_RELATIVE_TIME_INTERVAL_MS -
+      (Date.now() % GMAIL_RELATIVE_TIME_INTERVAL_MS) +
+      25;
+
+    gmailRelativeTimeTimer = window.setTimeout(() => {
+      updateGmailRelativeTimeLabels();
+      scheduleGmailRelativeTimeUpdate();
+    }, delay);
   }
 
   function senderInitial(senderName) {
@@ -604,8 +785,23 @@
       });
     }
 
-    await refreshState();
-    render();
+    if (response.threadCacheRefreshed === true) {
+      await loadCachedThreads({
+        accountId: account.accountId
+      });
+    } else {
+      await refreshState({ renderAfter: false });
+      const currentResult = threadResults.get(account.accountId);
+
+      if (currentResult) {
+        threadResults.set(account.accountId, {
+          ...currentResult,
+          stale: true
+        });
+      }
+
+      render();
+    }
   }
 
   async function viewTodoTask(task) {
@@ -958,12 +1154,18 @@
       return pane;
     }
 
-    const key = threadKey(account.accountId, thread.threadId);
+    const previewKey = threadKey(
+      account.accountId,
+      thread.threadId
+    );
+    const todoKey = getGmailTaskKey(account, thread);
     const header = document.createElement("header");
     header.className = "gmail-reading-pane-header";
     const identity = document.createElement("div");
     identity.className = "gmail-reading-pane-identity";
     const subject = document.createElement("strong");
+    subject.className =
+      "gmail-reading-pane-subject gmail-subject-tooltip-target";
     subject.textContent = thread.subject || t("gmailNoSubject");
     const sender = document.createElement("span");
     sender.textContent =
@@ -983,13 +1185,13 @@
     const preview = createThreadPreview(
       account,
       thread,
-      previews.get(key)
+      previews.get(previewKey)
     );
     preview.classList.add("is-reading-pane");
     pane.appendChild(header);
 
     if (
-      activeTodoComposer?.key === key &&
+      activeTodoComposer?.key === todoKey &&
       activeTodoComposer.placement === "pane"
     ) {
       pane.appendChild(createGmailTodoComposer(account, thread, "pane"));
@@ -1060,7 +1262,8 @@
     const sender = document.createElement("strong");
     sender.textContent = thread.senderName || thread.senderEmail || "Gmail";
     const subject = document.createElement("span");
-    subject.className = "gmail-thread-subject";
+    subject.className =
+      "gmail-thread-subject gmail-subject-tooltip-target";
     subject.textContent = thread.subject;
     primary.append(sender, subject);
 
@@ -1136,9 +1339,19 @@
     email.className = "gmail-account-email";
     email.textContent = account.email;
     const accountMeta = document.createElement("span");
+    accountMeta.dataset.gmailAccountRelativeTime = "true";
+    accountMeta.dataset.gmailUnreadCount = String(
+      Number(account.unreadCount) || 0
+    );
+    const lastThreadRefreshAt = getAccountThreadRefreshAt(
+      account.accountId
+    );
+    accountMeta.dataset.gmailLastUpdatedAt = String(
+      lastThreadRefreshAt
+    );
     accountMeta.textContent = [
       t("gmailUnreadCount", { count: account.unreadCount }),
-      formatLastUpdated(account.lastSuccessfulPollAt)
+      formatLastUpdated(lastThreadRefreshAt)
     ].join(" · ");
     identity.append(email, accountMeta);
 
@@ -1174,8 +1387,33 @@
     identity.setAttribute("aria-expanded", String(expanded));
     identity.setAttribute("aria-controls", bodyId);
     identity.setAttribute("aria-label", toggleLabel);
-    identity.title = toggleLabel;
-    identity.addEventListener("click", toggleAccountExpansion);
+    const reorderable = getVisibleAccounts().length > 1;
+
+    if (reorderable) {
+      card.dataset.gmailAccountDraggable = "true";
+      identity.classList.add("is-reorderable");
+      identity.dataset.gmailAccountDragSource = "true";
+      identity.dataset.gmailAccountId = account.accountId;
+      identity.setAttribute(
+        "aria-description",
+        t("gmailReorderAccount")
+      );
+      identity.title =
+        `${toggleLabel} · ${t("gmailReorderAccount")}`;
+    } else {
+      identity.title = toggleLabel;
+    }
+
+    identity.addEventListener("click", (event) => {
+      if (suppressedAccountExpansionId === account.accountId) {
+        suppressedAccountExpansionId = "";
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      toggleAccountExpansion();
+    });
     identity.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") {
         return;
@@ -1279,6 +1517,315 @@
     body.appendChild(content);
     card.appendChild(body);
     return card;
+  }
+
+  function getGmailAccountCards(list) {
+    return Array.from(
+      list?.querySelectorAll(
+        '.gmail-account-card[data-gmail-account-id]'
+      ) || []
+    ).filter((card) => !card.classList.contains("is-drag-source"));
+  }
+
+  function getGmailAccountDomOrder(list) {
+    return getGmailAccountCards(list)
+      .map((card) => card.dataset.gmailAccountId)
+      .filter(Boolean);
+  }
+
+  function getGmailAccountInsertBefore(list, clientY) {
+    return (
+      getGmailAccountCards(list).find((card) => {
+        const rect =
+          card
+            .querySelector(".gmail-account-header")
+            ?.getBoundingClientRect() ||
+          card.getBoundingClientRect();
+        return clientY < rect.top + rect.height / 2;
+      }) || null
+    );
+  }
+
+  function hasAccountOrderChanged(beforeOrder, afterOrder) {
+    return (
+      beforeOrder.length !== afterOrder.length ||
+      beforeOrder.some(
+        (accountId, index) => accountId !== afterOrder[index]
+      )
+    );
+  }
+
+  function buildFullAccountOrder(visibleAccountIds) {
+    const visibleAccounts = getVisibleAccounts();
+    const accountsById = new Map(
+      visibleAccounts.map((account) => [account.accountId, account])
+    );
+
+    if (
+      visibleAccountIds.length !== visibleAccounts.length ||
+      new Set(visibleAccountIds).size !== visibleAccounts.length ||
+      visibleAccountIds.some((accountId) => !accountsById.has(accountId))
+    ) {
+      return null;
+    }
+
+    let visibleIndex = 0;
+    return cachedState.accounts.map((account) => {
+      if (account.preferences?.visible === false) {
+        return account;
+      }
+
+      const nextAccount = accountsById.get(
+        visibleAccountIds[visibleIndex]
+      );
+      visibleIndex += 1;
+      return nextAccount;
+    });
+  }
+
+  function startAccountPointerDrag(event, state) {
+    const { card, identity, list } = state;
+    const rect = card.getBoundingClientRect();
+    const headerHeight =
+      card.querySelector(".gmail-account-header")?.offsetHeight ||
+      Math.min(rect.height, 54);
+    const placeholder = document.createElement("section");
+    placeholder.className =
+      "gmail-account-card gmail-account-placeholder";
+    placeholder.style.height = `${headerHeight}px`;
+    const ghost = card.cloneNode(true);
+    ghost.classList.add("gmail-account-drag-ghost");
+    ghost.classList.remove("is-collapsed");
+    ghost.querySelector(".gmail-account-body")?.remove();
+    ghost.querySelector(".gmail-account-quick-actions")?.remove();
+    ghost
+      .querySelectorAll("button, [role='button']")
+      .forEach((control) => control.setAttribute("tabindex", "-1"));
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.height = `${headerHeight}px`;
+
+    state.dragging = true;
+    state.offsetX = event.clientX - rect.left;
+    state.offsetY = event.clientY - rect.top;
+    state.placeholder = placeholder;
+    state.ghost = ghost;
+
+    if (identity.setPointerCapture) {
+      try {
+        identity.setPointerCapture(event.pointerId);
+      } catch {}
+    }
+
+    list.classList.add("is-reordering");
+    card.classList.add("is-drag-source");
+    list.insertBefore(placeholder, card);
+    card.remove();
+    document.body.appendChild(ghost);
+    updateAccountPointerDrag(event);
+  }
+
+  function updateAccountPointerDrag(event) {
+    const state = accountDragState;
+
+    if (!state?.dragging) {
+      return;
+    }
+
+    if (state.ghost) {
+      state.ghost.style.transform =
+        `translate3d(${event.clientX - state.offsetX}px, ` +
+        `${event.clientY - state.offsetY}px, 0)`;
+    }
+
+    const insertBefore = getGmailAccountInsertBefore(
+      state.list,
+      event.clientY
+    );
+
+    if (insertBefore) {
+      state.list.insertBefore(state.placeholder, insertBefore);
+    } else {
+      state.list.appendChild(state.placeholder);
+    }
+  }
+
+  function suppressNextAccountExpansion(accountId) {
+    suppressedAccountExpansionId = accountId;
+    window.setTimeout(() => {
+      if (suppressedAccountExpansionId === accountId) {
+        suppressedAccountExpansionId = "";
+      }
+    }, 500);
+  }
+
+  async function finishAccountPointerDrag(
+    event,
+    { cancelled = false } = {}
+  ) {
+    const state = accountDragState;
+
+    if (!state) {
+      return;
+    }
+
+    accountDragState = null;
+
+    if (state.identity?.releasePointerCapture) {
+      try {
+        state.identity.releasePointerCapture(event.pointerId);
+      } catch {}
+    }
+
+    if (!state.dragging) {
+      return;
+    }
+
+    if (state.placeholder && state.list) {
+      state.list.insertBefore(state.card, state.placeholder);
+      state.placeholder.remove();
+    }
+
+    state.ghost?.remove();
+    state.card?.classList.remove("is-drag-source");
+    state.list?.classList.remove("is-reordering");
+
+    if (cancelled) {
+      render();
+      return;
+    }
+
+    suppressNextAccountExpansion(state.accountId);
+    const finalOrder = getGmailAccountDomOrder(state.list);
+
+    if (!hasAccountOrderChanged(state.initialOrder, finalOrder)) {
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      render();
+      return;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+    await persistGmailAccountOrder(finalOrder);
+  }
+
+  async function persistGmailAccountOrder(visibleAccountIds) {
+    if (pendingAccountOrder) {
+      return;
+    }
+
+    const previousAccounts = [...cachedState.accounts];
+    const nextAccounts = buildFullAccountOrder(visibleAccountIds);
+
+    if (!nextAccounts) {
+      render();
+      return;
+    }
+
+    pendingAccountOrder = true;
+    setCachedState({ accounts: nextAccounts });
+    render();
+
+    const response = await sendGmailMessage({
+      type: "tabOutGmail:reorderAccounts",
+      accountIds: nextAccounts.map((account) => account.accountId)
+    });
+
+    if (response.ok && Array.isArray(response.accounts)) {
+      setCachedState({
+        status: response.status || cachedState.status,
+        accounts: response.accounts,
+        authStatus:
+          response.authReadiness?.status || cachedState.authStatus
+      });
+    } else {
+      setCachedState({ accounts: previousAccounts });
+      globalObject.showToast?.(t("gmailAccountOrderFailed"));
+    }
+
+    pendingAccountOrder = false;
+    render();
+  }
+
+  function handleAccountPointerDown(event) {
+    if (!(event.target instanceof Element)) {
+      return;
+    }
+
+    const identity = event.target.closest(
+      '[data-gmail-account-drag-source="true"]'
+    );
+
+    if (
+      !identity ||
+      pendingAccountOrder ||
+      accountDragState ||
+      event.button !== 0 ||
+      event.isPrimary === false
+    ) {
+      return;
+    }
+
+    const card = identity.closest(
+      '.gmail-account-card[data-gmail-account-draggable="true"]'
+    );
+    const list = card?.closest("#gmailAccountCards");
+
+    if (!card || !list) {
+      return;
+    }
+
+    accountDragState = {
+      accountId: card.dataset.gmailAccountId,
+      card,
+      identity,
+      list,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: 0,
+      offsetY: 0,
+      dragging: false,
+      initialOrder: getGmailAccountDomOrder(list),
+      placeholder: null,
+      ghost: null
+    };
+  }
+
+  function handleAccountPointerMove(event) {
+    const state = accountDragState;
+
+    if (!state || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const distanceX = Math.abs(event.clientX - state.startX);
+    const distanceY = Math.abs(event.clientY - state.startY);
+
+    if (!state.dragging) {
+      if (
+        Math.max(distanceX, distanceY) < ACCOUNT_DRAG_THRESHOLD
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      startAccountPointerDrag(event, state);
+      return;
+    }
+
+    event.preventDefault();
+    updateAccountPointerDrag(event);
+  }
+
+  function handleAccountPointerUp(event) {
+    if (accountDragState?.pointerId === event.pointerId) {
+      void finishAccountPointerDrag(event);
+    }
+  }
+
+  function handleAccountPointerCancel(event) {
+    if (accountDragState?.pointerId === event.pointerId) {
+      void finishAccountPointerDrag(event, { cancelled: true });
+    }
   }
 
   function getVisibleAccounts() {
@@ -1421,6 +1968,11 @@
       return;
     }
 
+    if (accountDragState) {
+      return;
+    }
+
+    hideGmailSubjectTooltip();
     const pageScroll = {
       left: window.scrollX,
       top: window.scrollY
@@ -1452,9 +2004,11 @@
       const latest = Math.max(
         0,
         ...visibleAccounts.map(
-          (account) => Number(account.lastSuccessfulPollAt) || 0
+          (account) =>
+            getAccountThreadRefreshAt(account.accountId)
         )
       );
+      updated.dataset.gmailLastUpdatedAt = String(latest);
       updated.textContent = latest ? formatLastUpdated(latest) : "";
     }
 
@@ -1506,7 +2060,7 @@
     return response;
   }
 
-  async function refreshState() {
+  async function refreshState({ renderAfter = true } = {}) {
     const response = await sendGmailMessage({
       type: "tabOutGmail:getState"
     });
@@ -1533,8 +2087,107 @@
       });
     }
 
-    render();
+    if (renderAfter) {
+      render();
+    }
+
     return response;
+  }
+
+  async function loadCachedAccount(
+    accountId,
+    { markStale = false } = {}
+  ) {
+    const previous = threadResults.get(accountId) || {
+      threads: []
+    };
+    const response = await sendGmailMessage({
+      type: "tabOutGmail:getCachedThreads",
+      accountId
+    });
+
+    threadResults.set(accountId, response.ok
+      ? {
+          threads: Array.isArray(response.threads)
+            ? response.threads
+            : [],
+          loading: false,
+          error: false,
+          stale: markStale || response.stale === true,
+          fetchedAt: response.fetchedAt || 0
+        }
+      : {
+          ...previous,
+          loading: false,
+          error: true,
+          stale: false,
+          messageKey: response.messageKey || "gmailWidgetError"
+        }
+    );
+    return response;
+  }
+
+  async function loadCachedThreads({
+    accountId = "",
+    staleAccountId = "",
+    refreshMissing = false
+  } = {}) {
+    await refreshState({ renderAfter: false });
+    const visibleAccounts = getVisibleAccounts().filter(
+      (account) =>
+        (!accountId || account.accountId === accountId)
+    );
+
+    const loadedAccounts = await Promise.all(
+      visibleAccounts.map(async (account) => ({
+        account,
+        response: await loadCachedAccount(account.accountId, {
+          markStale:
+            account.accountId === staleAccountId
+        })
+      }))
+    );
+    const accountsToRefresh = [];
+
+    if (refreshMissing) {
+      loadedAccounts.forEach(({ account, response }) => {
+        const attemptKey = [
+          account.accountId,
+          String(response.signature || "")
+        ].join(":");
+        const shouldRefresh =
+          response.ok &&
+          response.cacheMiss === true &&
+          account.preferences?.expanded !== false &&
+          account.preferences?.pollingEnabled !== false &&
+          !automaticCacheMissRefreshAttempts.has(attemptKey);
+
+        if (!shouldRefresh) {
+          return;
+        }
+
+        automaticCacheMissRefreshAttempts.add(attemptKey);
+        accountsToRefresh.push(account);
+      });
+    }
+
+    if (accountsToRefresh.length) {
+      await Promise.all(
+        accountsToRefresh.map((account) =>
+          refreshAccount(account.accountId, { force: true })
+        )
+      );
+    }
+
+    setCachedState({ loading: false });
+    render();
+    return {
+      ok: true,
+      status: cachedState.status,
+      refreshedMissingAccounts: accountsToRefresh.map(
+        (account) => account.accountId
+      )
+    };
   }
 
   async function refreshAccount(accountId, { force = false } = {}) {
@@ -2128,6 +2781,29 @@
   }
 
   function setupWidgetEvents() {
+    const widget = getWidget();
+
+    widget?.addEventListener(
+      "pointerdown",
+      handleAccountPointerDown
+    );
+    widget?.addEventListener(
+      "pointerover",
+      handleGmailSubjectPointerOver
+    );
+    widget?.addEventListener(
+      "pointerout",
+      handleGmailSubjectPointerOut
+    );
+    document.addEventListener(
+      "pointermove",
+      handleAccountPointerMove
+    );
+    document.addEventListener("pointerup", handleAccountPointerUp);
+    document.addEventListener(
+      "pointercancel",
+      handleAccountPointerCancel
+    );
     document.getElementById("gmailRefreshBtn")?.addEventListener(
       "click",
       () => void refresh({ force: true })
@@ -2156,9 +2832,18 @@
     });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
-        void refresh({ force: false });
+        updateGmailRelativeTimeLabels();
+        void loadCachedThreads({ refreshMissing: true });
+      } else {
+        hideGmailSubjectTooltip();
       }
     });
+    window.addEventListener(
+      "scroll",
+      hideGmailSubjectTooltip,
+      true
+    );
+    window.addEventListener("resize", hideGmailSubjectTooltip);
     window.addEventListener("hashchange", focusHashTarget);
     document.addEventListener("tabout:settings-applied", () => {
       if (getTodoSettings().emailTaskIntegrationEnabled === false) {
@@ -2177,7 +2862,7 @@
         changes[OAUTH_CLIENTS_KEY] ||
         changes[SETTINGS_KEY]
       ) {
-        void refresh({ force: false });
+        void loadCachedThreads({ refreshMissing: true });
       } else if (
         todoService &&
         changes[todoService.STORAGE_KEY]
@@ -2190,6 +2875,16 @@
     chrome.runtime.onMessage.addListener((message) => {
       if (message?.type === "tabOutGmail:authCompleted") {
         void refresh({ force: false });
+      } else if (
+        message?.type === "tabOutGmail:scheduledRefreshCompleted"
+      ) {
+        void loadCachedThreads({
+          accountId: String(message.accountId || ""),
+          staleAccountId:
+            message.threadCacheRefreshed === true
+              ? ""
+              : String(message.accountId || "")
+        });
       }
       return undefined;
     });
@@ -2205,7 +2900,8 @@
 
     await refreshTodoTaskLinks({ renderAfter: false });
     await checkReadiness();
-    await refresh({ force: false });
+    await loadCachedThreads({ refreshMissing: true });
+    scheduleGmailRelativeTimeUpdate();
   }
 
   globalObject.TabOutGmailWidget = Object.freeze({

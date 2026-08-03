@@ -1,5 +1,16 @@
 const SAVED_SESSIONS_STORAGE_KEY = "savedSessions";
+const SESSION_ROWS_STORAGE_KEY = "tabOutSessionRowsV1";
+const SESSION_ROWS_SCHEMA_VERSION = 2;
+const SESSION_ROW_COLOR_KEYS = new Set([
+  "",
+  "sage",
+  "sky",
+  "amber",
+  "rose",
+  "violet"
+]);
 const PROTECTED_GROUPS_STORAGE_KEY = "tabOutProtectedGroups";
+const DEFERRED_TABS_STORAGE_KEY = "deferred";
 const SESSION_SCHEMA_VERSION_KEY = "tabOutSessionSchemaVersion";
 const SESSION_SCHEMA_VERSION = 2;
 
@@ -343,6 +354,185 @@ async function saveCollectionSavedSessions(sessions) {
   });
 }
 
+function createCollectionSessionRowId() {
+  const randomPart = globalThis.crypto?.randomUUID?.() ||
+    `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return `row-${randomPart}`;
+}
+
+function normalizeCollectionSessionRowTitle(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function normalizeCollectionSessionRowColor(value) {
+  const color = String(value || "").trim().toLowerCase();
+  return SESSION_ROW_COLOR_KEYS.has(color) ? color : "";
+}
+
+function normalizeCollectionSessionRows(value, sessions = []) {
+  const sessionIds = sessions.map((session) => String(session.id));
+  const validIds = new Set(sessionIds);
+  const seenIds = new Set();
+  const seenRowIds = new Set();
+  const sourceRows = Array.isArray(value?.rows)
+    ? value.rows
+    : Array.isArray(value)
+      ? value
+      : [];
+  const rows = sourceRows
+    .map((row) => {
+      const legacyRow = Array.isArray(row);
+      const sourceSessionIds = legacyRow
+        ? row
+        : Array.isArray(row?.sessionIds)
+          ? row.sessionIds
+          : null;
+
+      if (!sourceSessionIds) {
+        return null;
+      }
+
+      let rowId = legacyRow ? "" : String(row.id || "").trim();
+
+      if (!rowId || seenRowIds.has(rowId)) {
+        rowId = createCollectionSessionRowId();
+      }
+
+      seenRowIds.add(rowId);
+
+      return {
+        id: rowId,
+        sessionIds: sourceSessionIds
+          .map((sessionId) => String(sessionId))
+          .filter((sessionId) => {
+            if (!validIds.has(sessionId) || seenIds.has(sessionId)) {
+              return false;
+            }
+
+            seenIds.add(sessionId);
+            return true;
+          }),
+        title: legacyRow
+          ? ""
+          : normalizeCollectionSessionRowTitle(row.title),
+        color: legacyRow
+          ? ""
+          : normalizeCollectionSessionRowColor(row.color)
+      };
+    })
+    .filter((row) => row?.sessionIds.length > 0);
+  const missingIds = sessionIds.filter(
+    (sessionId) => !seenIds.has(sessionId)
+  );
+
+  if (missingIds.length > 0) {
+    if (rows.length > 0) {
+      rows[rows.length - 1].sessionIds.push(...missingIds);
+    } else {
+      rows.push({
+        id: createCollectionSessionRowId(),
+        sessionIds: missingIds,
+        title: "",
+        color: ""
+      });
+    }
+  }
+
+  return rows;
+}
+
+async function getCollectionSessionRows() {
+  const [sessions, stored] = await Promise.all([
+    getCollectionSavedSessions(),
+    chrome.storage.local.get(SESSION_ROWS_STORAGE_KEY)
+  ]);
+  const storedLayout = stored[SESSION_ROWS_STORAGE_KEY];
+  const rows = normalizeCollectionSessionRows(storedLayout, sessions);
+  const normalizedLayout = {
+    version: SESSION_ROWS_SCHEMA_VERSION,
+    rows
+  };
+
+  if (
+    (storedLayout || rows.length > 0) &&
+    JSON.stringify(storedLayout || null) !==
+      JSON.stringify(normalizedLayout)
+  ) {
+    await chrome.storage.local.set({
+      [SESSION_ROWS_STORAGE_KEY]: normalizedLayout
+    });
+  }
+
+  return rows;
+}
+
+async function replaceCollectionSessionRows(rows) {
+  const sessions = await getCollectionSavedSessions();
+  const requestedRows = Array.isArray(rows)
+    ? rows.map((row) => {
+        if (Array.isArray(row)) {
+          return row.map((sessionId) => String(sessionId));
+        }
+
+        if (!row || !Array.isArray(row.sessionIds)) {
+          return null;
+        }
+
+        return {
+          id: String(row.id || "").trim(),
+          sessionIds: row.sessionIds.map(
+            (sessionId) => String(sessionId)
+          ),
+          title: normalizeCollectionSessionRowTitle(row.title),
+          color: normalizeCollectionSessionRowColor(row.color)
+        };
+      })
+    : null;
+
+  if (!requestedRows || requestedRows.some((row) => row === null)) {
+    throw new Error("invalid_session_rows");
+  }
+
+  const requestedIds = requestedRows.flatMap((row) =>
+    Array.isArray(row) ? row : row.sessionIds
+  );
+  const requestedRowIds = requestedRows
+    .filter((row) => !Array.isArray(row) && row.id)
+    .map((row) => row.id);
+
+  if (
+    new Set(requestedIds).size !== requestedIds.length ||
+    new Set(requestedRowIds).size !== requestedRowIds.length
+  ) {
+    throw new Error("invalid_session_rows");
+  }
+
+  const normalizedRows = normalizeCollectionSessionRows(
+    { rows: requestedRows },
+    sessions
+  );
+  const sessionsById = new Map(
+    sessions.map((session) => [String(session.id), session])
+  );
+  const reorderedSessions = normalizedRows
+    .flatMap((row) => row.sessionIds)
+    .map((sessionId) => sessionsById.get(sessionId));
+
+  await chrome.storage.local.set({
+    [SAVED_SESSIONS_STORAGE_KEY]: reorderedSessions,
+    [SESSION_ROWS_STORAGE_KEY]: {
+      version: SESSION_ROWS_SCHEMA_VERSION,
+      rows: normalizedRows
+    }
+  });
+
+  return {
+    rows: normalizedRows,
+    sessionsCount: reorderedSessions.length
+  };
+}
+
 async function getCollectionProtectedGroups() {
   const stored = await chrome.storage.local.get(PROTECTED_GROUPS_STORAGE_KEY);
   return Array.isArray(stored[PROTECTED_GROUPS_STORAGE_KEY])
@@ -522,6 +712,122 @@ async function addDescriptorToSession(sessionId, descriptor) {
   await saveCollectionSavedSessions(sessions);
 
   return { code: "added", mode: "saved" };
+}
+
+async function dismissTransferredDeferredTab(deferredId) {
+  const stored = await chrome.storage.local.get(
+    DEFERRED_TABS_STORAGE_KEY
+  );
+  const deferred = Array.isArray(stored[DEFERRED_TABS_STORAGE_KEY])
+    ? stored[DEFERRED_TABS_STORAGE_KEY]
+    : [];
+  const item = deferred.find(
+    (candidate) =>
+      String(candidate.id) === String(deferredId) &&
+      !candidate.completed &&
+      !candidate.dismissed
+  );
+
+  if (!item) {
+    return false;
+  }
+
+  item.dismissed = true;
+  await chrome.storage.local.set({
+    [DEFERRED_TABS_STORAGE_KEY]: deferred
+  });
+  return true;
+}
+
+async function moveDeferredTabToTarget(deferredId, target = {}) {
+  const stored = await chrome.storage.local.get(
+    DEFERRED_TABS_STORAGE_KEY
+  );
+  const deferred = Array.isArray(stored[DEFERRED_TABS_STORAGE_KEY])
+    ? stored[DEFERRED_TABS_STORAGE_KEY]
+    : [];
+  const item = deferred.find(
+    (candidate) =>
+      String(candidate.id) === String(deferredId) &&
+      !candidate.completed &&
+      !candidate.dismissed
+  );
+
+  if (!item) {
+    return { code: "already_moved" };
+  }
+
+  const descriptor = createStoredTabDescriptor(item);
+
+  if (target.kind === "session") {
+    const result = await addDescriptorToSession(
+      target.sessionId,
+      descriptor
+    );
+    await dismissTransferredDeferredTab(deferredId);
+    return {
+      ...result,
+      targetKind: "session",
+      targetSessionId: target.sessionId
+    };
+  }
+
+  if (target.kind !== "unassigned") {
+    throw new Error("not_found");
+  }
+
+  const sessions = await getCollectionSavedSessions();
+  const isAssignedByUrl = sessions.some((session) =>
+    collectionContainsUrl(session.tabs, descriptor.url)
+  );
+
+  if (isAssignedByUrl) {
+    return { code: "already_assigned", targetKind: "unassigned" };
+  }
+
+  const assignedGroupIds = new Set(
+    sessions
+      .map((session) => session.groupLink?.chromeGroupId)
+      .filter(Number.isInteger)
+  );
+  const targetUrl = canonicalCollectionUrl(descriptor.url);
+  const openTabs = await queryCollectionBrowserTabs({});
+  let openTab = openTabs.find(
+    (tab) =>
+      canonicalCollectionUrl(tab.pendingUrl || tab.url || "") ===
+      targetUrl
+  );
+
+  if (openTab && assignedGroupIds.has(openTab.groupId)) {
+    return { code: "already_assigned", targetKind: "unassigned" };
+  }
+
+  let code = "already_open";
+
+  if (!openTab) {
+    const createProperties = {
+      url: descriptor.url,
+      active: false
+    };
+
+    if (Number.isInteger(target.windowId)) {
+      createProperties.windowId = target.windowId;
+    }
+
+    try {
+      openTab = await chrome.tabs.create(createProperties);
+      code = "opened_unassigned";
+    } catch {
+      throw new Error("tab_creation_failed");
+    }
+  }
+
+  await dismissTransferredDeferredTab(deferredId);
+  return {
+    code,
+    targetKind: "unassigned",
+    openedTabId: Number.isInteger(openTab?.id) ? openTab.id : null
+  };
 }
 
 async function removeDescriptorFromSession(sessionId, url) {
@@ -766,6 +1072,20 @@ async function handleCollectionMessage(message) {
     };
   }
 
+  if (message.type === "tabOut:getSessionRows") {
+    return {
+      ok: true,
+      rows: await getCollectionSessionRows()
+    };
+  }
+
+  if (message.type === "tabOut:replaceSessionRows") {
+    return {
+      ok: true,
+      ...(await replaceCollectionSessionRows(message.rows))
+    };
+  }
+
   if (message.type === "tabOut:replaceSessions") {
     if (!Array.isArray(message.sessions)) {
       throw new Error("invalid_sessions");
@@ -860,6 +1180,16 @@ async function handleCollectionMessage(message) {
     return { ok: true, ...result };
   }
 
+  if (message.type === "tabOut:moveDeferredTab") {
+    return {
+      ok: true,
+      ...(await moveDeferredTabToTarget(
+        message.deferredId,
+        message.target
+      ))
+    };
+  }
+
   if (message.type === "tabOut:removeActiveTab") {
     const activeTab = await getCollectionBrowserTab(message.tabId);
 
@@ -911,6 +1241,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         "invalid_name",
         "invalid_tabs",
         "invalid_sessions",
+        "invalid_session_rows",
         "invalid_groups"
       ]);
       const code = knownCodes.has(error?.message)

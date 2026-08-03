@@ -4,9 +4,10 @@
    BACKUP / IMPORT — discreet local data safety net
    ---------------------------------------------------------------- */
 
-const TAB_OUT_BACKUP_VERSION = 4;
+const TAB_OUT_BACKUP_VERSION = 6;
 const TAB_OUT_CHROME_STORAGE_BACKUP_KEYS = [
   "savedSessions",
+  "tabOutSessionRowsV1",
   "tabOutSessionSchemaVersion",
   "tabOutLanguage",
   "tabOutDashboardSettings",

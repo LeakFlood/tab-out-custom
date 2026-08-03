@@ -1197,7 +1197,13 @@
       </div>
     </div>
 
-    <form class="todo-composer" id="todoComposer" hidden novalidate>
+    <form
+      class="todo-composer"
+      id="todoComposer"
+      data-todo-appearance-form="true"
+      hidden
+      novalidate
+    >
       <label class="todo-field todo-title-field">
         <span data-i18n="todoTaskTitleLabel">Task title</span>
         <input
@@ -1243,6 +1249,8 @@
             <input type="time" id="todoDeadlineTimeInput">
           </label>
         </div>
+
+        <div id="todoComposerAppearance"></div>
 
         <div class="todo-checklist-editor">
           <span class="todo-checklist-label" data-i18n="todoChecklistLabel">Checklist</span>

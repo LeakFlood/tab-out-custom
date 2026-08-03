@@ -539,6 +539,7 @@
     const form = document.createElement("form");
     form.className = "todo-inline-editor";
     form.dataset.todoEditorId = task.id;
+    form.dataset.todoAppearanceForm = "true";
     form.noValidate = true;
     const appearanceEditor = createTaskAppearanceEditor(task, form);
 
@@ -1160,6 +1161,11 @@
     form?.setAttribute("hidden", "");
     details?.setAttribute("hidden", "");
     toggle?.setAttribute("aria-expanded", "false");
+    if (form) {
+      form.dataset.todoAppearanceColor = "";
+      form.dataset.todoAppearanceIcon = "";
+      updateTaskAppearanceEditor(form);
+    }
     composerChecklist = [];
     renderComposerChecklist();
     setComposerError("");
@@ -1324,6 +1330,7 @@
   }
 
   async function handleAddSubmit() {
+    const form = document.getElementById("todoComposer");
     const title = document.getElementById("todoTitleInput")?.value || "";
     const notes = document.getElementById("todoNotesInput")?.value || "";
     const deadlineDate =
@@ -1345,6 +1352,10 @@
           deadline: deadlineDate
             ? { date: deadlineDate, time: deadlineTime || null }
             : null,
+          appearance: {
+            color: form?.dataset.todoAppearanceColor || null,
+            icon: form?.dataset.todoAppearanceIcon || null
+          },
           checklist: composerChecklist
         }),
       translate("todoTaskAdded")
@@ -1527,7 +1538,7 @@
     }
 
     if (action === "select-edit-color") {
-      const form = button.closest("[data-todo-editor-id]");
+      const form = button.closest("[data-todo-appearance-form]");
 
       if (form) {
         form.dataset.todoAppearanceColor =
@@ -1539,7 +1550,7 @@
     }
 
     if (action === "select-edit-icon") {
-      const form = button.closest("[data-todo-editor-id]");
+      const form = button.closest("[data-todo-appearance-form]");
 
       if (form) {
         form.dataset.todoAppearanceIcon =
@@ -1648,7 +1659,7 @@
     );
 
     if (customColor) {
-      const form = customColor.closest("[data-todo-editor-id]");
+      const form = customColor.closest("[data-todo-appearance-form]");
 
       if (form) {
         form.dataset.todoAppearanceColor = customColor.value;
@@ -1849,6 +1860,25 @@
 
     if (!widget) {
       return;
+    }
+
+    const composer = document.getElementById("todoComposer");
+    const appearanceHost = document.getElementById(
+      "todoComposerAppearance"
+    );
+
+    if (composer && appearanceHost) {
+      appearanceHost.replaceChildren(
+        createTaskAppearanceEditor(
+          {
+            appearance: {
+              color: null,
+              icon: null
+            }
+          },
+          composer
+        )
+      );
     }
 
     widget.addEventListener("click", handleClick);

@@ -809,6 +809,12 @@ html[data-shortcuts-view="compact"] .shortcut-actions {
 
 html[data-sessions-view="list"] .saved-sessions-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+html[data-sessions-view="list"] .saved-session-row {
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   align-items: stretch;
 }

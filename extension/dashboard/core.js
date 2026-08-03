@@ -1869,6 +1869,13 @@ async function renderDeferredColumn() {
 
   if (!column) return;
 
+  if (
+    typeof savedLaterDragState !== "undefined" &&
+    savedLaterDragState?.dragging
+  ) {
+    return;
+  }
+
   try {
     const { active, archived } = await getSavedTabs();
 
@@ -1921,22 +1928,29 @@ async function renderDeferredColumn() {
 function renderDeferredItem(item) {
   let domain = '';
   try { domain = new URL(item.url).hostname.replace(/^www\./, ''); } catch {}
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=16`;
+  const faviconUrl =
+    `https://www.google.com/s2/favicons?domain=${encodeURIComponent(
+      domain
+    )}&sz=16`;
   const ago = timeAgo(item.savedAt);
+  const safeId = escapeAttr(item.id);
+  const safeUrl = escapeAttr(item.url);
+  const safeTitle = escapeAttr(item.title || item.url);
 
   return `
-    <div class="deferred-item" data-deferred-id="${item.id}">
-      <input type="checkbox" class="deferred-checkbox" data-action="check-deferred" data-deferred-id="${item.id}">
+    <div class="deferred-item" data-deferred-id="${safeId}" data-deferred-url="${safeUrl}" data-deferred-title="${safeTitle}" data-saved-later-draggable="true" draggable="false">
+      <span class="deferred-drag-grip" aria-hidden="true"></span>
+      <input type="checkbox" class="deferred-checkbox" data-action="check-deferred" data-deferred-id="${safeId}">
       <div class="deferred-info">
-        <a href="${item.url}" target="_blank" rel="noopener" class="deferred-title" title="${(item.title || '').replace(/"/g, '&quot;')}">
-          <img src="${faviconUrl}" alt="" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" onerror="this.style.display='none'">${item.title || item.url}
+        <a href="${safeUrl}" target="_blank" rel="noopener" class="deferred-title" data-saved-later-link-id="${safeId}" title="${safeTitle}" draggable="false">
+          <img src="${faviconUrl}" alt="" draggable="false" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" onerror="this.style.display='none'">${safeTitle}
         </a>
         <div class="deferred-meta">
           <span>${domain}</span>
           <span>${ago}</span>
         </div>
       </div>
-      <button class="deferred-dismiss" data-action="dismiss-deferred" data-deferred-id="${item.id}" title="${t("dismiss")}">
+      <button class="deferred-dismiss" data-action="dismiss-deferred" data-deferred-id="${safeId}" title="${t("dismiss")}">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
       </button>
     </div>`;

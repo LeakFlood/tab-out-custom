@@ -157,7 +157,7 @@
     colors: DEFAULT_TODO_COLORS
   });
 
-  const GMAIL_POLL_INTERVALS = Object.freeze([1, 5, 15, 30]);
+  const GMAIL_POLL_INTERVALS = Object.freeze([5, 15, 30, 60]);
   const GMAIL_BADGE_MODES = Object.freeze([
     "openTabs",
     "gmailUnread",

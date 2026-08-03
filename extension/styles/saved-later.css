@@ -28,6 +28,44 @@
   animation: fadeUp 0.3s ease both;
 }
 
+.deferred-item[data-saved-later-draggable="true"] {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    background-color 140ms ease;
+}
+
+.deferred-item[data-saved-later-draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.deferred-drag-grip {
+  width: 8px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--muted);
+  background-image:
+    radial-gradient(circle, currentColor 1.2px, transparent 1.4px);
+  background-position: center;
+  background-size: 4px 5px;
+  opacity: 0.42;
+  transition: color 140ms ease, opacity 140ms ease;
+}
+
+.deferred-item:hover .deferred-drag-grip {
+  color: var(--muted-2);
+  opacity: 1;
+}
+
+.deferred-item.is-saved-later-drag-source {
+  opacity: 0.32;
+  transform: scale(0.985);
+}
+
 .deferred-item:last-child {
   border-bottom: none;
 }
@@ -85,6 +123,10 @@
   font-size: 13px;
 }
 
+.deferred-item[data-saved-later-draggable="true"] .deferred-title {
+  cursor: grab;
+}
+
 .deferred-title:hover,
 .archive-item-title:hover {
   color: #fff;
@@ -132,6 +174,60 @@
   opacity: 0;
   transform: translateX(20px);
   transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.saved-later-drag-ghost {
+  position: fixed;
+  z-index: 99999;
+  top: 0;
+  left: 0;
+  width: min(280px, calc(100vw - 16px));
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border: 1px solid rgba(151, 224, 171, 0.52);
+  border-radius: 12px;
+  background: var(--surface-card);
+  color: var(--text-strong);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.saved-later-drag-ghost > img {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+}
+
+.saved-later-drag-ghost > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.saved-later-drag-ghost small {
+  color: var(--accent-sage);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.saved-later-drag-ghost strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.is-moving-saved-later-link,
+body.is-moving-saved-later-link * {
+  cursor: grabbing !important;
+  user-select: none;
 }
 
 .deferred-empty {

@@ -4,6 +4,15 @@
    SAVED SESSIONS
    ---------------------------------------------------------------- */
 
+   const SAVED_SESSION_ROWS_STORAGE_KEY = "tabOutSessionRowsV1";
+   const SAVED_SESSION_ROW_COLORS = Object.freeze({
+     "": "",
+     sage: "#8fc8a3",
+     sky: "#83b9dc",
+     amber: "#d9ad68",
+     rose: "#d68fa0",
+     violet: "#aa98d8"
+   });
    let unifiedSessionMigrationPromise = null;
 
    async function ensureUnifiedSessionStorage() {
@@ -35,6 +44,28 @@
      await globalThis.TabOutCollectionClient.replaceSessions(sessions);
    }
 
+   async function getSavedSessionRows(sessions = []) {
+     try {
+       return await globalThis.TabOutCollectionClient.getSessionRows();
+     } catch (error) {
+       console.warn("[tab-out] session rows could not be loaded:", error);
+       return sessions.length
+         ? [{
+             id: createSavedSessionRowId(),
+             sessionIds: sessions.map(
+               (session) => String(session.id)
+             ),
+             title: "",
+             color: ""
+           }]
+         : [];
+     }
+   }
+
+   async function saveSavedSessionRows(rows) {
+     await globalThis.TabOutCollectionClient.replaceSessionRows(rows);
+   }
+
    function getTabDisplayTitle(tab) {
      return cleanTitle(
        smartTitle(stripTitleNoise(tab.title || ""), tab.url),
@@ -62,6 +93,48 @@
 
    function createSessionId() {
      return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+   }
+
+   function createSavedSessionRowId() {
+     const randomPart = globalThis.crypto?.randomUUID?.() ||
+       `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+     return `row-${randomPart}`;
+   }
+
+   function normalizeSavedSessionRowColor(value) {
+     const color = String(value || "").trim().toLowerCase();
+     return Object.prototype.hasOwnProperty.call(
+       SAVED_SESSION_ROW_COLORS,
+       color
+     )
+       ? color
+       : "";
+   }
+
+   function normalizeSavedSessionRowTitle(value) {
+     return String(value || "").trim().slice(0, 80);
+   }
+
+   function normalizeSavedSessionRowData(row) {
+     if (Array.isArray(row)) {
+       return {
+         id: createSavedSessionRowId(),
+         sessionIds: row.map((sessionId) => String(sessionId)),
+         title: "",
+         color: ""
+       };
+     }
+
+     return {
+       id: String(row?.id || "").trim() ||
+         createSavedSessionRowId(),
+       sessionIds: Array.isArray(row?.sessionIds)
+         ? row.sessionIds.map((sessionId) => String(sessionId))
+         : [],
+       title: normalizeSavedSessionRowTitle(row?.title),
+       color: normalizeSavedSessionRowColor(row?.color)
+     };
    }
 
    let collectionDetailState = null;
@@ -1081,17 +1154,23 @@
    let draggedSavedSessionId = null;
    let suppressSavedSessionOpenUntil = 0;
    let savedSessionDragState = null;
+   let savedSessionRowDragState = null;
    let openTabAssignmentDragState = null;
    let savedSessionTabDragState = null;
+   let savedLaterDragState = null;
+   let suppressedSessionRowCustomize = null;
    let suppressedOpenTabFocusClick = null;
+   let suppressedSavedLaterLinkClick = null;
    let provisionalSessionState = null;
    let inlineSessionRenameState = null;
    let deferCollectionStorageRefreshUntil = 0;
    const expandedSessionIds = new Set();
 
    const SAVED_SESSION_DRAG_THRESHOLD = 7;
+   const SAVED_SESSION_ROW_DRAG_THRESHOLD = 7;
    const OPEN_TAB_DRAG_THRESHOLD = 7;
    const SAVED_SESSION_TAB_DRAG_THRESHOLD = 7;
+   const SAVED_LATER_DRAG_THRESHOLD = 7;
 
    function createSessionDescriptorFromOpenTab(tab) {
      return {
@@ -1942,6 +2021,318 @@
      await runSavedSessionTabTransfer(state, target);
    }
 
+   function suppressNextSavedLaterLinkClick(state) {
+     const suppression = {
+       sourceElement: state.sourceElement,
+       deferredId: String(state.deferredId || "")
+     };
+
+     suppressedSavedLaterLinkClick = suppression;
+     setTimeout(() => {
+       if (suppressedSavedLaterLinkClick === suppression) {
+         suppressedSavedLaterLinkClick = null;
+       }
+     }, 300);
+   }
+
+   function consumeSuppressedSavedLaterLinkClick(element) {
+     const suppression = suppressedSavedLaterLinkClick;
+
+     if (!suppression) {
+       return false;
+     }
+
+     const matches =
+       element?.closest?.(".deferred-item") ===
+         suppression.sourceElement ||
+       (
+         suppression.deferredId &&
+         element?.dataset.savedLaterLinkId ===
+           suppression.deferredId
+       );
+
+     if (matches) {
+       suppressedSavedLaterLinkClick = null;
+     }
+
+     return matches;
+   }
+
+   function clearSavedLaterDropTarget(state) {
+     state?.target?.element?.classList.remove(
+       "is-saved-session-tab-drop-target"
+     );
+     state?.target?.element?.removeAttribute(
+       "data-session-tab-drop-label"
+     );
+
+     if (state) {
+       state.target = null;
+     }
+   }
+
+   function setSavedLaterDropTarget(state, target) {
+     if (
+       state.target?.kind === target?.kind &&
+       state.target?.element === target?.element
+     ) {
+       return;
+     }
+
+     clearSavedLaterDropTarget(state);
+     state.target = target;
+
+     if (!target) {
+       return;
+     }
+
+     target.element.classList.add(
+       "is-saved-session-tab-drop-target"
+     );
+     target.element.dataset.sessionTabDropLabel = t(
+       target.kind === "session"
+         ? "dropSavedLaterToSession"
+         : "dropSavedLaterToUnassigned"
+     );
+   }
+
+   function getSavedLaterDropTarget(x, y) {
+     const hovered = document.elementFromPoint(x, y);
+     const sessionCard = hovered?.closest(
+       '.saved-session-card[data-session-id]'
+     );
+
+     if (sessionCard) {
+       return {
+         kind: "session",
+         element: sessionCard,
+         sessionId: sessionCard.dataset.sessionId,
+         sessionName: sessionCard.dataset.sessionName || ""
+       };
+     }
+
+     const unassignedSection = hovered?.closest("#openTabsSection");
+
+     if (unassignedSection) {
+       return {
+         kind: "unassigned",
+         element: unassignedSection
+       };
+     }
+
+     return null;
+   }
+
+   function createSavedLaterDragGhost(state) {
+     const ghost = document.createElement("div");
+     ghost.className = "saved-later-drag-ghost";
+     const favicon = state.sourceElement.querySelector(
+       ".deferred-title img"
+     );
+
+     if (favicon?.src) {
+       const image = document.createElement("img");
+       image.alt = "";
+       image.src = favicon.src;
+       ghost.appendChild(image);
+     }
+
+     const copy = document.createElement("span");
+     const label = document.createElement("small");
+     label.textContent = t("moveSavedLaterLinkLabel");
+     const title = document.createElement("strong");
+     title.textContent = state.title || state.url;
+     copy.append(label, title);
+     ghost.appendChild(copy);
+     return ghost;
+   }
+
+   function startSavedLaterPointerDrag(event, state) {
+     const rect = state.sourceElement.getBoundingClientRect();
+
+     state.dragging = true;
+     state.offsetX = Math.min(
+       event.clientX - rect.left,
+       rect.width - 12
+     );
+     state.offsetY = Math.min(
+       event.clientY - rect.top,
+       rect.height - 12
+     );
+     state.ghost = createSavedLaterDragGhost(state);
+
+     if (state.sourceElement.setPointerCapture) {
+       try {
+         state.sourceElement.setPointerCapture(event.pointerId);
+       } catch {}
+     }
+
+     state.sourceElement.classList.add(
+       "is-saved-later-drag-source"
+     );
+     document.body.classList.add("is-moving-saved-later-link");
+     document
+       .querySelectorAll('.saved-session-card[data-session-id]')
+       .forEach((card) =>
+         card.classList.add("is-saved-session-tab-drop-zone")
+       );
+     document
+       .getElementById("openTabsSection")
+       ?.classList.add("is-saved-session-tab-drop-zone");
+     document.body.appendChild(state.ghost);
+     updateSavedLaterPointerDrag(event);
+   }
+
+   function updateSavedLaterPointerDrag(event) {
+     const state = savedLaterDragState;
+
+     if (!state?.dragging) {
+       return;
+     }
+
+     const edgeSize = 54;
+     const scrollStep = 14;
+
+     if (event.clientY < edgeSize) {
+       window.scrollBy(0, -scrollStep);
+     } else if (event.clientY > window.innerHeight - edgeSize) {
+       window.scrollBy(0, scrollStep);
+     }
+
+     const ghostWidth = state.ghost.offsetWidth;
+     const ghostHeight = state.ghost.offsetHeight;
+     const left = Math.max(
+       8,
+       Math.min(
+         event.clientX - state.offsetX,
+         window.innerWidth - ghostWidth - 8
+       )
+     );
+     const top = Math.max(
+       8,
+       Math.min(
+         event.clientY - state.offsetY,
+         window.innerHeight - ghostHeight - 8
+       )
+     );
+
+     state.ghost.style.transform =
+       `translate3d(${left}px, ${top}px, 0)`;
+     setSavedLaterDropTarget(
+       state,
+       getSavedLaterDropTarget(event.clientX, event.clientY)
+     );
+   }
+
+   function cleanupSavedLaterPointerDrag(event, state) {
+     clearSavedLaterDropTarget(state);
+     state.sourceElement?.classList.remove(
+       "is-saved-later-drag-source"
+     );
+     state.ghost?.remove();
+     document.body.classList.remove("is-moving-saved-later-link");
+     document
+       .querySelectorAll(".is-saved-session-tab-drop-zone")
+       .forEach((element) =>
+         element.classList.remove("is-saved-session-tab-drop-zone")
+       );
+
+     if (state.sourceElement?.releasePointerCapture) {
+       try {
+         state.sourceElement.releasePointerCapture(event.pointerId);
+       } catch {}
+     }
+   }
+
+   async function runSavedLaterTransfer(state, target) {
+     deferCollectionStorageRefreshUntil = Date.now() + 450;
+     const runtimeTarget = target.kind === "session"
+       ? {
+           kind: "session",
+           sessionId: target.sessionId
+         }
+       : {
+           kind: "unassigned",
+           windowId: await getCollectionTargetWindowId()
+         };
+     const response = await sendCollectionRuntimeMessage({
+       type: "tabOut:moveDeferredTab",
+       deferredId: state.deferredId,
+       target: runtimeTarget
+     });
+
+     if (!response.ok) {
+       showToast(
+         t(
+           response.code === "tab_creation_failed"
+             ? "savedLaterBackgroundOpenFailed"
+             : "savedLaterMoveFailed"
+         )
+       );
+       await refreshDashboardCollections();
+       return;
+     }
+
+     if (response.code === "already_assigned") {
+       showToast(t("savedLaterAlreadyAssigned"));
+       return;
+     }
+
+     if (
+       target.kind === "session" &&
+       isDashboardBehaviorEnabled("expandSessionTabs")
+     ) {
+       expandedSessionIds.add(target.sessionId);
+     }
+
+     await refreshDashboardCollections();
+
+     if (response.code === "already_moved") {
+       return;
+     }
+
+     if (response.code === "already_added") {
+       showToast(t("savedLaterAlreadyInSession", {
+         name: target.sessionName || ""
+       }));
+     } else if (response.code === "already_open") {
+       showToast(t("savedLaterAlreadyOpen"));
+     } else if (response.code === "opened_unassigned") {
+       showToast(t("savedLaterOpenedUnassigned"));
+     } else {
+       showToast(t("savedLaterMovedToSession", {
+         name: target.sessionName || ""
+       }));
+     }
+   }
+
+   async function finishSavedLaterPointerDrag(
+     event,
+     { cancelled = false } = {}
+   ) {
+     const state = savedLaterDragState;
+
+     if (!state || state.pointerId !== event.pointerId) {
+       return;
+     }
+
+     savedLaterDragState = null;
+     const target = state.target;
+     const wasDragging = state.dragging;
+
+     if (wasDragging && !cancelled) {
+       suppressNextSavedLaterLinkClick(state);
+     }
+
+     cleanupSavedLaterPointerDrag(event, state);
+
+     if (!wasDragging || cancelled || !target) {
+       return;
+     }
+
+     await runSavedLaterTransfer(state, target);
+   }
+
    function focusPendingSessionNameInput() {
      const state = provisionalSessionState || inlineSessionRenameState;
 
@@ -2008,8 +2399,455 @@
      ).filter((card) => !card.classList.contains('is-drag-source'));
    }
 
-   function getSavedSessionInsertBefore(container, x, y) {
-     const cards = getSavedSessionCards(container);
+   function applySavedSessionRowAppearance(
+     row,
+     rowData,
+     { updateDataset = true } = {}
+   ) {
+     const title = normalizeSavedSessionRowTitle(rowData?.title);
+     const color = normalizeSavedSessionRowColor(rowData?.color);
+     const accent = SAVED_SESSION_ROW_COLORS[color];
+
+     row.classList.toggle("has-session-row-title", Boolean(title));
+     row.classList.toggle("has-session-row-color", Boolean(color));
+
+     if (updateDataset) {
+       row.classList.toggle(
+         "has-session-row-handle",
+         Boolean(title || color)
+       );
+     }
+
+     if (accent) {
+       row.style.setProperty("--session-row-accent", accent);
+     } else {
+       row.style.removeProperty("--session-row-accent");
+     }
+
+     if (updateDataset) {
+       row.dataset.sessionRowTitle = title;
+       row.dataset.sessionRowColor = color;
+     }
+   }
+
+   function createSavedSessionRowTools(rowData) {
+     const tools = document.createElement("div");
+     const title = normalizeSavedSessionRowTitle(rowData?.title);
+     const color = normalizeSavedSessionRowColor(rowData?.color);
+     const canReorder = isDashboardBehaviorEnabled(
+       "reorderSessions"
+     );
+
+     tools.className = "saved-session-row-tools";
+
+     if (title || color) {
+       const label = document.createElement("button");
+       const labelTitle = title
+         ? `${title} · ${t("customizeSessionRow")}`
+         : t("customizeSessionRow");
+
+       label.type = "button";
+       label.className = "saved-session-row-label";
+       label.title = canReorder
+         ? `${labelTitle} · ${t("reorderSessionRow")}`
+         : labelTitle;
+       label.setAttribute("aria-label", labelTitle);
+       label.setAttribute("aria-expanded", "false");
+       label.dataset.action = "customize-session-row";
+       label.dataset.sessionRowId = rowData.id;
+
+       if (canReorder) {
+         label.setAttribute(
+           "aria-description",
+           t("reorderSessionRow")
+         );
+         label.dataset.sessionRowDragHandle = "true";
+       }
+
+       if (title) {
+         label.textContent = title;
+       } else {
+         label.classList.add("is-untitled");
+         label.innerHTML = `
+           <svg viewBox="0 0 16 24" aria-hidden="true">
+             <circle cx="5" cy="6" r="1.2"></circle>
+             <circle cx="11" cy="6" r="1.2"></circle>
+             <circle cx="5" cy="12" r="1.2"></circle>
+             <circle cx="11" cy="12" r="1.2"></circle>
+             <circle cx="5" cy="18" r="1.2"></circle>
+             <circle cx="11" cy="18" r="1.2"></circle>
+           </svg>
+         `;
+       }
+
+       tools.appendChild(label);
+     }
+
+     const customize = document.createElement("button");
+
+     customize.type = "button";
+     customize.className = "saved-session-row-customize";
+     customize.title = t("customizeSessionRow");
+     customize.setAttribute("aria-label", customize.title);
+     customize.setAttribute("aria-expanded", "false");
+     customize.dataset.action = "customize-session-row";
+     customize.dataset.sessionRowId = rowData.id;
+     customize.innerHTML = `
+       <svg viewBox="0 0 20 20" aria-hidden="true">
+         <path d="M10 3.25a6.75 6.75 0 1 0 0 13.5h1.1a1.5 1.5 0 0 0 0-3h-.45a1.35 1.35 0 0 1 0-2.7h2.1A4 4 0 0 0 16.75 7 3.75 3.75 0 0 0 13 3.25H10Z"></path>
+         <circle cx="6.7" cy="8.1" r=".7"></circle>
+         <circle cx="8.8" cy="5.9" r=".7"></circle>
+         <circle cx="5.9" cy="11.1" r=".7"></circle>
+       </svg>
+     `;
+     tools.appendChild(customize);
+     return tools;
+   }
+
+   function createSavedSessionRowEditor(rowData) {
+     const editor = document.createElement("div");
+     const heading = document.createElement("div");
+     const title = document.createElement("strong");
+     const close = document.createElement("button");
+     const titleLabel = document.createElement("label");
+     const titleLabelText = document.createElement("span");
+     const input = document.createElement("input");
+     const colorLabel = document.createElement("span");
+     const colors = document.createElement("div");
+     const actions = document.createElement("div");
+     const reset = document.createElement("button");
+     const save = document.createElement("button");
+
+     editor.className = "saved-session-row-editor";
+     editor.dataset.sessionRowEditor = rowData.id;
+     editor.dataset.selectedColor = rowData.color;
+     editor.setAttribute("role", "dialog");
+     editor.setAttribute("aria-label", t("customizeSessionRow"));
+
+     heading.className = "saved-session-row-editor-heading";
+     title.textContent = t("customizeSessionRow");
+     close.type = "button";
+     close.className = "saved-session-row-editor-close";
+     close.dataset.action = "close-session-row-editor";
+     close.title = t("close");
+     close.setAttribute("aria-label", close.title);
+     close.textContent = "×";
+     heading.append(title, close);
+
+     titleLabel.className = "saved-session-row-editor-field";
+     titleLabelText.textContent = t("sessionRowTitle");
+     input.type = "text";
+     input.maxLength = 80;
+     input.value = rowData.title;
+     input.placeholder = t("sessionRowTitlePlaceholder");
+     input.dataset.sessionRowTitleInput = "true";
+     titleLabel.append(titleLabelText, input);
+
+     colorLabel.className = "saved-session-row-editor-label";
+     colorLabel.textContent = t("sessionRowColor");
+     colors.className = "saved-session-row-colors";
+     colors.setAttribute("role", "group");
+     colors.setAttribute("aria-label", t("sessionRowColor"));
+
+     [
+       ["", "sessionRowColorNeutral"],
+       ["sage", "sessionRowColorSage"],
+       ["sky", "sessionRowColorSky"],
+       ["amber", "sessionRowColorAmber"],
+       ["rose", "sessionRowColorRose"],
+       ["violet", "sessionRowColorViolet"]
+     ].forEach(([color, labelKey]) => {
+       const swatch = document.createElement("button");
+
+       swatch.type = "button";
+       swatch.className = "saved-session-row-color";
+       swatch.dataset.action = "select-session-row-color";
+       swatch.dataset.sessionRowColor = color;
+       swatch.title = t(labelKey);
+       swatch.setAttribute("aria-label", swatch.title);
+       swatch.setAttribute(
+         "aria-pressed",
+         String(color === rowData.color)
+       );
+
+       if (color) {
+         swatch.style.setProperty(
+           "--session-row-swatch",
+           SAVED_SESSION_ROW_COLORS[color]
+         );
+       } else {
+         swatch.classList.add("is-neutral");
+       }
+
+       colors.appendChild(swatch);
+     });
+
+     actions.className = "saved-session-row-editor-actions";
+     reset.type = "button";
+     reset.className = "saved-session-row-reset";
+     reset.dataset.action = "reset-session-row-editor";
+     reset.textContent = t("sessionRowReset");
+     save.type = "button";
+     save.className = "saved-session-row-save";
+     save.dataset.action = "save-session-row-editor";
+     save.dataset.sessionRowId = rowData.id;
+     save.textContent = t("sessionRowDone");
+     actions.append(reset, save);
+
+     editor.append(
+       heading,
+       titleLabel,
+       colorLabel,
+       colors,
+       actions
+     );
+     return editor;
+   }
+
+   function createSavedSessionRow(rowData = null, className = "") {
+     const normalizedRow = rowData
+       ? normalizeSavedSessionRowData(rowData)
+       : null;
+     const row = document.createElement("div");
+
+     row.className = [
+       "saved-session-row",
+       className
+     ].filter(Boolean).join(" ");
+
+     if (normalizedRow) {
+       row.dataset.sessionRowId = normalizedRow.id;
+       applySavedSessionRowAppearance(row, normalizedRow);
+       row.appendChild(createSavedSessionRowTools(normalizedRow));
+     }
+
+     return row;
+   }
+
+   function getOpenSavedSessionRowEditor() {
+     return document.querySelector(".saved-session-row-editor");
+   }
+
+   function restoreSavedSessionRowAppearance(row) {
+     if (!row) {
+       return;
+     }
+
+     applySavedSessionRowAppearance(row, {
+       title: row.dataset.sessionRowTitle,
+       color: row.dataset.sessionRowColor
+     }, {
+       updateDataset: false
+     });
+   }
+
+   function closeSavedSessionRowEditor() {
+     const editor = getOpenSavedSessionRowEditor();
+
+     if (!editor) {
+       return false;
+     }
+
+     const row = editor.closest(".saved-session-row");
+
+     restoreSavedSessionRowAppearance(row);
+     row?.querySelectorAll(
+       '[data-action="customize-session-row"]'
+     ).forEach((button) => {
+       button.setAttribute("aria-expanded", "false");
+     });
+     editor.remove();
+     return true;
+   }
+
+   function toggleSavedSessionRowEditor(rowId) {
+     const list = document.getElementById("savedSessionsList");
+     const row = Array.from(getSavedSessionRowElements(list)).find(
+       (item) => item.dataset.sessionRowId === String(rowId)
+     );
+     const currentEditor = getOpenSavedSessionRowEditor();
+
+     if (!row) {
+       return;
+     }
+
+     if (currentEditor?.dataset.sessionRowEditor === String(rowId)) {
+       closeSavedSessionRowEditor();
+       return;
+     }
+
+     closeSavedSessionRowEditor();
+
+     const rowData = {
+       id: row.dataset.sessionRowId,
+       sessionIds: [],
+       title: row.dataset.sessionRowTitle,
+       color: row.dataset.sessionRowColor
+     };
+     const editor = createSavedSessionRowEditor(rowData);
+
+     row.appendChild(editor);
+     row.querySelectorAll(
+       '[data-action="customize-session-row"]'
+     ).forEach((button) => {
+       button.setAttribute("aria-expanded", "true");
+     });
+
+     requestAnimationFrame(() => {
+       editor.querySelector("[data-session-row-title-input]")?.focus();
+     });
+   }
+
+   function selectSavedSessionRowEditorColor(color) {
+     const editor = getOpenSavedSessionRowEditor();
+     const row = editor?.closest(".saved-session-row");
+     const normalizedColor = normalizeSavedSessionRowColor(color);
+
+     if (!editor || !row) {
+       return;
+     }
+
+     editor.dataset.selectedColor = normalizedColor;
+     editor.querySelectorAll(".saved-session-row-color").forEach(
+       (swatch) => {
+         swatch.setAttribute(
+           "aria-pressed",
+           String(
+             swatch.dataset.sessionRowColor === normalizedColor
+           )
+         );
+       }
+     );
+     applySavedSessionRowAppearance(row, {
+       title: row.dataset.sessionRowTitle,
+       color: normalizedColor
+     }, {
+       updateDataset: false
+     });
+   }
+
+   function resetSavedSessionRowEditor() {
+     const editor = getOpenSavedSessionRowEditor();
+     const input = editor?.querySelector(
+       "[data-session-row-title-input]"
+     );
+
+     if (!editor || !input) {
+       return;
+     }
+
+     input.value = "";
+     selectSavedSessionRowEditorColor("");
+     input.focus();
+   }
+
+   async function saveSavedSessionRowEditor(rowId) {
+     const editor = getOpenSavedSessionRowEditor();
+     const list = document.getElementById("savedSessionsList");
+     const normalizedRowId = String(rowId || "");
+
+     if (
+       !editor ||
+       editor.dataset.sessionRowEditor !== normalizedRowId ||
+       !list
+     ) {
+       return;
+     }
+
+     const layout = getSavedSessionDomLayout(list);
+     const rowData = layout.find(
+       (row) => row.id === normalizedRowId
+     );
+
+     if (!rowData) {
+       closeSavedSessionRowEditor();
+       return;
+     }
+
+     rowData.title = normalizeSavedSessionRowTitle(
+       editor.querySelector(
+         "[data-session-row-title-input]"
+       )?.value
+     );
+     rowData.color = normalizeSavedSessionRowColor(
+       editor.dataset.selectedColor
+     );
+
+     try {
+       deferCollectionStorageRefreshUntil = Date.now() + 300;
+       await saveSavedSessionRows(layout);
+       closeSavedSessionRowEditor();
+       await renderSavedSessions();
+       showToast(t("sessionRowSaved"));
+     } catch (error) {
+       console.warn(
+         "[tab-out] session row customization failed:",
+         error
+       );
+       showToast(t("sessionRowSaveFailed"));
+     }
+   }
+
+   function getSavedSessionRowElements(list) {
+     return Array.from(
+       list?.querySelectorAll(
+         ":scope > .saved-session-row:not(.saved-session-new-row-target):not(.saved-session-row-placeholder)"
+       ) || []
+     );
+   }
+
+   function suppressNextSessionRowCustomize(rowId) {
+     suppressedSessionRowCustomize = {
+       rowId: String(rowId || ""),
+       until: Date.now() + 700
+     };
+   }
+
+   function consumeSuppressedSessionRowCustomize(rowId) {
+     const suppression = suppressedSessionRowCustomize;
+
+     if (!suppression) {
+       return false;
+     }
+
+     if (Date.now() > suppression.until) {
+       suppressedSessionRowCustomize = null;
+       return false;
+     }
+
+     if (suppression.rowId !== String(rowId || "")) {
+       return false;
+     }
+
+     suppressedSessionRowCustomize = null;
+     return true;
+   }
+
+   function getSavedSessionTargetRow(list, y) {
+     const rows = getSavedSessionRowElements(list);
+
+     if (!rows.length) {
+       return null;
+     }
+
+     return rows.reduce((closest, row) => {
+       const rect = row.getBoundingClientRect();
+       const distance = y < rect.top
+         ? rect.top - y
+         : y > rect.bottom
+           ? y - rect.bottom
+           : 0;
+
+       if (!closest || distance < closest.distance) {
+         return { row, distance };
+       }
+
+       return closest;
+     }, null)?.row || rows[rows.length - 1];
+   }
+
+   function getSavedSessionInsertBefore(row, x, y) {
+     const cards = getSavedSessionCards(row);
 
      return cards.find((card) => {
        const rect = card.getBoundingClientRect();
@@ -2023,23 +2861,241 @@
      }) || null;
    }
 
-   function getSavedSessionDomOrder(list) {
-     if (!list) return [];
+   function getSavedSessionDomLayout(list) {
+     return getSavedSessionRowElements(list)
+       .map((row) => {
+         const sessionIds = Array.from(
+           row.querySelectorAll(
+             ':scope > .saved-session-card[data-session-draggable="true"]'
+           )
+         )
+           .map((card) => card.dataset.sessionId)
+           .filter(Boolean);
 
-     return Array.from(
-       list.querySelectorAll('.saved-session-card[data-session-draggable="true"]')
-     ).map((card) => card.dataset.sessionId).filter(Boolean);
+         if (!sessionIds.length) {
+           return null;
+         }
+
+         if (!row.dataset.sessionRowId) {
+           row.dataset.sessionRowId = createSavedSessionRowId();
+         }
+
+         return {
+           id: row.dataset.sessionRowId,
+           sessionIds,
+           title: normalizeSavedSessionRowTitle(
+             row.dataset.sessionRowTitle
+           ),
+           color: normalizeSavedSessionRowColor(
+             row.dataset.sessionRowColor
+           )
+         };
+       })
+       .filter(Boolean);
    }
 
-   function hasSavedSessionOrderChanged(before, after) {
-     if (before.length !== after.length) return true;
-     return before.some((id, index) => id !== after[index]);
+   function getSavedSessionDomRows(list) {
+     return getSavedSessionDomLayout(list).map(
+       (row) => row.sessionIds
+     );
+   }
+
+   function getSavedSessionDomOrder(list) {
+     return getSavedSessionDomLayout(list)
+       .flatMap((row) => row.sessionIds);
+   }
+
+   function hasSavedSessionRowsChanged(before, after) {
+     return JSON.stringify(before) !== JSON.stringify(after);
+   }
+
+   function getSavedSessionRowInsertBefore(list, y) {
+     return getSavedSessionRowElements(list).find((row) => {
+       const rect = row.getBoundingClientRect();
+       return y < rect.top + rect.height / 2;
+     }) || null;
+   }
+
+   function startSavedSessionRowPointerDrag(event, state) {
+     const { handle, list, row } = state;
+
+     closeSavedSessionRowEditor();
+
+     const rect = row.getBoundingClientRect();
+     const placeholder = document.createElement("div");
+     const ghost = row.cloneNode(true);
+
+     state.dragging = true;
+     state.offsetX = event.clientX - rect.left;
+     state.offsetY = event.clientY - rect.top;
+     state.placeholder = placeholder;
+     state.ghost = ghost;
+
+     if (handle.setPointerCapture) {
+       try { handle.setPointerCapture(event.pointerId); } catch {}
+     }
+
+     placeholder.className =
+       "saved-session-row saved-session-row-placeholder";
+     placeholder.style.height = `${rect.height}px`;
+
+     ghost.classList.add("saved-session-row-drag-ghost");
+     ghost.querySelector(".saved-session-row-editor")?.remove();
+     ghost.querySelectorAll(".saved-session-card").forEach((card) => {
+       card.classList.remove("is-expanded");
+     });
+     ghost.querySelectorAll(".saved-session-inline-tabs").forEach(
+       (tabs) => tabs.remove()
+     );
+     ghost.querySelectorAll(".saved-session-expand").forEach(
+       (button) => button.remove()
+     );
+     ghost.querySelectorAll("button, input, select, textarea").forEach(
+       (control) => {
+         control.tabIndex = -1;
+       }
+     );
+     ghost.style.width = `${rect.width}px`;
+     ghost.style.left = "0px";
+     ghost.style.top = "0px";
+
+     list.classList.add("is-row-reordering");
+     list.insertBefore(placeholder, row);
+     row.remove();
+     document.body.appendChild(ghost);
+
+     updateSavedSessionRowPointerDrag(event);
+   }
+
+   function updateSavedSessionRowPointerDrag(event) {
+     const state = savedSessionRowDragState;
+
+     if (!state?.dragging) {
+       return;
+     }
+
+     const { ghost, list, offsetX, offsetY, placeholder } = state;
+
+     ghost.style.transform = `translate3d(${event.clientX - offsetX}px, ${event.clientY - offsetY}px, 0)`;
+
+     const edgeSize = 54;
+     const scrollStep = 14;
+
+     if (event.clientY < edgeSize) {
+       window.scrollBy(0, -scrollStep);
+     } else if (event.clientY > window.innerHeight - edgeSize) {
+       window.scrollBy(0, scrollStep);
+     }
+
+     const insertBefore = getSavedSessionRowInsertBefore(
+       list,
+       event.clientY
+     );
+
+     if (insertBefore) {
+       list.insertBefore(placeholder, insertBefore);
+     } else {
+       list.appendChild(placeholder);
+     }
+   }
+
+   async function finishSavedSessionRowPointerDrag(
+     event,
+     { cancelled = false } = {}
+   ) {
+     const state = savedSessionRowDragState;
+
+     if (!state) {
+       return;
+     }
+
+     const {
+       dragging,
+       ghost,
+       handle,
+       initialRows,
+       list,
+       placeholder,
+       row,
+       rowId
+     } = state;
+
+     savedSessionRowDragState = null;
+
+     if (handle?.releasePointerCapture) {
+       try { handle.releasePointerCapture(event.pointerId); } catch {}
+     }
+
+     if (!dragging) {
+       return;
+     }
+
+     placeholder?.parentElement?.insertBefore(row, placeholder);
+     placeholder?.remove();
+     ghost?.remove();
+     list?.classList.remove("is-row-reordering");
+
+     if (cancelled) {
+       await renderSavedSessions();
+       return;
+     }
+
+     suppressNextSessionRowCustomize(rowId);
+
+     const finalRows = getSavedSessionDomLayout(list);
+
+     if (hasSavedSessionRowsChanged(initialRows, finalRows)) {
+       await saveCurrentSavedSessionLayout();
+       showToast(t("sessionsLayoutSaved"));
+     }
+   }
+
+   function shouldUseNewSavedSessionRow(state, x, y) {
+     const rows = getSavedSessionRowElements(state.list);
+     const lastRow = rows[rows.length - 1];
+
+     if (!lastRow) {
+       return true;
+     }
+
+     const listRect = state.list.getBoundingClientRect();
+     const lastRowRect = lastRow.getBoundingClientRect();
+     const targetRect =
+       state.newRowTarget.getBoundingClientRect();
+     const withinHorizontalBounds =
+       x >= listRect.left - 12 &&
+       x <= listRect.right + 12;
+     const activationTop = lastRowRect.bottom + 3;
+     const activationBottom = Math.max(
+       lastRowRect.bottom + 108,
+       targetRect.bottom + 24
+     );
+
+     return (
+       withinHorizontalBounds &&
+       y >= activationTop &&
+       y <= activationBottom
+     );
+   }
+
+   function removeEmptySavedSessionRows(list) {
+     getSavedSessionRowElements(list).forEach((row) => {
+       if (
+         !row.querySelector(
+           '.saved-session-card[data-session-draggable="true"]'
+         )
+       ) {
+         row.remove();
+       }
+     });
    }
 
    function startSavedSessionPointerDrag(event, state) {
      const { card, list } = state;
      const rect = card.getBoundingClientRect();
+     const sourceRow = card.closest(".saved-session-row");
 
+     closeSavedSessionRowEditor();
      state.dragging = true;
      draggedSavedSessionId = card.dataset.sessionId;
      suppressSavedSessionOpenUntil = Date.now() + 500;
@@ -2067,11 +3123,21 @@
      state.offsetY = event.clientY - rect.top;
      state.placeholder = placeholder;
      state.ghost = ghost;
+     state.sourceRow = sourceRow;
+     state.newRowTarget = createSavedSessionRow(
+       null,
+       "saved-session-new-row-target"
+     );
+     state.newRowTarget.dataset.newRowLabel = t(
+       "dropCreateSessionRow"
+     );
+     state.newRowTarget.setAttribute("aria-hidden", "true");
 
      list.classList.add('is-reordering');
      card.classList.add('is-drag-source');
-     list.insertBefore(placeholder, card);
+     sourceRow.insertBefore(placeholder, card);
      card.remove();
+     list.appendChild(state.newRowTarget);
      document.body.appendChild(ghost);
 
      updateSavedSessionPointerDrag(event);
@@ -2090,16 +3156,57 @@
        ghost.style.transform = `translate3d(${event.clientX - offsetX}px, ${event.clientY - offsetY}px, 0)`;
      }
 
-     if (!list || !placeholder) {
+     if (!list || !placeholder || !state.newRowTarget) {
        return;
      }
 
-     const insertBefore = getSavedSessionInsertBefore(list, event.clientX, event.clientY);
+     const edgeSize = 54;
+     const scrollStep = 14;
+
+     if (event.clientY < edgeSize) {
+       window.scrollBy(0, -scrollStep);
+     } else if (event.clientY > window.innerHeight - edgeSize) {
+       window.scrollBy(0, scrollStep);
+     }
+
+     if (
+       shouldUseNewSavedSessionRow(
+         state,
+         event.clientX,
+         event.clientY
+       )
+     ) {
+       state.newRowTarget.classList.add(
+         "is-visible",
+         "is-active"
+       );
+       state.newRowTarget.appendChild(placeholder);
+       return;
+     }
+
+     state.newRowTarget.classList.remove(
+       "is-visible",
+       "is-active"
+     );
+     const targetRow = getSavedSessionTargetRow(
+       list,
+       event.clientY
+     );
+
+     if (!targetRow) {
+       return;
+     }
+
+     const insertBefore = getSavedSessionInsertBefore(
+       targetRow,
+       event.clientX,
+       event.clientY
+     );
 
      if (insertBefore && insertBefore !== placeholder) {
-       list.insertBefore(placeholder, insertBefore);
+       targetRow.insertBefore(placeholder, insertBefore);
      } else if (!insertBefore) {
-       list.appendChild(placeholder);
+       targetRow.appendChild(placeholder);
      }
    }
 
@@ -2110,7 +3217,15 @@
        return;
      }
 
-     const { card, list, placeholder, ghost, initialOrder, dragging } = state;
+     const {
+       card,
+       list,
+       placeholder,
+       ghost,
+       initialRows,
+       dragging,
+       newRowTarget
+     } = state;
 
      savedSessionDragState = null;
 
@@ -2123,11 +3238,40 @@
      }
 
      suppressSavedSessionOpenUntil = Date.now() + 600;
+     const createdNewRow =
+       placeholder?.parentElement === newRowTarget;
 
      if (placeholder && list) {
-       list.insertBefore(card, placeholder);
+       placeholder.parentElement?.insertBefore(card, placeholder);
        placeholder.remove();
      }
+
+     if (createdNewRow && newRowTarget) {
+       const newRowData = {
+         id: createSavedSessionRowId(),
+         sessionIds: [],
+         title: "",
+         color: ""
+       };
+
+       newRowTarget.classList.remove(
+         "saved-session-new-row-target",
+         "is-visible",
+         "is-active"
+       );
+       newRowTarget.removeAttribute("data-new-row-label");
+       newRowTarget.removeAttribute("aria-hidden");
+       newRowTarget.dataset.sessionRowId = newRowData.id;
+       applySavedSessionRowAppearance(newRowTarget, newRowData);
+       newRowTarget.insertBefore(
+         createSavedSessionRowTools(newRowData),
+         newRowTarget.firstChild
+       );
+     } else {
+       newRowTarget?.remove();
+     }
+
+     removeEmptySavedSessionRows(list);
 
      if (ghost) {
        ghost.remove();
@@ -2143,40 +3287,29 @@
 
      draggedSavedSessionId = null;
 
-     const finalOrder = getSavedSessionDomOrder(list);
+     const finalRows = getSavedSessionDomLayout(list);
 
-     if (hasSavedSessionOrderChanged(initialOrder, finalOrder)) {
-       await saveCurrentSavedSessionOrder();
-       showToast(t('sessionsReordered'));
+     if (hasSavedSessionRowsChanged(initialRows, finalRows)) {
+       await saveCurrentSavedSessionLayout();
+       showToast(t('sessionsLayoutSaved'));
      }
    }
 
-   async function saveCurrentSavedSessionOrder() {
+   async function saveCurrentSavedSessionLayout() {
      const list = document.getElementById("savedSessionsList");
 
      if (!list || savedSessionsViewMode !== "sessions") {
        return;
      }
 
-     const orderedIds = getSavedSessionDomOrder(list);
+     const rows = getSavedSessionDomLayout(list);
+     const orderedIds = rows.flatMap((row) => row.sessionIds);
 
      if (orderedIds.length === 0) {
        return;
      }
 
-     const sessions = await getSavedSessions();
-     const byId = new Map(sessions.map((session) => [session.id, session]));
-     const reorderedSessions = orderedIds
-       .map((id) => byId.get(id))
-       .filter(Boolean);
-
-     sessions.forEach((session) => {
-       if (!orderedIds.includes(session.id)) {
-         reorderedSessions.push(session);
-       }
-     });
-
-     await saveSavedSessions(reorderedSessions);
+     await saveSavedSessionRows(rows);
    }
 
    let savedSessionsViewMode = "sessions";
@@ -2572,8 +3705,10 @@
      }
 
      if (
+       savedSessionRowDragState?.dragging ||
        openTabAssignmentDragState?.dragging ||
-       savedSessionTabDragState?.dragging
+       savedSessionTabDragState?.dragging ||
+       savedLaterDragState?.dragging
      ) {
        return;
      }
@@ -2588,10 +3723,11 @@
      section.hidden = false;
      savedSessionsViewMode = "sessions";
 
-     const [sessions, liveGroups, browserTabs] = await Promise.all([
-       getSavedSessions(),
+     const sessions = await getSavedSessions();
+     const [liveGroups, browserTabs, sessionRows] = await Promise.all([
        getCurrentChromeGroups(),
-       queryTabsWithMetadata({})
+       queryTabsWithMetadata({}),
+       getSavedSessionRows(sessions)
      ]);
 
      const sessionIds = new Set(sessions.map((session) => session.id));
@@ -2612,16 +3748,84 @@
        return;
      }
 
-     sessions.forEach((session) => {
-       list.appendChild(
-         renderUnifiedSessionCard(session, liveGroups, browserTabs)
-       );
+     const sessionsById = new Map(
+       sessions.map((session) => [String(session.id), session])
+     );
+     const renderedIds = new Set();
+
+     sessionRows
+       .map(normalizeSavedSessionRowData)
+       .forEach((rowData) => {
+       const row = createSavedSessionRow(rowData);
+
+       rowData.sessionIds.forEach((sessionId) => {
+         const normalizedId = String(sessionId);
+         const session = sessionsById.get(normalizedId);
+
+         if (!session || renderedIds.has(normalizedId)) {
+           return;
+         }
+
+         renderedIds.add(normalizedId);
+         row.appendChild(
+           renderUnifiedSessionCard(
+             session,
+             liveGroups,
+             browserTabs
+           )
+         );
+       });
+
+       if (
+         row.querySelector(
+           ':scope > .saved-session-card[data-session-draggable="true"]'
+         )
+       ) {
+         list.appendChild(row);
+       }
      });
+
+     const missingSessions = sessions.filter(
+       (session) => !renderedIds.has(String(session.id))
+     );
+
+     if (missingSessions.length > 0) {
+       const targetRow =
+         getSavedSessionRowElements(list).at(-1) ||
+         createSavedSessionRow({
+           id: createSavedSessionRowId(),
+           sessionIds: [],
+           title: "",
+           color: ""
+         });
+
+       if (!targetRow.isConnected) {
+         list.appendChild(targetRow);
+       }
+
+       missingSessions.forEach((session) => {
+         targetRow.appendChild(
+           renderUnifiedSessionCard(
+             session,
+             liveGroups,
+             browserTabs
+           )
+         );
+       });
+     }
 
      const provisionalCard = renderProvisionalSessionCard();
 
      if (provisionalCard) {
-       list.appendChild(provisionalCard);
+       const targetRow =
+         getSavedSessionRowElements(list).at(-1) ||
+         createSavedSessionRow();
+
+       if (!targetRow.isConnected) {
+         list.appendChild(targetRow);
+       }
+
+       targetRow.appendChild(provisionalCard);
      }
 
      focusPendingSessionNameInput();

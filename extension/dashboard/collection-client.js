@@ -29,10 +29,24 @@
     return Array.isArray(response.sessions) ? response.sessions : [];
   }
 
+  async function getSessionRows() {
+    const response = await request({
+      type: "tabOut:getSessionRows"
+    });
+    return Array.isArray(response.rows) ? response.rows : [];
+  }
+
   async function replaceSessions(sessions) {
     return request({
       type: "tabOut:replaceSessions",
       sessions
+    });
+  }
+
+  async function replaceSessionRows(rows) {
+    return request({
+      type: "tabOut:replaceSessionRows",
+      rows
     });
   }
 
@@ -50,8 +64,10 @@
 
   globalThis.TabOutCollectionClient = Object.freeze({
     getProtectedGroups,
+    getSessionRows,
     getSessions,
     replaceProtectedGroups,
+    replaceSessionRows,
     replaceSessions,
     send
   });

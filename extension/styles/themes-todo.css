@@ -264,6 +264,94 @@ html[data-theme="light"] .open-tabs-undo-count {
   color: #343b42;
 }
 
+html[data-theme="light"] .todo-task-actions {
+  border-color: rgba(37, 48, 58, 0.14);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.76),
+      rgba(255, 255, 255, 0.98) 18%
+    );
+  box-shadow: 0 8px 22px rgba(42, 50, 58, 0.18);
+}
+
+html[data-theme="light"] .saved-session-row.has-session-row-color {
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(
+        in srgb,
+        var(--session-row-accent) 14%,
+        transparent
+      ),
+      rgba(255, 255, 255, 0.62) 44%,
+      transparent
+    );
+}
+
+html[data-theme="light"] :is(
+  .saved-session-row-label,
+  .saved-session-row-customize
+) {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.94);
+  color: #4d5963;
+  box-shadow: 0 6px 18px rgba(42, 50, 58, 0.14);
+}
+
+html[data-theme="light"] .saved-session-row-label {
+  background: color-mix(
+    in srgb,
+    var(--session-row-accent, #fff) 13%,
+    #fff
+  );
+  color: color-mix(
+    in srgb,
+    var(--session-row-accent, #35413a) 56%,
+    #26302a
+  );
+}
+
+html[data-theme="light"]
+  .saved-session-row.has-session-row-handle
+  > .saved-session-row-tools
+  .saved-session-row-customize {
+  border-color: rgba(37, 48, 58, 0.24);
+  background: rgba(255, 255, 255, 0.99);
+  color: #26312a;
+  box-shadow:
+    0 8px 20px rgba(42, 50, 58, 0.24),
+    0 0 0 3px rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="light"] .saved-session-row-editor {
+  border-color: var(--border);
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--text-strong);
+  box-shadow: 0 18px 48px rgba(42, 50, 58, 0.22);
+}
+
+html[data-theme="light"] .saved-session-row-editor-field input {
+  border-color: var(--border);
+  background: #fff;
+  color: var(--text);
+}
+
+html[data-theme="light"] :is(
+  .saved-session-row-editor-close,
+  .saved-session-row-reset
+) {
+  border-color: var(--border);
+  background: rgba(237, 240, 242, 0.86);
+  color: #56616b;
+}
+
+html[data-theme="light"] .saved-session-row-save {
+  border-color: rgba(58, 105, 70, 0.3);
+  background: rgba(70, 126, 84, 0.13);
+  color: #234b2d;
+}
+
 html[data-theme="light"] .open-tabs-undo-btn:hover:not(:disabled),
 html[data-theme="light"] .open-tabs-undo-btn:focus-visible {
   border-color: rgba(58, 105, 70, 0.3);
@@ -339,6 +427,13 @@ html[data-theme="light"] :is(
 
 html[data-theme="light"] .gmail-reading-pane {
   background: rgba(240, 242, 244, 0.72);
+}
+
+html[data-theme="light"] .gmail-subject-tooltip {
+  border-color: rgba(37, 48, 58, 0.18);
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--text-strong);
+  box-shadow: 0 8px 22px rgba(42, 50, 58, 0.2);
 }
 
 html[data-theme="light"] .gmail-thread-preview,
@@ -1281,6 +1376,7 @@ html[data-theme="light"] .todo-appearance-mark {
 }
 
 .todo-task-row {
+  position: relative;
   min-height: 60px;
   gap: 11px;
   padding: 10px 16px;
@@ -1477,10 +1573,30 @@ html[data-todo-full-titles="true"] .todo-task-main {
 }
 
 .todo-task-actions {
-  flex: 0 0 auto;
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  right: 12px;
   gap: 5px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(24, 24, 25, 0.7),
+      rgba(24, 24, 25, 0.97) 18%
+    );
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
   opacity: 0;
-  transition: opacity 140ms ease;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(4px);
+  transition:
+    opacity 140ms ease,
+    visibility 140ms ease,
+    transform 140ms ease;
 }
 
 .todo-task:hover .todo-task-actions,
@@ -1488,6 +1604,9 @@ html[data-todo-full-titles="true"] .todo-task-main {
 .todo-archived-task:hover .todo-task-actions,
 .todo-archived-task:focus-within .todo-task-actions {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
 }
 
 .todo-task-icon-btn {
@@ -1939,10 +2058,6 @@ html[data-dashboard-density="compact"] .todo-widget {
 
   .todo-task-main {
     gap: 5px;
-  }
-
-  .todo-task-actions {
-    opacity: 1;
   }
 
   .todo-deadline-fields,

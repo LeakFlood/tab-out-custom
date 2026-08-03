@@ -947,8 +947,10 @@ function scheduleProtectedGroupsRefresh() {
 
   protectedGroupsRefreshTimer = setTimeout(async () => {
     if (
+      savedSessionRowDragState?.dragging ||
       openTabAssignmentDragState?.dragging ||
-      savedSessionTabDragState?.dragging
+      savedSessionTabDragState?.dragging ||
+      savedLaterDragState?.dragging
     ) {
       scheduleProtectedGroupsRefresh();
       return;

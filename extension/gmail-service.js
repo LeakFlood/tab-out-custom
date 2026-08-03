@@ -7,6 +7,8 @@ const GMAIL_NOTIFICATION_PREFIX = "tabout-gmail:";
 const GMAIL_NOTIFICATION_FETCH_LIMIT = 100;
 const GMAIL_KNOWN_MESSAGE_LIMIT = 500;
 const GMAIL_NOTIFICATION_BURST_LIMIT = 5;
+let gmailThreadCacheMutationQueue = Promise.resolve();
+let gmailSyncStateMutationQueue = Promise.resolve();
 
 function createGmailError(code, message = code) {
   const error = new Error(message);
@@ -321,10 +323,54 @@ async function setThreadCache(cache) {
   });
 }
 
+function mutateThreadCache(mutator) {
+  const mutation = gmailThreadCacheMutationQueue.then(async () => {
+    const cache = await getThreadCache();
+    const result = await mutator(cache);
+    await setThreadCache(cache);
+    return result;
+  });
+
+  gmailThreadCacheMutationQueue = mutation.catch(() => undefined);
+  return mutation;
+}
+
 async function clearAccountThreadCache(accountId) {
+  await mutateThreadCache((cache) => {
+    delete cache[accountId];
+  });
+}
+
+async function getCachedGmailThreads(accountId) {
+  await getGmailAccount(accountId);
+  const preferences = await getAccountPreferences(accountId);
+  const query = composeGmailQuery(preferences);
+  const signature = JSON.stringify({
+    query,
+    maxResults: preferences.maxResults
+  });
   const cache = await getThreadCache();
-  delete cache[accountId];
-  await setThreadCache(cache);
+  const cached = cache[accountId];
+
+  if (cached?.signature === signature) {
+    return {
+      ...cached,
+      fromCache: true,
+      stale: false
+    };
+  }
+
+  return {
+    accountId,
+    signature,
+    query,
+    fetchedAt: 0,
+    resultSizeEstimate: 0,
+    threads: [],
+    fromCache: true,
+    cacheMiss: true,
+    stale: false
+  };
 }
 
 async function listGmailThreads(accountId, { force = false } = {}) {
@@ -395,8 +441,9 @@ async function listGmailThreads(accountId, { force = false } = {}) {
         Number(list.resultSizeEstimate) || threads.length,
       threads
     };
-    cache[accountId] = result;
-    await setThreadCache(cache);
+    await mutateThreadCache((latestCache) => {
+      latestCache[accountId] = result;
+    });
     return {
       ...result,
       fromCache: false,
@@ -568,11 +615,11 @@ async function clearAccountsAfterOAuthChange(accounts) {
       );
     })
   );
-  const syncState = await getSyncState();
-  accounts.forEach((account) => {
-    delete syncState[account.accountId];
+  await mutateSyncState((syncState) => {
+    accounts.forEach((account) => {
+      delete syncState[account.accountId];
+    });
   });
-  await setSyncState(syncState);
   await requestTabOutBadgeRefresh();
 }
 
@@ -624,10 +671,22 @@ async function setSyncState(state) {
   });
 }
 
+function mutateSyncState(mutator) {
+  const mutation = gmailSyncStateMutationQueue.then(async () => {
+    const state = await getSyncState();
+    const result = await mutator(state);
+    await setSyncState(state);
+    return result;
+  });
+
+  gmailSyncStateMutationQueue = mutation.catch(() => undefined);
+  return mutation;
+}
+
 async function removeAccountSyncState(accountId) {
-  const state = await getSyncState();
-  delete state[accountId];
-  await setSyncState(state);
+  await mutateSyncState((state) => {
+    delete state[accountId];
+  });
 }
 
 async function getGmailUnreadTotal() {
@@ -814,7 +873,8 @@ async function pollGmailAccount(
   accountId,
   {
     notify = true,
-    forceSeed = false
+    forceSeed = false,
+    refreshThreads = false
   } = {}
 ) {
   const account = await getGmailAccount(accountId);
@@ -890,15 +950,18 @@ async function pollGmailAccount(
       (messageId) => !currentIds.includes(messageId)
     )
   ].slice(0, GMAIL_KNOWN_MESSAGE_LIMIT);
-  syncState[accountId] = {
+  const successfulPollAt = Date.now();
+  const nextSyncState = {
     initialized: true,
     querySignature,
     knownMessageIds: mergedKnownIds,
     unreadCount,
-    lastSuccessfulPollAt: Date.now(),
+    lastSuccessfulPollAt: successfulPollAt,
     consecutiveFailures: 0
   };
-  await setSyncState(syncState);
+  await mutateSyncState((latestState) => {
+    latestState[accountId] = nextSyncState;
+  });
   await requestTabOutBadgeRefresh();
 
   if (
@@ -920,26 +983,40 @@ async function pollGmailAccount(
     }
   }
 
+  let threadCacheRefreshed = false;
+
+  if (refreshThreads) {
+    try {
+      const threadResult = await listGmailThreads(accountId, {
+        force: true
+      });
+      threadCacheRefreshed = threadResult.stale !== true;
+    } catch {
+      threadCacheRefreshed = false;
+    }
+  }
+
   return {
     ok: true,
     accountId,
     unreadCount,
     newMessageCount: newMessages.length,
-    lastSuccessfulPollAt: syncState[accountId].lastSuccessfulPollAt
+    lastSuccessfulPollAt: successfulPollAt,
+    threadCacheRefreshed
   };
 }
 
 async function recordPollFailure(accountId, error) {
-  const state = await getSyncState();
-  const previous = state[accountId] || {};
-  state[accountId] = {
-    ...previous,
-    consecutiveFailures:
-      Math.min(6, Number(previous.consecutiveFailures) || 0) + 1,
-    lastFailureAt: Date.now(),
-    lastFailureCode: error?.code || "gmail_api_failed"
-  };
-  await setSyncState(state);
+  await mutateSyncState((state) => {
+    const previous = state[accountId] || {};
+    state[accountId] = {
+      ...previous,
+      consecutiveFailures:
+        Math.min(6, Number(previous.consecutiveFailures) || 0) + 1,
+      lastFailureAt: Date.now(),
+      lastFailureCode: error?.code || "gmail_api_failed"
+    };
+  });
 }
 
 async function seedGmailNotificationState(accountId) {
@@ -1074,9 +1151,15 @@ async function applyGmailThreadAction(accountId, threadId, action) {
   }
 
   await clearAccountThreadCache(accountId);
+  let threadCacheRefreshed = false;
 
   try {
-    await pollGmailAccount(accountId, { notify: false });
+    const pollResult = await pollGmailAccount(accountId, {
+      notify: false,
+      refreshThreads: true
+    });
+    threadCacheRefreshed =
+      pollResult.threadCacheRefreshed === true;
   } catch {
     // The action succeeded; background refresh can recover later.
   }
@@ -1084,7 +1167,8 @@ async function applyGmailThreadAction(accountId, threadId, action) {
   return {
     accountId,
     threadId: id,
-    action
+    action,
+    threadCacheRefreshed
   };
 }
 
@@ -1136,6 +1220,46 @@ async function getGmailState() {
     accounts,
     authReadiness: readiness,
     pendingAuth: readiness.pending
+  };
+}
+
+async function reorderGmailAccounts(accountIds) {
+  const store = await getAccountsStore();
+  const requestedIds = Array.isArray(accountIds)
+    ? accountIds.map((accountId) => String(accountId || ""))
+    : [];
+  const uniqueIds = new Set(requestedIds);
+  const accountsById = new Map(
+    store.accounts.map((account) => [account.accountId, account])
+  );
+
+  if (
+    requestedIds.length !== store.accounts.length ||
+    uniqueIds.size !== store.accounts.length ||
+    requestedIds.some((accountId) => !accountsById.has(accountId))
+  ) {
+    throw createGmailError("invalid_account_order");
+  }
+
+  const currentIds = store.accounts.map((account) => account.accountId);
+
+  if (
+    currentIds.every(
+      (accountId, index) => accountId === requestedIds[index]
+    )
+  ) {
+    return {
+      changed: false,
+      ...(await getGmailState())
+    };
+  }
+
+  store.accounts = requestedIds.map((accountId) => accountsById.get(accountId));
+  await saveAccountsStore(store);
+
+  return {
+    changed: true,
+    ...(await getGmailState())
   };
 }
 
@@ -1234,6 +1358,11 @@ async function handleGmailMessage(message) {
         ok: true,
         ...(await getGmailState())
       };
+    case "tabOutGmail:reorderAccounts":
+      return {
+        ok: true,
+        ...(await reorderGmailAccounts(message.accountIds))
+      };
     case "tabOutGmail:getAuthReadiness":
       return await getGmailAuthReadiness();
     case "tabOutGmail:getOAuthSettings":
@@ -1294,6 +1423,11 @@ async function handleGmailMessage(message) {
         ...(await listGmailThreads(message.accountId, {
           force: message.force === true
         }))
+      };
+    case "tabOutGmail:getCachedThreads":
+      return {
+        ok: true,
+        ...(await getCachedGmailThreads(message.accountId))
       };
     case "tabOutGmail:getLatestMessage":
       return {
@@ -1365,7 +1499,8 @@ async function handleGmailMessage(message) {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (
     !String(message?.type || "").startsWith("tabOutGmail:") ||
-    message.type === "tabOutGmail:authCompleted"
+    message.type === "tabOutGmail:authCompleted" ||
+    message.type === "tabOutGmail:scheduledRefreshCompleted"
   ) {
     return undefined;
   }
@@ -1387,9 +1522,28 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 function handleGmailAlarm(alarm) {
   if (alarm.name.startsWith(GMAIL_ALARM_PREFIX)) {
     const accountId = alarm.name.slice(GMAIL_ALARM_PREFIX.length);
-    pollGmailAccount(accountId, { notify: true }).catch(async (error) => {
-      await recordPollFailure(accountId, error);
-    });
+    pollGmailAccount(accountId, {
+      notify: true,
+      refreshThreads: true
+    })
+      .then((result) => {
+        try {
+          chrome.runtime.sendMessage(
+            {
+              type: "tabOutGmail:scheduledRefreshCompleted",
+              accountId,
+              threadCacheRefreshed:
+                result.threadCacheRefreshed === true
+            },
+            () => void chrome.runtime.lastError
+          );
+        } catch {
+          return;
+        }
+      })
+      .catch(async (error) => {
+        await recordPollFailure(accountId, error);
+      });
   }
 }
 
