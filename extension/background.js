@@ -1,93 +1,128 @@
-/**
- * background.js — Service Worker for Badge Updates
- *
- * Chrome's "always-on" background script for Tab Out.
- * Its only job: keep the toolbar badge showing the current open tab count.
- *
- * Since we no longer have a server, we query chrome.tabs directly.
- * The badge counts real web tabs (skipping chrome:// and extension pages).
- *
- * Color coding gives a quick at-a-glance health signal:
- *   Green  (#3d7a4a) → 1–10 tabs  (focused, manageable)
- *   Amber  (#b8892e) → 11–20 tabs (getting busy)
- *   Red    (#b35a5a) → 21+ tabs   (time to cull!)
- */
+try {
+  importScripts("gmail-oauth-client.js");
+} catch {}
 
-// ─── Badge updater ────────────────────────────────────────────────────────────
+importScripts(
+  "gmail-config.js",
+  "dashboard-settings.js",
+  "tab-metadata.js",
+  "collection-service.js",
+  "gmail-auth.js",
+  "gmail-api.js",
+  "gmail-service.js"
+);
 
-/**
- * updateBadge()
- *
- * Counts open real-web tabs and updates the extension's toolbar badge.
- * "Real" tabs = not chrome://, not extension pages, not about:blank.
- */
+function isBadgeEligibleTab(tab) {
+  const url = String(tab?.url || "");
+  return (
+    !url.startsWith("chrome://") &&
+    !url.startsWith("chrome-extension://") &&
+    !url.startsWith("about:") &&
+    !url.startsWith("edge://") &&
+    !url.startsWith("brave://")
+  );
+}
+
+function tabBadgeColor(tabCount) {
+  if (tabCount <= 10) {
+    return "#3d7a4a";
+  }
+
+  if (tabCount <= 20) {
+    return "#b8892e";
+  }
+
+  return "#b35a5a";
+}
+
 async function updateBadge() {
   try {
-    const tabs = await chrome.tabs.query({});
+    const [tabs, storedSettings, gmailUnread] = await Promise.all([
+      queryCollectionBrowserTabs({}),
+      chrome.storage.local.get([
+        TabOutDashboardSettings.STORAGE_KEY,
+        "tabOutLanguage"
+      ]),
+      getGmailUnreadTotal()
+    ]);
+    const tabCount = tabs.filter(isBadgeEligibleTab).length;
+    const settings = TabOutDashboardSettings.normalizeSettings(
+      storedSettings[TabOutDashboardSettings.STORAGE_KEY]
+    );
+    const badgeMode =
+      settings.integrations.gmail.badgeMode || "openTabs";
+    let count = tabCount;
+    let color = tabBadgeColor(tabCount);
 
-    // Only count actual web pages — skip browser internals and extension pages
-    const count = tabs.filter(t => {
-      const url = t.url || '';
-      return (
-        !url.startsWith('chrome://') &&
-        !url.startsWith('chrome-extension://') &&
-        !url.startsWith('about:') &&
-        !url.startsWith('edge://') &&
-        !url.startsWith('brave://')
-      );
-    }).length;
-
-    // Don't show "0" — an empty badge is cleaner
-    await chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
-
-    if (count === 0) return;
-
-    // Pick badge color based on workload level
-    let color;
-    if (count <= 10) {
-      color = '#3d7a4a'; // Green — you're in control
-    } else if (count <= 20) {
-      color = '#b8892e'; // Amber — things are piling up
-    } else {
-      color = '#b35a5a'; // Red — time to focus and close some tabs
+    if (badgeMode === "hidden") {
+      count = 0;
+    } else if (badgeMode === "gmailUnread") {
+      count = gmailUnread;
+      color = "#c95f55";
+    } else if (badgeMode === "combined") {
+      count = tabCount + gmailUnread;
+      color = "#7567b8";
     }
 
-    await chrome.action.setBadgeBackgroundColor({ color });
+    await chrome.action.setBadgeText({
+      text: count > 0
+        ? count > 999
+          ? "999+"
+          : String(count)
+        : ""
+    });
+    await chrome.action.setTitle({
+      title: storedSettings.tabOutLanguage === "en"
+        ? `Tab Out · ${tabCount} open tab(s) · ` +
+          `${gmailUnread} unread Gmail message(s)`
+        : `Tab Out · ${tabCount} onglet(s) ouvert(s) · ` +
+          `${gmailUnread} message(s) Gmail non lu(s)`
+    });
 
+    if (count > 0) {
+      await chrome.action.setBadgeBackgroundColor({ color });
+    }
   } catch {
-    // If something goes wrong, clear the badge rather than show stale data
-    chrome.action.setBadgeText({ text: '' });
+    await chrome.action.setBadgeText({ text: "" });
   }
 }
 
-// ─── Event listeners ──────────────────────────────────────────────────────────
+globalThis.TabOutUpdateBadge = updateBadge;
 
-// Update badge when the extension is first installed
+function runSessionMigration() {
+  ensureUnifiedSessionsMigration().catch((error) => {
+    console.warn("[tab-out] session migration failed:", error);
+  });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
+  runSessionMigration();
   updateBadge();
 });
 
-// Update badge when Chrome starts up
 chrome.runtime.onStartup.addListener(() => {
+  runSessionMigration();
   updateBadge();
+  pollAllGmailAccounts({ notify: true }).catch(() => undefined);
 });
 
-// Update badge whenever a tab is opened
-chrome.tabs.onCreated.addListener(() => {
-  updateBadge();
+chrome.tabs.onCreated.addListener(updateBadge);
+chrome.tabs.onRemoved.addListener(updateBadge);
+chrome.tabs.onUpdated.addListener(updateBadge);
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (
+    areaName === "local" &&
+    (
+      changes[TabOutDashboardSettings.STORAGE_KEY] ||
+      changes[GMAIL_SYNC_STATE_KEY] ||
+      changes[GMAIL_ACCOUNTS_KEY] ||
+      changes.tabOutLanguage
+    )
+  ) {
+    updateBadge();
+  }
 });
 
-// Update badge whenever a tab is closed
-chrome.tabs.onRemoved.addListener(() => {
-  updateBadge();
-});
-
-// Update badge when a tab's URL changes (e.g. navigating to/from chrome://)
-chrome.tabs.onUpdated.addListener(() => {
-  updateBadge();
-});
-
-// ─── Initial run ─────────────────────────────────────────────────────────────
-
-// Run once immediately when the service worker first loads
+runSessionMigration();
 updateBadge();

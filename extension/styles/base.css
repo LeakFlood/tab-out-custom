@@ -1,0 +1,90 @@
+/* ================================================================
+   Tab Out — Optimized Custom Styles
+   Cleaned for Yann's current layout.
+
+   Structure:
+   1. Variables / base
+   2. Header + quick links
+   3. Saved sessions
+   4. Open tabs / domain cards
+   5. Tab dropdowns
+   6. Saved for later / archive
+   7. Modals
+   8. Footer / toast / animations / responsive
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   1. Variables / base
+   ---------------------------------------------------------------- */
+
+:root {
+  --bg: #0f0f0f;
+  --surface: #171717;
+  --surface-soft: #202020;
+  --surface-card: rgba(255, 255, 255, 0.045);
+  --surface-card-hover: rgba(255, 255, 255, 0.075);
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #a8a8a8;
+  --muted-2: #bdbdbd;
+  --border: rgba(255, 255, 255, 0.11);
+  --border-soft: rgba(255, 255, 255, 0.055);
+  --accent-amber: #c8713a;
+  --accent-sage: #5a7a62;
+  --status-abandoned: #b35a5a;
+  --shadow: rgba(0, 0, 0, 0.24);
+  --unassigned-min-column-width: 290px;
+  --dashboard-container-padding-desktop: 64px;
+  --dashboard-container-padding-tablet: 32px;
+  --dashboard-container-padding-mobile: 20px;
+  --dashboard-container-max-width: 1300px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: #d8d8d8;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: var(--dashboard-container-max-width);
+  margin: 0 auto;
+  padding: 42px var(--dashboard-container-padding-desktop) 80px;
+  transition:
+    max-width 120ms ease,
+    padding-left 120ms ease,
+    padding-right 120ms ease;
+}
