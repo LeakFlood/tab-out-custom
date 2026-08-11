@@ -1,26 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Tab Out Custom",
-  "version": "1.11.0",
+  "version": "1.5.0",
   "description": "Keep tabs on your tabs. New tab page that groups your open tabs by domain and lets you close them with style.",
   "permissions": ["tabs", "activeTab", "storage", "geolocation", "tabGroups"],
-  "optional_permissions": ["notifications", "alarms"],
-  "optional_host_permissions": [
-    "https://gmail.googleapis.com/*",
-    "https://oauth2.googleapis.com/*"
-  ],
   "chrome_url_overrides": { "newtab": "index.html" },
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "Tab Out Custom",
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png"
     }
-  },
-  "commands": {
-    "_execute_action": {}
   },
 
 "host_permissions": [
