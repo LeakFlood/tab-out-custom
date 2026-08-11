@@ -4,6 +4,26 @@ A customized Chrome new tab workflow dashboard based on [Tab Out](https://github
 
 Original project by [Zara](https://github.com/zarazhangrui). Customized by [LK.](https://github.com/LeakFlood).
 
+## Variantes maintenues
+
+Ce dépôt maintient deux variantes indépendantes :
+
+* `main` — version LeakFlood ;
+* `remig-version` — variante RemiG3.
+
+Pour choisir la variante à développer ou utiliser :
+
+```bash
+git switch main
+# ou
+git switch remig-version
+```
+
+Les contributions ciblent explicitement leur variante : `feature/main-*` vers
+`main`, et `feature/remig-*` vers `remig-version`. Aucun changement n'est
+fusionné automatiquement entre ces deux lignes ; tout partage est décidé et
+intégré séparément.
+
 Tab Out Custom turns the browser new tab page into a compact productivity dashboard with shortcuts, reusable sessions, open-tab cleanup, local weather, French/English support, optional native tab-group connections, an optional local TODO list, and an optional Gmail notifier.
 
 ## Features
